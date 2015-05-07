@@ -93,7 +93,7 @@ class ObserverSink {
     }
 }
 
-class Observable {
+export class Observable {
 
     constructor(init) {
 
@@ -118,8 +118,10 @@ class Observable {
             // Call the stream initializer
             stop = this._init.call(undefined, sink);
 
-            // The return value must be a function or null or undefined
-            if (stop != null && typeof stop !== "function")
+            // If the return value is null or undefined, then use a default stop function
+            if (stop == null)
+                stop = (_=> sink.return());
+            else if (typeof stop !== "function")
                 throw new TypeError(stop + " is not a function");
 
         } catch (e) {
