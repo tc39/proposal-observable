@@ -126,10 +126,9 @@ export class Observable {
 
         } catch (e) {
 
-            // If an error occurs during startup, then send an error
-            // to the sink and rethrow error to caller.
+            // If an error occurs during startup, then attempt to send the error
+            // to the sink
             sink.throw(e);
-            throw e; // TODO:  Should we re-throw here?
         }
 
         sink._stop = stop;
