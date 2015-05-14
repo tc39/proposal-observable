@@ -3,7 +3,7 @@ import { Observable } from "../src/Observable.js";
 
 runTests({
 
-    "Stop Functions": {
+    "Cancellation functions": {
 
         "Allowed return values" (test) {
 
