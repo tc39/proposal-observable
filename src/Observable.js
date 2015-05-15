@@ -12,12 +12,16 @@ class ObserverSink {
         if (done)
             this._done = true;
 
-        if (this._stop) {
+        let stop = this._stop;
 
-            // Call the termination function and drop the reference to it.
-            // We must not call the termination function more than once.
-            this._stop.call(undefined);
+        if (stop) {
+
+            // Drop the reference to the termination function so that we don't
+            // call it more than once.
             this._stop = null;
+
+            // Call the termination function
+            stop();
         }
     }
 
