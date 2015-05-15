@@ -8,9 +8,9 @@ function takeUntil(stream, control) {
 
         let inputCancel = control.subscribe({
 
-            next(x) { sink.return(x) },
-            throw(x) { sink.throw(x) },
-            return(x) { sink.return(x) },
+            next: x => sink.return(x),
+            throw: x => sink.throw(x),
+            return: x => sink.return(x),
         });
 
         return _=> {
@@ -38,13 +38,13 @@ function switchLatest(stream) {
 
                 cancelInner = value.subscribe({
 
-                    next(value) { return sink.next(value) },
-                    throw(value) { return sink.throw(value) },
+                    next: x => sink.next(x),
+                    throw: x => sink.throw(x),
                 });
             },
 
-            throw(x) { sink.throw(x) },
-            return(x) { sink.return(x) },
+            throw: x => sink.throw(x),
+            return: x => sink.return(x),
 
         });
 
