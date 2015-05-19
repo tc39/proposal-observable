@@ -6,7 +6,6 @@ events, timer intervals, and sockets.  In addition, observables are:
 
 - Compositional: Observables can be composed with higher-order combinators.
 - Lazy: Observables do not start emiting data until an **observer** is subscribed.
-- Efficient: Data is sent to observers using direct function calls.
 - Integrated with ES6: Data is sent to consumers using the ES6 generator interface.
 
 The **Observable** concept comes from *reactive programming*.  See http://reactivex.io/
@@ -62,8 +61,8 @@ commandKeys(inputElement).subscribe({
 });
 ```
 
-Because observers implement the generator interface, we can use a generator function
-to consume the stream.
+Because observers implement the ES6 **generator** interface, we can use a generator
+function to consume the events.
 
 ```js
 function consumer() {

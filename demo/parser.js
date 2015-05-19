@@ -92,10 +92,12 @@ function parse() {
 
                 if (result.done)
                     sink.return(result.value);
+
+                return result;
             },
 
             throw(x) { return sink.throw(x) },
-            return() { return this.next({ type: "EOF" }); },
+            return() { return this.next({ type: "EOF" }) },
         });
     });
 }
