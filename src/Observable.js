@@ -97,6 +97,11 @@ class ObserverSink {
     }
 }
 
+function enqueueSubscription(fn) {
+
+    ENQUEUE_MICROTASK(fn);
+}
+
 export class Observable {
 
     constructor(init) {
@@ -115,35 +120,43 @@ export class Observable {
             throw new TypeError("Observer must be an object");
 
         let sink = new ObserverSink(observer),
+            aborted = false,
             stop;
 
-        try {
+        enqueueSubscription(_=> {
 
-            // Call the stream initializer
-            stop = this._init.call(undefined, sink);
+            try {
 
-            // If the return value is null or undefined, then use a default stop function
-            if (stop == null)
-                stop = (_=> sink.return());
-            else if (typeof stop !== "function")
-                throw new TypeError(stop + " is not a function");
+                // Call the stream initializer
+                stop = this._init.call(undefined, sink);
 
-        } catch (e) {
+                // If the return value is null or undefined, then use a default stop function
+                if (stop == null)
+                    stop = (_=> sink.return());
+                else if (typeof stop !== "function")
+                    throw new TypeError(stop + " is not a function");
 
-            // If an error occurs during startup, then attempt to send the error
-            // to the sink
-            sink.throw(e);
-        }
+            } catch (e) {
 
-        sink._stop = stop;
+                // If an error occurs during startup, then attempt to send the error
+                // to the sink
+                sink.throw(e);
+            }
 
-        // If the stream is already finished, then perform cleanup
-        if (sink._done)
-            sink._close();
+            sink._stop = stop;
+
+            // If the stream is already finished, then perform cleanup
+            if (sink._done || aborted)
+                sink._close();
+        });
 
         // Return a cancellation function.  The default cancellation function
         // will simply call return on the observer.
-        return _=> { sink._close() };
+        return _=> {
+
+            if (sink) sink._close();
+            else aborted = true;
+        };
     }
 
     forEach(fn) {
