@@ -1,34 +1,36 @@
-class ObserverSink {
+function cancelSubscription(subscription) {
 
-    constructor(observer) {
+    let cancel = subscription.cancel;
 
-        this._done = false;
-        this._stop = null;
-        this._observer = observer;
+    if (cancel) {
+
+        // Drop the reference to the termination function so that we don't
+        // call it more than once.
+        subscription.cancel = null;
+
+        // Call the termination function
+        cancel();
     }
+}
 
-    _close(done) {
+function closeSubscription(subscription) {
 
-        if (done)
-            this._done = true;
+    subscription.done = true;
+    cancelSubscription(subscription);
+}
 
-        let stop = this._stop;
+class WrappedObserver {
 
-        if (stop) {
+    constructor(observer, subscription) {
 
-            // Drop the reference to the termination function so that we don't
-            // call it more than once.
-            this._stop = null;
-
-            // Call the termination function
-            stop();
-        }
+        this._observer = observer;
+        this._subscription = subscription;
     }
 
     next(value) {
 
         // If the stream if closed, then return a "done" result
-        if (this._done)
+        if (this._subscription.done)
             return { done: true };
 
         let result;
@@ -41,13 +43,13 @@ class ObserverSink {
         } catch (e) {
 
             // If the observer throws, then close the stream and rethrow the error
-            this._close(true);
+            closeSubscription(this._subscription);
             throw e;
         }
 
         // Cleanup if sink is closed
         if (result && result.done)
-            this._close(true);
+            closeSubscription(this._subscription);
 
         return result;
     }
@@ -55,10 +57,10 @@ class ObserverSink {
     throw(value) {
 
         // If the stream is closed, throw the error to the caller
-        if (this._done)
+        if (this._subscription.done)
             throw value;
 
-        this._done = true;
+        this._subscription.done = true;
 
         try {
 
@@ -70,17 +72,17 @@ class ObserverSink {
 
         } finally {
 
-            this._close();
+            cancelSubscription(this._subscription);
         }
     }
 
     return(value) {
 
         // If the stream is closed, then return a done result
-        if (this._done)
+        if (this._subscription.done)
             return { done: true };
 
-        this._done = true;
+        this._subscription.done = true;
 
         try {
 
@@ -92,20 +94,20 @@ class ObserverSink {
 
         } finally {
 
-            this._close();
+            cancelSubscription(this._subscription);
         }
     }
 }
 
 export class Observable {
 
-    constructor(init) {
+    constructor(executor) {
 
         // The stream initializer must be a function
-        if (typeof init !== "function")
+        if (typeof executor !== "function")
             throw new TypeError("Observable initializer must be a function");
 
-        this._init = init;
+        this._executor = executor;
     }
 
     subscribe(observer) {
@@ -114,19 +116,20 @@ export class Observable {
         if (Object(observer) !== observer)
             throw new TypeError("Observer must be an object");
 
-        let sink = new ObserverSink(observer),
-            stop;
+        let subscription = { cancel: undefined, done: false },
+            sink = new WrappedObserver(observer, subscription),
+            cancel;
 
         try {
 
             // Call the stream initializer
-            stop = this._init.call(undefined, sink);
+            cancel = this._executor.call(undefined, sink);
 
-            // If the return value is null or undefined, then use a default stop function
-            if (stop == null)
-                stop = (_=> sink.return());
-            else if (typeof stop !== "function")
-                throw new TypeError(stop + " is not a function");
+            // If the return value is null or undefined, then use a default cancel function
+            if (cancel == null)
+                cancel = (_=> sink.return());
+            else if (typeof cancel !== "function")
+                throw new TypeError(cancel + " is not a function");
 
         } catch (e) {
 
@@ -135,15 +138,15 @@ export class Observable {
             sink.throw(e);
         }
 
-        sink._stop = stop;
+        subscription.cancel = cancel;
 
         // If the stream is already finished, then perform cleanup
-        if (sink._done)
-            sink._close();
+        if (subscription.done)
+            cancelSubscription(subscription);
 
         // Return a cancellation function.  The default cancellation function
         // will simply call return on the observer.
-        return _=> { sink._close() };
+        return _=> { cancelSubscription(subscription) };
     }
 
     forEach(fn) {
