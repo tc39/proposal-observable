@@ -80,3 +80,54 @@ function consumer() {
 commandKeys(inputElement).subscribe(consumer());
 ```
 
+### API ###
+
+#### Observable(executor) ###
+
+The **Observable** constructor initializes a new Observable object.  It is not
+intended to be called as a function and will throw an exception when called in
+that manner.
+
+The *executor* argument must be a function object.  It is called each time the
+*subscribe* method of the Observable object is invoked.  The *executor* is called
+with a wrapped observer object and may optionally return a function which will
+cancel the subscription.
+
+The **Observable** constructor performs the following steps:
+
+1. If **NewTarget** is undefined, throw a **TypeError** exception.
+1. If IsCallable(*executor*) is **false**, throw a **TypeError** exception.
+1. Let *observable* be OrdinaryCreateFromConstructor(**NewTarget**,
+   **"%ObservablePrototype%"**, «‍[[ObservableExecutor]]» ).
+1. ReturnIfAbrupt(**observable**).
+1. Set *observable's* [[ObservableExecutor]] internal slot to *executor*.
+1. Return *observable*.
+
+#### get Observable[@@species] ###
+
+**Observable[@@species]** is an accessor property whose set accessor function is
+**undefined**. Its get accessor function performs the following steps:
+
+1. Return the **this** value.
+
+#### Observable.prototype.subscribe(observer) ####
+
+The **subscribe** function begins sending values to the supplied *observer* object
+by executing the Observable object's *executor* function.  It returns a function
+which may be used to cancel the subscription.
+
+
+#### Observable.prototype.forEach(callbackfn) ###
+
+The **forEach** function subscribes to the Observable object, calling *callbackfn*
+once for each value in the sequence.  It returns a Promise object which is either
+fulfilled with the return value of the sequence or rejected with the error value of
+the sequence.
+
+#### Observable.prototype.filter(callbackfn) ####
+
+TODO
+
+#### Observable.prototype.map(callbackfn) ####
+
+TODO
