@@ -70,7 +70,7 @@ function runTest(options = {}) {
 
 let resultA, resultB;
 
-const TEST_ITERATIONS = 100000,
+const TEST_ITERATIONS = 10000,
       TEST_COUNT = 10;
 
 function runTestA() {

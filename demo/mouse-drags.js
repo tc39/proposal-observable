@@ -93,7 +93,7 @@ function mouseDrags(element) {
     return switchLatest(moveStreams);
 }
 
-let cancel = mouseDrags(contentElement).subscribe({
+let cancel = mouseDrags(document.body).subscribe({
 
     next(e) { console.log(`DRAG: <${ e.x }:${ e.y }>`) },
     throw(x) { console.log(`ERROR: ${ x }`) },

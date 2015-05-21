@@ -1,3 +1,4 @@
+// A sequence of token objects
 const TOKENS = [
 
     { type: "NUMBER", value: 123 },
@@ -7,6 +8,7 @@ const TOKENS = [
     { type: "NUMBER", value: 76 },
 ];
 
+// Returns an observable sequence of token objects
 function tokenStream() {
 
     return new Observable(sink => {
@@ -18,7 +20,8 @@ function tokenStream() {
     });
 }
 
-function parse() {
+// Returns an observable which outputs an AST from an input observable of token objects
+function parse(tokenStream) {
 
     let current = null;
 
@@ -81,7 +84,7 @@ function parse() {
         let generator = start();
         generator.next();
 
-        return this.subscribe({
+        return tokenStream.subscribe({
 
             next(x) {
 
@@ -102,8 +105,7 @@ function parse() {
     });
 }
 
-tokenStream()::parse().subscribe({
-
+parse(tokenStream()).subscribe({
     return(ast) { console.log(ast) },
     throw(error) { console.log(error) },
 });
