@@ -80,7 +80,10 @@ function consumer() {
 commandKeys(inputElement).subscribe(consumer());
 ```
 
-### API ###
+### API Specification ###
+
+*This specification is a work-in-progress.  Please see [the polyfill](src/Observable.js)
+for a more complete implementation in ES6.*
 
 #### Observable(executor) ###
 
@@ -150,3 +153,34 @@ guarantees:
 
 In addition, Subscription Observer objects provide default behaviors when the observer
 does not implement **throw** or **return**.
+
+#### CreateSubscriptionObserver Abstract Operation ####
+
+TODO
+
+#### CloseSubscription Abstract Operation ####
+
+TODO
+
+#### CancelSubscription Abstract Operation ####
+
+TODO
+
+#### The %SubscriptionObserverPrototype% Object ####
+
+All Subscription Observer objects inherit properties from the %SubscriptionObserverPrototype%
+intrinsic object.  The %SubscriptionObserverPrototype% object is an ordinary object and its
+[[Prototype]] internal slot is the %ObjectPrototype% intrinsic object. In addition,
+%SubscriptionObserverPrototype% has the following properties:
+
+#### %SubscriptionObserverPrototype%.next(value) ####
+
+TODO
+
+#### %SubscriptionObserverPrototype%.throw(exception) ####
+
+TODO
+
+#### %SubscriptionObserverPrototype%.return(value) ####
+
+TODO
