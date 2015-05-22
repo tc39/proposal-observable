@@ -19,7 +19,7 @@ function closeSubscription(subscription) {
     cancelSubscription(subscription);
 }
 
-class WrappedObserver {
+class SubscriptionObserver {
 
     constructor(observer, subscription) {
 
@@ -117,7 +117,7 @@ export class Observable {
             throw new TypeError("Observer must be an object");
 
         let subscription = { cancel: undefined, done: false },
-            sink = new WrappedObserver(observer, subscription),
+            sink = new SubscriptionObserver(observer, subscription),
             cancel;
 
         try {
