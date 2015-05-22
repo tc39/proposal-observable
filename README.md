@@ -5,7 +5,7 @@ The **Observable** type can be used to model push-based data sources such as DOM
 events, timer intervals, and sockets.  In addition, observables are:
 
 - Compositional: Observables can be composed with higher-order combinators.
-- Lazy: Observables do not start emiting data until an **observer** is subscribed.
+- Lazy: Observables do not start emitting data until an **observer** is subscribed.
 - Integrated with ES6: Data is sent to consumers using the ES6 generator interface.
 
 The **Observable** concept comes from *reactive programming*.  See http://reactivex.io/
@@ -131,3 +131,22 @@ TODO
 #### Observable.prototype.map(callbackfn) ####
 
 TODO
+
+#### Subscription Observer Objects ####
+
+A Subscription Observer is an object which wraps the *observer* argument supplied to the
+*subscribe* method of Observable objects.  Subscription Observer objects are passed as
+the single parameter to an observable's *executor* function.  They enforce the following
+guarantees:
+
+- If the observer's **next** method returns an iterator result object with a **done**
+  property whose value is **true**, then the observer will not be invoked again and the
+  observable's cancellation function will be called.
+- If the observer's **throw** method is called, then the observer will not be invoked
+  again and the observable's cancellation function will be called.
+- If the observer's **return** method is called, then the observer will not be invoked
+  again and the observable's cancellation function will be called.
+- The observable's cancellation function will be called at most one time.
+
+In addition, Subscription Observer objects provide default behaviors when the observer
+does not implement **throw** or **return**.
