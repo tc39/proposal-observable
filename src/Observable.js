@@ -31,7 +31,7 @@ class SubscriptionObserver {
 
         // If the stream if closed, then return a "done" result
         if (this._subscription.done)
-            return { done: true };
+            return { value: undefined, done: true };
 
         let result;
 
@@ -80,7 +80,7 @@ class SubscriptionObserver {
 
         // If the stream is closed, then return a done result
         if (this._subscription.done)
-            return { done: true };
+            return { value: undefined, done: true };
 
         this._subscription.done = true;
 
@@ -116,7 +116,7 @@ export class Observable {
         if (Object(observer) !== observer)
             throw new TypeError("Observer must be an object");
 
-        let subscription = { cancel: undefined, done: false },
+        let subscription = { cancel: null, done: false },
             sink = new SubscriptionObserver(observer, subscription),
             cancel;
 
@@ -150,6 +150,9 @@ export class Observable {
     }
 
     forEach(fn) {
+
+        if (typeof fn !== "function")
+            throw new TypeError(fn + " is not a function");
 
         return new Promise((resolve, reject) => {
 

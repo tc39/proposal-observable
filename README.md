@@ -82,8 +82,8 @@ commandKeys(inputElement).subscribe(consumer());
 
 ### API Specification ###
 
-*This specification is a work-in-progress.  Please see [the polyfill](src/Observable.js)
-for a more complete implementation in ES6.*
+*This specification is a work-in-progress.  Please see the [polyfill](src/Observable.js)
+for a more complete implementation.*
 
 #### Observable(executor) ###
 
@@ -119,6 +119,9 @@ The **subscribe** function begins sending values to the supplied *observer* obje
 by executing the Observable object's *executor* function.  It returns a function
 which may be used to cancel the subscription.
 
+The *subscribe* function performs the following steps:
+
+TODO
 
 #### Observable.prototype.forEach(callbackfn) ###
 
@@ -127,13 +130,19 @@ once for each value in the sequence.  It returns a Promise object which is eithe
 fulfilled with the return value of the sequence or rejected with the error value of
 the sequence.
 
-#### Observable.prototype.filter(callbackfn) ####
+The *forEach* function performs the following steps:
 
-TODO
-
-#### Observable.prototype.map(callbackfn) ####
-
-TODO
+1. Let *O* be ToObject(**this** value).
+1. ReturnIfAbrupt(*O*).
+1. If IsCallable(*callbackfn*) is **false**, throw a **TypeError** exception.
+1. Let *promiseCapability* be NewPromiseCapability(%Promise%).
+1. Let *observer* be ObjectCreate(%ObjectPrototype%).
+1. Perform CreateDataProperty(*observer*, **"next"**, *callbackfn*).
+1. Perform CreateDataProperty(*observer*, **"throw"**, *promiseCapability*.[[Reject]]).
+1. Perform CreateDataProperty(*observer*, **"return"**, *promiseCapability*.[[Resolve]]).
+1. Let *result* be Invoke(*O*, **"subscribe"**, «‍*observer*»).
+1. IfAbruptRejectPromise(*result*, *promiseCapability*).
+1. Return *promiseCapability*.[[Promise]].
 
 #### Subscription Observer Objects ####
 
@@ -156,15 +165,39 @@ does not implement **throw** or **return**.
 
 #### CreateSubscriptionObserver Abstract Operation ####
 
-TODO
+The abstract operation CreateSubscriptionObserver with arguments *observer* and
+*subscription* is used to create a normalized observer which can be supplied the
+an observable's *executor* function.  It performs the following steps:
 
-#### CloseSubscription Abstract Operation ####
+1. Assert: Type(*observer*) is Object.
+1. Assert: *subscription* is a ObservableSubscription Record.
+1. Let *subscriptionObserver* be ObjectCreate(%SubscriptionObserverPrototype%,
+   «‍[[Observer]], [[Subscription]]»).
+1. Set *subscriptionObserver's* [[Observer]] internal slot to *observer*.
+1. Set *subscriptionObserver's* [[Subscription]] internal slot to *subscription*.
+1. Return *subscriptionObserver*.
 
-TODO
+#### CloseSubscription(subscription) Abstract Operation ####
 
-#### CancelSubscription Abstract Operation ####
+The abstract operation CloseSubscription with argument *subscription* performs the
+following steps:
 
-TODO
+1. Assert: *subscription*.[[Done]] is **false**.
+1. Set *subscription*.[[Done]] to **true**.
+1. Return CancelSubscription(*subscription*).
+
+#### CancelSubscription(subscription) Abstract Operation ####
+
+The abstract operation CancelSubscription with argument *subscription* performs the
+following steps:
+
+1. Let *cancel* be *subscription*.[[Cancel]].
+1. If *cancel* is **null**, return **undefined**.
+1. Assert: IsCallable(*cancel*) is **true**.
+1. Set *subscription*.[[Cancel]] to **null**.
+1. Let *result* be Call(*cancel*, **undefined**).
+1. ReturnIfAbrupt(*result*).
+1. Return **undefined**.
 
 #### The %SubscriptionObserverPrototype% Object ####
 
@@ -175,12 +208,80 @@ intrinsic object.  The %SubscriptionObserverPrototype% object is an ordinary obj
 
 #### %SubscriptionObserverPrototype%.next(value) ####
 
-TODO
+1. Let *O* be the **this** value.
+1. If Type(*O*) is not Object, throw a **TypeError** exception.
+1. If *O* does not have all of the internal slots of a Subscription Observer Instance,
+   throw a **TypeError** exception.
+1. Let *subscription* be the value of the [[Subscription]] internal slot of *O*.
+1. Let *observer* be the value of the [[Observer]] internal slot of *O*.
+1. If *subscription*.[[Done]] is **true**, return CreateIterResultObject(**undefined**,
+   **true**).
+1. Let *result* be Invoke(*observer*, **"next"**, «‍value»).
+1. Let *closeSubscription* be **false**.
+1. If *result* is an abrupt completion,
+    1. Let *closeSubscription* be **true**.
+1. Else, if Type(*result*.[[value]]) is Object,
+    1. Let *closeSubscription* be IteratorComplete(*result*.[[value]]).
+1. If *closeSubscription* is **true**,
+    1. Let *closeResult* be CloseSubscription(*subscription*).
+    1. ReturnIfAbrupt(*closeResult*).
+1. Return Completion(*result*).
 
 #### %SubscriptionObserverPrototype%.throw(exception) ####
 
-TODO
+1. Let *O* be the **this** value.
+1. If Type(*O*) is not Object, throw a **TypeError** exception.
+1. If *O* does not have all of the internal slots of a Subscription Observer Instance,
+   throw a **TypeError** exception.
+1. Let *subscription* be the value of the [[Subscription]] internal slot of *O*.
+1. Let *observer* be the value of the [[Observer]] internal slot of *O*.
+1. If *subscription*.[[Done]] is **true**, return Completion{[[type]]: **throw**,
+   [[value]]: *exception*, [[target]]: **empty**}.
+1. Set *subscription*.[[Done]] to **true**.
+1. Let *result* be Get(*observer*, **"throw"**).
+1. If *result*.[[type]] is **normal**,
+    1. Let *throwAction* be *result*.[[value]].
+    1. If IsCallable(*throwAction*) is **true**,
+        1. Let *result* be Call(*throwAction*, *observer*, «‍exception»).
+    1. Else,
+        1. Let *result* be Completion{[[type]]: **throw**, [[value]]: *exception*,
+           [[target]]: **empty**}.
+1. Let *cancelResult* be CancelSubscription(*subscription*).
+1. ReturnIfAbrupt(*cancelResult*).
+1. Return Completion(*result*).
 
 #### %SubscriptionObserverPrototype%.return(value) ####
 
-TODO
+1. Let *O* be the **this** value.
+1. If Type(*O*) is not Object, throw a **TypeError** exception.
+1. If *O* does not have all of the internal slots of a Subscription Observer Instance,
+   throw a **TypeError** exception.
+1. Let *subscription* be the value of the [[Subscription]] internal slot of *O*.
+1. Let *observer* be the value of the [[Observer]] internal slot of *O*.
+1. If *subscription*.[[Done]] is **true**, return CreateIterResultObject(**undefined**,
+   **true**).
+1. Set *subscription*.[[Done]] to **true**.
+1. Let *result* be Get(*observer*, **"return"**).
+1. If *result*.[[type]] is **normal**,
+    1. Let *returnAction* be *result*.[[value]].
+    1. If IsCallable(*returnAction*) is **true**,
+        1. Let *result* be Call(*returnAction*, *observer*, «‍value»).
+    1. Else,
+        1. Let *result* be NormalCompletion(CreateIterResultObject(**undefined**,
+           **true**)).
+1. Let *cancelResult* be CancelSubscription(*subscription*).
+1. ReturnIfAbrupt(*cancelResult*).
+1. Return Completion(*result*).
+
+#### ObservableSubscription Records ####
+
+The ObservableSubscription is a Record value used to store the current subscription
+state and the cancellation function provided by an observable.
+
+ObservableSubscription records have the following fields:
+
+- [[Done]] *Boolean*:  Initially **false**, set to **true** if the subscription has been
+  terminated by the observer indicating completion or by the observable calling
+  **throw** or **return** on its observer.
+- [[Cancel]] *a function object or null*: A function provided by the observable
+  which will terminate the subscription.
