@@ -149,7 +149,7 @@ export class Observable {
         return _=> { cancelSubscription(subscription) };
     }
 
-    forEach(fn) {
+    forEach(fn, thisArg = undefined) {
 
         if (typeof fn !== "function")
             throw new TypeError(fn + " is not a function");
@@ -158,14 +158,14 @@ export class Observable {
 
             this.subscribe({
 
-                next: fn,
+                next: value => fn.call(thisArg, value),
                 throw: reject,
                 return: resolve,
             });
         });
     }
 
-    map(fn) {
+    map(fn, thisArg = undefined) {
 
         if (typeof fn !== "function")
             throw new TypeError(fn + " is not a function");
@@ -174,7 +174,7 @@ export class Observable {
 
             next(value) {
 
-                try { value = fn(value) }
+                try { value = fn.call(thisArg, value) }
                 catch (e) { return sink.throw(e) }
 
                 return sink.next(value);
@@ -185,7 +185,7 @@ export class Observable {
         }));
     }
 
-    filter(fn) {
+    filter(fn, thisArg = undefined) {
 
         if (typeof fn !== "function")
             throw new TypeError(fn + " is not a function");
@@ -194,7 +194,7 @@ export class Observable {
 
             next(value) {
 
-                try { if (!fn(value)) return { done: false } }
+                try { if (!fn.call(thisArg, value)) return { done: false } }
                 catch (e) { return sink.throw(e) }
 
                 return sink.next(value);
