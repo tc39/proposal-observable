@@ -123,7 +123,7 @@ The *subscribe* function performs the following steps:
 
 TODO
 
-#### Observable.prototype.forEach(callbackfn) ###
+#### Observable.prototype.forEach(callbackfn [, thisArg]) ###
 
 The **forEach** function subscribes to the Observable object, calling *callbackfn*
 once for each value in the sequence.  It returns a Promise object which is either
@@ -135,9 +135,13 @@ The *forEach* function performs the following steps:
 1. Let *O* be ToObject(**this** value).
 1. ReturnIfAbrupt(*O*).
 1. If IsCallable(*callbackfn*) is **false**, throw a **TypeError** exception.
+1. If *thisArg* was supplied, let *T* be *thisArg*; else let *T* be **undefined**.
+1. Let *observerNext* be BoundFunctionCreate(*callbackfn*, *T*, «‍»).
+1. ReturnIfAbrupt(*observerNext*).
 1. Let *promiseCapability* be NewPromiseCapability(%Promise%).
+1. ReturnIfAbrupt(*promiseCapability*).
 1. Let *observer* be ObjectCreate(%ObjectPrototype%).
-1. Perform CreateDataProperty(*observer*, **"next"**, *callbackfn*).
+1. Perform CreateDataProperty(*observer*, **"next"**, *observerNext*).
 1. Perform CreateDataProperty(*observer*, **"throw"**, *promiseCapability*.[[Reject]]).
 1. Perform CreateDataProperty(*observer*, **"return"**, *promiseCapability*.[[Resolve]]).
 1. Let *result* be Invoke(*O*, **"subscribe"**, «‍*observer*»).
