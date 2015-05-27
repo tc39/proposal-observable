@@ -85,6 +85,12 @@ commandKeys(inputElement).subscribe(consumer());
 *This specification is a work-in-progress.  Please see the [polyfill](src/Observable.js)
 for a more complete implementation.*
 
+- [Observable Constructor](#observableexecutor)
+- [get Obsevable[@@species]](#get-observablespecies)
+- [Observable.prototype.subscribe](#observableprototypesubscribeobserver)
+- [Observable.prototype[@@subscribeSync]](#observableprototypesubscribesyncobserver)
+- [Observable.prototype.forEach](#observableprototypeforeachcallbackfn--thisarg)
+
 #### Observable(executor) ###
 
 The **Observable** constructor initializes a new Observable object.  It is not
@@ -355,8 +361,7 @@ state and the cancellation function provided by an observable.
 
 ObservableSubscription records have the following fields:
 
-- [[Done]] *Boolean*:  Initially **false**, set to **true** if the subscription has been
-  terminated by the observer indicating completion or by the observable calling
-  **throw** or **return** on its observer.
-- [[Cancel]] *a function object or null*: A function provided by the observable
-  which will terminate the subscription.
+Field Name | Value | Meaning
+-----------|-------|--------
+[[Done]]   | Boolean | Initially **false**, set to **true** if the subscription has been terminated by the observer indicating completion or by the observable calling **throw** or **return** on its observer.
+[[Cancel]] | a function object or **null** | A function provided by the observable which will terminate the subscription.
