@@ -138,7 +138,7 @@ The *subscribe* function performs the following steps:
     1. Else, let *aborted* be **true**.
     1. Return **undefined**.
 
-#### Observable.prototype[@@subscribeSync](observer) ####
+#### Observable.prototype\[@@subscribeSync](observer) ####
 
 The **@@subscribeSync** function begins sending values to the supplied *observer* object
 by executing the Observable object's *executor* function.  It returns a function
