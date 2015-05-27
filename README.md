@@ -4,12 +4,12 @@ This proposal introduces an **Observable** type to the ECMAScript standard libra
 The **Observable** type can be used to model push-based data sources such as DOM
 events, timer intervals, and sockets.  In addition, observables are:
 
-- Compositional: Observables can be composed with higher-order combinators.
-- Lazy: Observables do not start emitting data until an **observer** is subscribed.
-- Integrated with ES6: Data is sent to consumers using the ES6 generator interface.
+- *Compositional*: Observables can be composed with higher-order combinators.
+- *Lazy*: Observables do not start emitting data until an **observer** has subscribed.
+- *Integrated with ES6*: Data is sent to consumers using the ES6 generator interface.
 
-The **Observable** concept comes from *reactive programming*.  See http://reactivex.io/
-for more information.
+> The **Observable** concept comes from *reactive programming*.  See http://reactivex.io/
+> for more information.
 
 ### Example: Observing Keyboard Events ###
 
@@ -121,7 +121,44 @@ which may be used to cancel the subscription.
 
 The *subscribe* function performs the following steps:
 
-TODO
+1. Let *O* be the **this** value.
+1. If Type(*O*) is not Object, throw a **TypeError** exception.
+1. If *O* does not have an [[Executor]] internal slot, throw a **TypeError**
+   exception.
+1. If Type(*observer*) is not Object, throw a **TypeError** exception.
+1. Let *subscription* be a new ObservableSubscription { [[Done]]: **false**, [[Cancel]]:
+   **null** }.
+1. Let *subscriptionObserver* be CreateSubscriptionObserver(*observer*, *subscription*).
+1. ReturnIfAbrupt(*subscriptionObserver*).
+1. Let *executor* be the value of *O's* [[Executor]] internal slot.
+1. Let *executorResult* be Call(*executor*, **undefined**, *subscriptionObserver*).
+1. Let *executorResult* be GetObservableCancelFunction(*executorResult*,
+   *subscriptionObserver*).
+1. If *executorResult* is an abrupt completion,
+    1. Let *throwResult* be Invoke(*subscriptionObserver*, **"throw""**,
+       «‍*result*.[[value]]»).
+    1. ReturnIfAbrupt(*throwResult*).
+1. Set *subscription*.[[Cancel]] to *executorResult*.[[value]].
+1. If *subscription*.[[Done]] is **true**,
+    1. Let *cancelResult* be CancelSubscription(*subscription*).
+    1. ReturnIfAbrupt(*cancelResult*).
+1. Let *unsubscribeFunction* be a new built-in anonymous function which performs the
+   following steps:
+    1. Return Invoke(*subscriptionObserver*, **"return"**, «»).
+1. Return *unsubscribeFunction*.
+
+#### GetObservableCancelFunction(executorResult, observer) Abstract Operation ####
+
+The abstract operation GetObservableCancelFunction with arguments *executorResult*
+and *observer* performs the following steps:
+
+1. If *executorResult* is an abrupt completion, return *executorResult*.
+1. Let *cancelFunction* be *executorResult*.[[value]].
+1. If *cancelFunction* is **null** or **undefined**, let *cancelFunction* be a new
+   built-in anonymous function that performs the following steps:
+    1. Return Invoke(*observer*, **"return"**, «»).
+1. Else, if IsCallable(*cancelFunction*) is **false**, throw a **TypeError** exception.
+1. Return Completion(*executorResult*).
 
 #### Observable.prototype.forEach(callbackfn [, thisArg]) ###
 
@@ -136,7 +173,9 @@ The *forEach* function performs the following steps:
 1. ReturnIfAbrupt(*O*).
 1. If IsCallable(*callbackfn*) is **false**, throw a **TypeError** exception.
 1. If *thisArg* was supplied, let *T* be *thisArg*; else let *T* be **undefined**.
-1. Let *observerNext* be BoundFunctionCreate(*callbackfn*, *T*, «‍»).
+1. Let *observerNext* be a new built-in anonymous function which performs the following
+   steps when called with argument *value*:
+   1. Return Call(*callbackfn*, *T*, «‍value»).
 1. ReturnIfAbrupt(*observerNext*).
 1. Let *promiseCapability* be NewPromiseCapability(%Promise%).
 1. ReturnIfAbrupt(*promiseCapability*).
@@ -167,7 +206,7 @@ guarantees:
 In addition, Subscription Observer objects provide default behaviors when the observer
 does not implement **throw** or **return**.
 
-#### CreateSubscriptionObserver Abstract Operation ####
+#### CreateSubscriptionObserver(observer, subscription) Abstract Operation ####
 
 The abstract operation CreateSubscriptionObserver with arguments *observer* and
 *subscription* is used to create a normalized observer which can be supplied the
