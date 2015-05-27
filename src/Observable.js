@@ -25,8 +25,7 @@ function polyfillSymbol(name) {
         Object.defineProperty(Symbol, name, { value: Symbol(name) });
 }
 
-polyfillSymbol("observable");
-polyfillSymbol("subscribeSync");
+polyfillSymbol("observer");
 
 class SubscriptionObserver {
 
@@ -139,7 +138,7 @@ export class Observable {
         enqueueMicrotask(_=> {
 
             if (!abort)
-                cancel = this[Symbol.subscribeSync](observer);
+                cancel = this[Symbol.observer](observer);
         });
 
         return _=> {
@@ -149,7 +148,7 @@ export class Observable {
         };
     }
 
-    [Symbol.subscribeSync](observer) {
+    [Symbol.observer](observer) {
 
         // The sink must be an object
         if (Object(observer) !== observer)
@@ -243,8 +242,6 @@ export class Observable {
             return(value) { return sink.return(value) },
         }));
     }
-
-    [Symbol.observable]() { return this }
 
     static get [Symbol.species]() { return this }
 
