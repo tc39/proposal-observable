@@ -122,8 +122,6 @@ The *subscribe* function performs the following steps:
 
 1. Let *O* be the **this** value.
 1. If Type(*O*) is not Object, throw a **TypeError** exception.
-1. If *O* does not have an [[Executor]] internal slot, throw a **TypeError**
-   exception.
 1. If Type(*observer*) is not Object, throw a **TypeError** exception.
 1. Let *aborted* be **false**.
 1. Let *cancelFunction* be **undefined**.
