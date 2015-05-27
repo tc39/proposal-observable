@@ -144,7 +144,9 @@ The *subscribe* function performs the following steps:
     1. ReturnIfAbrupt(*cancelResult*).
 1. Let *unsubscribeFunction* be a new built-in anonymous function which performs the
    following steps:
-    1. Return Invoke(*subscriptionObserver*, **"return"**, «»).
+    1. Let *result* be CancelSubscription(*subscription*).
+    1. ReturnIfAbrupt(*result*).
+    1. Return **undefined**.
 1. Return *unsubscribeFunction*.
 
 #### GetObservableCancelFunction(executorResult, observer) Abstract Operation ####
