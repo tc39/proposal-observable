@@ -115,10 +115,10 @@ The **Observable** constructor performs the following steps:
 
 #### Observable.prototype.subscribe(observer) ####
 
-The *subscribe* function schedules a microtask to begin sending values to the supplied
+The **subscribe** function schedules a microtask to begin sending values to the supplied
 *observer* object.  It returns a function which may be used to cancel the subscription.
 
-The *subscribe* function performs the following steps:
+The **subscribe** function performs the following steps:
 
 1. Let *O* be the **this** value.
 1. If Type(*O*) is not Object, throw a **TypeError** exception.
@@ -140,16 +140,16 @@ The *subscribe* function performs the following steps:
 
 #### Observable.prototype\[@@subscribeSync](observer) ####
 
-The *@@subscribeSync* function begins sending values to the supplied *observer* object
+The **@@subscribeSync** function begins sending values to the supplied *observer* object
 by executing the Observable object's *executor* function.  It returns a function
 which may be used to cancel the subscription.
 
-The *@@subscribeSync* function is intended to be used by observable libraries that
+The **@@subscribeSync** function is intended to be used by observable libraries that
 need to subscribe to an observable without deferring execution to the microtask queue.
 
 > The "subscribeSync" name is a temporary placeholder.
 
-The *@@subscribeSync* function performs the following steps:
+The **@@subscribeSync** function performs the following steps:
 
 1. Let *O* be the **this** value.
 1. If Type(*O*) is not Object, throw a **TypeError** exception.
