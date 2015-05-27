@@ -88,7 +88,7 @@ for a more complete implementation.*
 - [Observable Constructor](#observableexecutor)
 - [get Obsevable[@@species]](#get-observablespecies)
 - [Observable.prototype.subscribe](#observableprototypesubscribeobserver)
-- [Observable.prototype[@@observer]](#observableprototypesubscribesyncobserver)
+- [Observable.prototype[@@observer]](#observableprototypeobserverobserver)
 - [Observable.prototype.forEach](#observableprototypeforeachcallbackfn--thisarg)
 
 #### Observable(executor) ###
