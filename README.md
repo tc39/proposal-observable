@@ -138,7 +138,7 @@ The *subscribe* function performs the following steps:
     1. Let *throwResult* be Invoke(*subscriptionObserver*, **"throw""**,
        «‍*result*.[[value]]»).
     1. ReturnIfAbrupt(*throwResult*).
-1. Set *subscription*.[[Cancel]] to *executorResult*.[[value]].
+1. Else, set *subscription*.[[Cancel]] to *executorResult*.[[value]].
 1. If *subscription*.[[Done]] is **true**,
     1. Let *cancelResult* be CancelSubscription(*subscription*).
     1. ReturnIfAbrupt(*cancelResult*).

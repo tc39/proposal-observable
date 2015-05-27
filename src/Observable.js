@@ -131,14 +131,14 @@ export class Observable {
             else if (typeof cancel !== "function")
                 throw new TypeError(cancel + " is not a function");
 
+            subscription.cancel = cancel;
+
         } catch (e) {
 
             // If an error occurs during startup, then attempt to send the error
             // to the sink
             sink.throw(e);
         }
-
-        subscription.cancel = cancel;
 
         // If the stream is already finished, then perform cleanup
         if (subscription.done)
