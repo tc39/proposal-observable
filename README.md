@@ -115,11 +115,43 @@ The **Observable** constructor performs the following steps:
 
 #### Observable.prototype.subscribe(observer) ####
 
-The **subscribe** function begins sending values to the supplied *observer* object
+The *subscribe* function schedules a microtask to begin sending values to the supplied
+*observer* object.  It returns a function which may be used to cancel the subscription.
+
+The *subscribe* function performs the following steps:
+
+1. Let *O* be the **this** value.
+1. If Type(*O*) is not Object, throw a **TypeError** exception.
+1. If *O* does not have an [[Executor]] internal slot, throw a **TypeError**
+   exception.
+1. If Type(*observer*) is not Object, throw a **TypeError** exception.
+1. Let *aborted* be **false**.
+1. Let *cancelFunction* be **undefined**.
+1. Schedule a microtask to perform the following steps:
+    1. If *aborted* is **true**, return **undefined**.
+    1. Let *subscribeResult* be Invoke(*O*, **@@subscribeSync**, «‍*observer*»).
+    1. ReturnIfAbrupt(*subscribeResult*).
+    1. If IsCallable(*subscribeResult*) is **false**, throw a **TypeError** exception.
+    1. Let *cancelFunction* be *subscribeResult*.
+    1. Return **undefined**.
+1. Return a new built-in anonymous function which performs the following steps:
+    1. If *cancelFunction* is not **undefined**, return Call(*cancelFunction*,
+       **undefined**, «‍»).
+    1. Else, let *aborted* be **true**.
+    1. Return **undefined**.
+
+#### Observable.prototype[@@subscribeSync](observer) ####
+
+The **@@subscribeSync** function begins sending values to the supplied *observer* object
 by executing the Observable object's *executor* function.  It returns a function
 which may be used to cancel the subscription.
 
-The *subscribe* function performs the following steps:
+The *@@subscribeSync** function is intended to be used by observable libraries that
+need to subscribe to an observable without deferring execution to the microtask queue.
+
+> The "subscribeSync" name is a temporary placeholder.
+
+The *@@subscribeSync* function performs the following steps:
 
 1. Let *O* be the **this** value.
 1. If Type(*O*) is not Object, throw a **TypeError** exception.

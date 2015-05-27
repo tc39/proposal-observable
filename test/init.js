@@ -11,15 +11,15 @@ runTests({
 
             test
             ._("Undefined can be returned")
-            .not().throws(_=> new Observable(sink => undefined).subscribe(sink))
+            .not().throws(_=> new Observable(sink => undefined)[Symbol.subscribeSync](sink))
             ._("Null can be returned")
-            .not().throws(_=> new Observable(sink => null).subscribe(sink))
+            .not().throws(_=> new Observable(sink => null)[Symbol.subscribeSync](sink))
             ._("Functions can be returned")
-            .not().throws(_=> new Observable(sink => function() {}).subscribe(sink))
+            .not().throws(_=> new Observable(sink => function() {})[Symbol.subscribeSync](sink))
             ._("Non-functions cannot be returned")
-            .throws(_=> new Observable(sink => 0).subscribe(sink))
-            .throws(_=> new Observable(sink => false).subscribe(sink))
-            .throws(_=> new Observable(sink => ({})).subscribe(sink))
+            .throws(_=> new Observable(sink => 0)[Symbol.subscribeSync](sink))
+            .throws(_=> new Observable(sink => false)[Symbol.subscribeSync](sink))
+            .throws(_=> new Observable(sink => ({}))[Symbol.subscribeSync](sink))
             ;
         },
 
@@ -31,7 +31,7 @@ runTests({
 
             let cancel = new Observable(sink => {
                 return _=> { called++ };
-            }).subscribe({
+            })[Symbol.subscribeSync]({
                 next(v) {},
                 return(v) { returned++ },
             });
@@ -54,7 +54,7 @@ runTests({
             new Observable(sink => {
                 sink.next(1);
                 return _=> { called++ };
-            }).subscribe({
+            })[Symbol.subscribeSync]({
                 next(v) { return { done: true } },
             });
 
@@ -66,7 +66,7 @@ runTests({
             new Observable(sink => {
                 sink.throw(1);
                 return _=> { called++ };
-            }).subscribe({
+            })[Symbol.subscribeSync]({
                 next(v) {},
                 throw(v) {},
             });
@@ -79,7 +79,7 @@ runTests({
             new Observable(sink => {
                 sink.return(1);
                 return _=> { called++ };
-            }).subscribe({
+            })[Symbol.subscribeSync]({
                 next(v) {},
                 return(v) {},
             });
@@ -102,7 +102,7 @@ runTests({
                 return(v) { this.called++ },
             };
 
-            cancel = new Observable(sink => {}).subscribe(sink);
+            cancel = new Observable(sink => {})[Symbol.subscribeSync](sink);
             cancel();
 
             test
@@ -110,7 +110,7 @@ runTests({
             .equals(sink.called, 1);
 
             sink.called = 0;
-            cancel = new Observable(sink => null).subscribe(sink);
+            cancel = new Observable(sink => null)[Symbol.subscribeSync](sink);
             cancel();
 
             test

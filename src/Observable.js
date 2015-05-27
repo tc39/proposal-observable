@@ -19,6 +19,15 @@ function closeSubscription(subscription) {
     cancelSubscription(subscription);
 }
 
+function polyfillSymbol(name) {
+
+    if (!Symbol[name])
+        Object.defineProperty(Symbol, name, { value: Symbol(name) });
+}
+
+polyfillSymbol("observable");
+polyfillSymbol("subscribeSync");
+
 class SubscriptionObserver {
 
     constructor(observer, subscription) {
@@ -99,6 +108,14 @@ class SubscriptionObserver {
     }
 }
 
+function enqueueMicrotask(fn) {
+
+    // TODO: We don't want to use Promise.prototype.then to schedule a microtask,
+    // because exceptions that occur during execution of `fn` need to be reported as
+    // uncaught exceptions and not unhandled Promise rejections.
+    Promise.resolve().then(fn);
+}
+
 export class Observable {
 
     constructor(executor) {
@@ -111,6 +128,28 @@ export class Observable {
     }
 
     subscribe(observer) {
+
+        // The sink must be an object
+        if (Object(observer) !== observer)
+            throw new TypeError("Observer must be an object");
+
+        let abort = false,
+            cancel;
+
+        enqueueMicrotask(_=> {
+
+            if (!abort)
+                cancel = this[Symbol.subscribeSync](observer);
+        });
+
+        return _=> {
+
+            if (cancel) cancel();
+            else abort = true;
+        };
+    }
+
+    [Symbol.subscribeSync](observer) {
 
         // The sink must be an object
         if (Object(observer) !== observer)
@@ -163,6 +202,46 @@ export class Observable {
                 return: resolve,
             });
         });
+    }
+
+    map(fn, thisArg = undefined) {
+
+        if (typeof fn !== "function")
+            throw new TypeError(fn + " is not a function");
+
+        return new this.constructor[Symbol.species](sink => this.subscribe({
+
+            next(value) {
+
+                try { value = fn.call(thisArg, value) }
+                catch (e) { return sink.throw(e) }
+
+                return sink.next(value);
+            },
+
+            throw(value) { return sink.throw(value) },
+            return(value) { return sink.return(value) },
+        }));
+    }
+
+    filter(fn, thisArg = undefined) {
+
+        if (typeof fn !== "function")
+            throw new TypeError(fn + " is not a function");
+
+        return new this.constructor[Symbol.species](sink => this.subscribe({
+
+            next(value) {
+
+                try { if (!fn.call(thisArg, value)) return { done: false } }
+                catch (e) { return sink.throw(e) }
+
+                return sink.next(value);
+            },
+
+            throw(value) { return sink.throw(value) },
+            return(value) { return sink.return(value) },
+        }));
     }
 
     [Symbol.observable]() { return this }
