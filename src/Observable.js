@@ -141,10 +141,12 @@ export class Observable {
                 cancel = this[Symbol.observer](observer);
         });
 
-        return _=> {
+        return {
 
-            if (cancel) cancel();
-            else abort = true;
+            unsubscribe() {
+                if (cancel) cancel();
+                else abort = true;
+            }
         };
     }
 
@@ -184,7 +186,9 @@ export class Observable {
 
         // Return a cancellation function.  The default cancellation function
         // will simply call return on the observer.
-        return _=> { cancelSubscription(subscription) };
+        return {
+            unsubscribe() { cancelSubscription(subscription) }
+        };
     }
 
     forEach(fn, thisArg = undefined) {
@@ -244,5 +248,22 @@ export class Observable {
     }
 
     static get [Symbol.species]() { return this }
+
+    static from(x) {
+
+        if (Object(x) !== x)
+            throw new TypeError(x + " is not an object");
+
+        let subscribeFunction = x[Symbol.observer];
+
+        if (typeof subscribeFunction !== "function")
+            throw new TypeError(subscribeFunction + " is not a function");
+
+        return new this[Symbol.species](sink => {
+
+            let cancel = subscribeFunction.call(x, sink);
+            return cancel;
+        });
+    }
 
 }
