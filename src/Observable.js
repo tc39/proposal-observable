@@ -193,10 +193,10 @@ export class Observable {
 
     forEach(fn, thisArg = undefined) {
 
-        if (typeof fn !== "function")
-            throw new TypeError(fn + " is not a function");
-
         return new Promise((resolve, reject) => {
+
+            if (typeof fn !== "function")
+                throw new TypeError(fn + " is not a function");
 
             this.subscribe({
 
