@@ -86,7 +86,6 @@ commandKeys(inputElement).subscribe(consumer());
 for a more complete implementation.*
 
 - [Observable Constructor](#observableexecutor)
-- [get Obsevable[@@species]](#get-observablespecies)
 - [Observable.prototype.subscribe](#observableprototypesubscribeobserver)
 - [Observable.prototype[@@observer]](#observableprototypeobserverobserver)
 - [Observable.prototype.forEach](#observableprototypeforeachcallbackfn--thisarg)
@@ -112,17 +111,11 @@ The **Observable** constructor performs the following steps:
 1. Set *observable's* [[ObservableExecutor]] internal slot to *executor*.
 1. Return *observable*.
 
-#### get Observable[@@species] ###
-
-**Observable[@@species]** is an accessor property whose set accessor function is
-**undefined**. Its get accessor function performs the following steps:
-
-1. Return the **this** value.
-
 #### Observable.prototype.subscribe(observer) ####
 
-The **subscribe** function schedules a microtask to begin sending values to the supplied
-*observer* object.  It returns a function which may be used to cancel the subscription.
+The **subscribe** function schedules a subscription job to begin sending values to the
+supplied *observer* object.  It returns a function which may be used to cancel the
+subscription.
 
 The **subscribe** function performs the following steps:
 
@@ -131,7 +124,7 @@ The **subscribe** function performs the following steps:
 1. If Type(*observer*) is not Object, throw a **TypeError** exception.
 1. Let *aborted* be **false**.
 1. Let *cancelFunction* be **undefined**.
-1. Schedule a microtask to perform the following steps:
+1. Schedule a subscription job to perform the following steps:
     1. If *aborted* is **true**, return **undefined**.
     1. Let *subscribeResult* be Invoke(*O*, **@@observer**, «‍*observer*»).
     1. ReturnIfAbrupt(*subscribeResult*).
@@ -151,7 +144,8 @@ by executing the Observable object's *executor* function.  It returns a function
 which may be used to cancel the subscription.
 
 The **@@observer** function is intended to be used by observable libraries that
-need to subscribe to an observable without deferring execution to the microtask queue.
+need to subscribe to an observable without deferring execution to the subscription job
+queue.
 
 The **@@observer** function performs the following steps:
 

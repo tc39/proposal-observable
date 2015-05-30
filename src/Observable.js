@@ -107,9 +107,9 @@ class SubscriptionObserver {
     }
 }
 
-function enqueueMicrotask(fn) {
+function enqueueJob(fn) {
 
-    // TODO: We don't want to use Promise.prototype.then to schedule a microtask,
+    // TODO: We don't want to use Promise.prototype.then to schedule a job,
     // because exceptions that occur during execution of `fn` need to be reported as
     // uncaught exceptions and not unhandled Promise rejections.
     Promise.resolve().then(fn);
@@ -135,7 +135,7 @@ export class Observable {
         let abort = false,
             cancel;
 
-        enqueueMicrotask(_=> {
+        enqueueJob(_=> {
 
             if (!abort)
                 cancel = this[Symbol.observer](observer);
@@ -207,6 +207,23 @@ export class Observable {
         });
     }
 
+    static from(x) {
+
+        if (Object(x) !== x)
+            throw new TypeError(x + " is not an object");
+
+        let subscribeFunction = x[Symbol.observer];
+
+        if (typeof subscribeFunction !== "function")
+            throw new TypeError(subscribeFunction + " is not a function");
+
+        return new this[Symbol.species](sink => {
+
+            let cancel = subscribeFunction.call(x, sink);
+            return cancel;
+        });
+    }
+
     map(fn, thisArg = undefined) {
 
         if (typeof fn !== "function")
@@ -226,6 +243,8 @@ export class Observable {
             return(value) { return sink.return(value) },
         }));
     }
+
+    // === EXPERIMENTAL:  NOT SPECIFIED ===
 
     filter(fn, thisArg = undefined) {
 
@@ -248,22 +267,5 @@ export class Observable {
     }
 
     static get [Symbol.species]() { return this }
-
-    static from(x) {
-
-        if (Object(x) !== x)
-            throw new TypeError(x + " is not an object");
-
-        let subscribeFunction = x[Symbol.observer];
-
-        if (typeof subscribeFunction !== "function")
-            throw new TypeError(subscribeFunction + " is not a function");
-
-        return new this[Symbol.species](sink => {
-
-            let cancel = subscribeFunction.call(x, sink);
-            return cancel;
-        });
-    }
 
 }
