@@ -210,12 +210,15 @@ The *forEach* function performs the following steps:
 1. If *thisArg* was supplied, let *T* be *thisArg*; else let *T* be **undefined**.
 1. Let *observerNext* be a new built-in anonymous function which performs the following
    steps when called with argument *value*:
-   1. Return Call(*callbackfn*, *T*, «‍value»).
+   1. Let *nextResult* be Call(*callbackfn*, *T*, «‍value»).
+   1. ReturnIfAbrupt(*nextResult*).
+   1. Return **undefined**.
 1. ReturnIfAbrupt(*observerNext*).
 1. Let *promiseCapability* be NewPromiseCapability(%Promise%).
 1. ReturnIfAbrupt(*promiseCapability*).
-1. If isCallable(*callbackfn*) is **false**,
-    1. Let *rejectResult* be Call(*promiseCapability*.[[Reject]], **undefined**, «a newly created **TypeError** object»).
+1. If IsCallable(*callbackfn*) is **false**,
+    1. Let *rejectResult* be Call(*promiseCapability*.[[Reject]], **undefined**, «a newly
+        created **TypeError** object»).
     1. ReturnIfAbrupt(*rejectResult*).
     1. Return *promiseCapability*.[[Promise]].
 1. Let *observer* be ObjectCreate(%ObjectPrototype%).
