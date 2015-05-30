@@ -85,30 +85,30 @@ commandKeys(inputElement).subscribe(consumer());
 *This specification is a work-in-progress.  Please see the [polyfill](src/Observable.js)
 for a more complete implementation.*
 
-- [Observable Constructor](#observableexecutor)
+- [Observable Constructor](#observablesubscriber)
 - [Observable.prototype.subscribe](#observableprototypesubscribeobserver)
 - [Observable.prototype[@@observer]](#observableprototypeobserverobserver)
 - [Observable.prototype.forEach](#observableprototypeforeachcallbackfn--thisarg)
 
-#### Observable(executor) ###
+#### Observable(subscriber) ###
 
 The **Observable** constructor initializes a new Observable object.  It is not
 intended to be called as a function and will throw an exception when called in
 that manner.
 
-The *executor* argument must be a function object.  It is called each time the
-*subscribe* method of the Observable object is invoked.  The *executor* is called
-with a wrapped observer object and may optionally return a function which will
+The *subscriber* argument must be a function object.  It is called each time the
+*subscribe* method of the Observable object is invoked.  The *subscriber* function is
+called with a wrapped observer object and may optionally return a function which will
 cancel the subscription.
 
 The **Observable** constructor performs the following steps:
 
 1. If **NewTarget** is undefined, throw a **TypeError** exception.
-1. If IsCallable(*executor*) is **false**, throw a **TypeError** exception.
+1. If IsCallable(*subscriber*) is **false**, throw a **TypeError** exception.
 1. Let *observable* be OrdinaryCreateFromConstructor(**NewTarget**,
-   **"%ObservablePrototype%"**, «‍[[ObservableExecutor]]» ).
+   **"%ObservablePrototype%"**, «‍[[ObservableSubscriber]]» ).
 1. ReturnIfAbrupt(**observable**).
-1. Set *observable's* [[ObservableExecutor]] internal slot to *executor*.
+1. Set *observable's* [[ObservableSubscriber]] internal slot to *subscriber*.
 1. Return *observable*.
 
 #### Observable.prototype.subscribe(observer) ####
@@ -140,7 +140,7 @@ The **subscribe** function performs the following steps:
 #### Observable.prototype\[@@observer](observer) ####
 
 The **@@observer** function begins sending values to the supplied *observer* object
-by executing the Observable object's *executor* function.  It returns a function
+by executing the Observable object's *subscriber* function.  It returns a function
 which may be used to cancel the subscription.
 
 The **@@observer** function is intended to be used by observable libraries that
@@ -151,22 +151,22 @@ The **@@observer** function performs the following steps:
 
 1. Let *O* be the **this** value.
 1. If Type(*O*) is not Object, throw a **TypeError** exception.
-1. If *O* does not have an [[Executor]] internal slot, throw a **TypeError**
+1. If *O* does not have an [[ObservableSubscriber]] internal slot, throw a **TypeError**
    exception.
 1. If Type(*observer*) is not Object, throw a **TypeError** exception.
 1. Let *subscription* be a new ObservableSubscription { [[Done]]: **false**, [[Cancel]]:
    **null** }.
 1. Let *subscriptionObserver* be CreateSubscriptionObserver(*observer*, *subscription*).
 1. ReturnIfAbrupt(*subscriptionObserver*).
-1. Let *executor* be the value of *O's* [[Executor]] internal slot.
-1. Let *executorResult* be Call(*executor*, **undefined**, *subscriptionObserver*).
-1. Let *executorResult* be GetObservableCancelFunction(*executorResult*,
+1. Let *subscriber* be the value of *O's* [[ObservableSubscriber]] internal slot.
+1. Let *subscriberResult* be Call(*subscriber*, **undefined**, *subscriptionObserver*).
+1. Let *subscriberResult* be GetObservableCancelFunction(*subscriberResult*,
    *subscriptionObserver*).
-1. If *executorResult* is an abrupt completion,
+1. If *subscriberResult* is an abrupt completion,
     1. Let *throwResult* be Invoke(*subscriptionObserver*, **"throw""**,
        «‍*result*.[[value]]»).
     1. ReturnIfAbrupt(*throwResult*).
-1. Else, set *subscription*.[[Cancel]] to *executorResult*.[[value]].
+1. Else, set *subscription*.[[Cancel]] to *subscriberResult*.[[value]].
 1. If *subscription*.[[Done]] is **true**,
     1. Let *cancelResult* be CancelSubscription(*subscription*).
     1. ReturnIfAbrupt(*cancelResult*).
@@ -177,18 +177,18 @@ The **@@observer** function performs the following steps:
     1. Return **undefined**.
 1. Return *unsubscribeFunction*.
 
-#### GetObservableCancelFunction(executorResult, observer) Abstract Operation ####
+#### GetObservableCancelFunction(subscriberResult, observer) Abstract Operation ####
 
-The abstract operation GetObservableCancelFunction with arguments *executorResult*
+The abstract operation GetObservableCancelFunction with arguments *subscriberResult*
 and *observer* performs the following steps:
 
-1. If *executorResult* is an abrupt completion, return *executorResult*.
-1. Let *cancelFunction* be *executorResult*.[[value]].
+1. If *subscriberResult* is an abrupt completion, return *subscriberResult*.
+1. Let *cancelFunction* be *subscriberResult*.[[value]].
 1. If *cancelFunction* is **null** or **undefined**, let *cancelFunction* be a new
    built-in anonymous function that performs the following steps:
     1. Return Invoke(*observer*, **"return"**, «»).
 1. Else, if IsCallable(*cancelFunction*) is **false**, throw a **TypeError** exception.
-1. Return Completion(*executorResult*).
+1. Return Completion(*subscriberResult*).
 
 #### Observable.prototype.forEach(callbackfn [, thisArg]) ###
 
@@ -227,7 +227,7 @@ The *forEach* function performs the following steps:
 
 A Subscription Observer is an object which wraps the *observer* argument supplied to the
 *subscribe* method of Observable objects.  Subscription Observer objects are passed as
-the single parameter to an observable's *executor* function.  They enforce the following
+the single parameter to an observable's *subscriber* function.  They enforce the following
 guarantees:
 
 - If the observer's **next** method returns an iterator result object with a **done**
@@ -246,7 +246,7 @@ does not implement **throw** or **return**.
 
 The abstract operation CreateSubscriptionObserver with arguments *observer* and
 *subscription* is used to create a normalized observer which can be supplied the
-an observable's *executor* function.  It performs the following steps:
+an observable's *subscriber* function.  It performs the following steps:
 
 1. Assert: Type(*observer*) is Object.
 1. Assert: *subscription* is a ObservableSubscription Record.

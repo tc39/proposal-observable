@@ -117,13 +117,13 @@ function enqueueJob(fn) {
 
 export class Observable {
 
-    constructor(executor) {
+    constructor(subscriber) {
 
-        // The stream initializer must be a function
-        if (typeof executor !== "function")
+        // The stream subscriber must be a function
+        if (typeof subscriber !== "function")
             throw new TypeError("Observable initializer must be a function");
 
-        this._executor = executor;
+        this._subscriber = subscriber;
     }
 
     subscribe(observer) {
@@ -162,8 +162,8 @@ export class Observable {
 
         try {
 
-            // Call the stream initializer
-            cancel = this._executor.call(undefined, sink);
+            // Call the subscriber function
+            cancel = this._subscriber.call(undefined, sink);
 
             // If the return value is null or undefined, then use a default cancel function
             if (cancel == null)
@@ -217,12 +217,14 @@ export class Observable {
         if (typeof subscribeFunction !== "function")
             throw new TypeError(subscribeFunction + " is not a function");
 
-        return new this[Symbol.species](sink => {
+        return new this.constructor(sink => {
 
             let cancel = subscribeFunction.call(x, sink);
             return cancel;
         });
     }
+
+    // === EXPERIMENTAL:  NOT SPECIFIED ===
 
     map(fn, thisArg = undefined) {
 
@@ -243,8 +245,6 @@ export class Observable {
             return(value) { return sink.return(value) },
         }));
     }
-
-    // === EXPERIMENTAL:  NOT SPECIFIED ===
 
     filter(fn, thisArg = undefined) {
 
