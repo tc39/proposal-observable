@@ -4,9 +4,9 @@ function takeUntil(stream, control) {
 
     return new Observable(sink => {
 
-        let source = stream.subscribe(sink);
+        let source = stream[Symbol.observer](sink);
 
-        let input = control.subscribe({
+        let input = control[Symbol.observer]({
 
             next: x => sink.return(x),
             throw: x => sink.throw(x),
@@ -29,14 +29,14 @@ function switchLatest(stream) {
 
         let inner = null;
 
-        let outer = stream.subscribe({
+        let outer = stream[Symbol.observer]({
 
             next(value) {
 
                 if (inner)
                     inner.unsubscribe();
 
-                inner = value.subscribe({
+                inner = value[Symbol.observer]({
 
                     next: x => sink.next(x),
                     throw: x => sink.throw(x),

@@ -77,13 +77,18 @@ function closeSubscription(observer) {
     cancelSubscription(observer);
 }
 
+function isSubscription(x) {
+
+    return Object(x) === x && typeof x.unsubscribe === "function";
+}
+
 class SubscriptionObserver {
 
-    constructor(observer, subscription) {
+    constructor(observer) {
 
         this._observer = observer;
         this._done = false;
-        this._unsubscribe = undefined;
+        this._subscription = undefined;
     }
 
     next(value) {
@@ -171,32 +176,19 @@ export class Observable {
 
     subscribe(observer) {
 
-        // The sink must be an object
-        if (Object(observer) !== observer)
-            throw new TypeError("Observer must be an object");
+        return Promise.resolve().then(_=> {
 
-        let unsubscribed = false,
-            subscription;
+            // The sink must be an object
+            if (Object(observer) !== observer)
+                throw new TypeError("Observer must be an object");
 
-        enqueueJob(_=> {
+            let subscription = this[Symbol.observer](observer);
 
-            if (!unsubscribed)
-                subscription = this[Symbol.observer](observer);
+            if (Object(subscription) !== subscription)
+                throw new TypeError(subscription + " is not an object");
+
+            return subscription;
         });
-
-        return {
-
-            unsubscribe() {
-
-                if (unsubscribed)
-                    return;
-
-                unsubscribed = true;
-
-                if (subscription)
-                    subscription.unsubscribe();
-            }
-        };
     }
 
     [Symbol.observer](observer) {
@@ -215,15 +207,14 @@ export class Observable {
             // Call the subscriber function
             subscription = this._subscriber.call(undefined, observer);
 
-            // If the return value is null or undefined, then use a default subscription
-            if (subscription == null)
-                subscription = { unsubscribe: _=> { observer.return() } };
-            else if (Object(subscription) !== subscription)
-                throw new TypeError(subscription + " is not an object");
-            else if (typeof subscription === "function")
-                subscription = { unsubscribe: subscription };
+            if (!isSubscription(subscription)) {
 
-            observer._subscription = subscription;
+                let unsubscribe = typeof subscription === "function" ?
+                    subscription :
+                    (_=> { obsever.return() });
+
+                subscription = { unsubscribe };
+            }
 
         } catch (e) {
 
@@ -231,6 +222,8 @@ export class Observable {
             // to the observer
             observer.throw(e);
         }
+
+        observer._subscription = subscription;
 
         // If the stream is already finished, then perform cleanup
         if (observer._done)
