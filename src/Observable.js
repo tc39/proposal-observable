@@ -176,19 +176,32 @@ export class Observable {
 
     subscribe(observer) {
 
-        return Promise.resolve().then(_=> {
+        // The sink must be an object
+        if (Object(observer) !== observer)
+            throw new TypeError("Observer must be an object");
 
-            // The sink must be an object
-            if (Object(observer) !== observer)
-                throw new TypeError("Observer must be an object");
+        let unsubscribed = false,
+            subscription;
 
-            let subscription = this[Symbol.observer](observer);
+        enqueueJob(_=> {
 
-            if (Object(subscription) !== subscription)
-                throw new TypeError(subscription + " is not an object");
-
-            return subscription;
+            if (!unsubscribed)
+                subscription = this[Symbol.observer](observer);
         });
+
+        return {
+
+            unsubscribe() {
+
+                if (unsubscribed)
+                    return;
+
+                unsubscribed = true;
+
+                if (subscription)
+                    subscription.unsubscribe();
+            }
+        };
     }
 
     [Symbol.observer](observer) {

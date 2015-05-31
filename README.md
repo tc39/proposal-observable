@@ -99,7 +99,7 @@ that manner.
 The *subscriber* argument must be a function object.  It is called each time the
 *subscribe* method of the Observable object is invoked.  The *subscriber* function is
 called with a wrapped observer object and may optionally return a function which will
-cancel the subscription.
+cancel the subscription, or an object which has an "unsubscribe" method.
 
 The **Observable** constructor performs the following steps:
 
@@ -114,26 +114,39 @@ The **Observable** constructor performs the following steps:
 #### Observable.prototype.subscribe(observer) ####
 
 The **subscribe** function schedules a subscription job to begin sending values to the
-supplied *observer* object.  It returns a function which may be used to cancel the
+supplied *observer* object.  It returns a subscription object which may be used to cancel the
 subscription.
 
 The **subscribe** function performs the following steps:
 
 1. Let *O* be the **this** value.
 1. If Type(*O*) is not Object, throw a **TypeError** exception.
-1. Let *promiseCapability* be NewPromiseCapability(%Promise%).
-1. ReturnIfAbrupt(*promiseCapability*).
+1. If Type(*observer*) is not Object, throw a **TypeError** exception.
+1. Let *unsubscribed* be **false**.
+1. Let *innerSubscription* be **undefined**.
 1. Let *startSubscription* be a new built-in anonymous function which performs the
    following steps:
-    1. If Type(*observer*) is not Object, throw a **TypeError** exception.
-    1. Let *subscription* be Invoke(*O*, **@@observer**, «‍*observer*»).
-    1. ReturnIfAbrupt(*subscription*).
-    1. If Type(*subscription*) is not Object, throw a **TypeError** exception.
-    1. Return *subscription*.
-1. Let *promiseReaction* be the PromiseReaction { [[Capabilities]]: *promiseCapability*,
-   [[Handler]]: *startSubscription* }
-1. Perform EnqueueJob(**"PromiseJobs"**, PromiseReactionJob, «*‍promiseReaction*, **undefined**»).
-1. Return *promiseCapability*.[[Promise]].
+    1. If *unsubscribed* is **false**,
+        1. Let *subscribeResult* be Invoke(*O*, **@@observer**, «‍*observer*»).
+        1. ReturnIfAbrupt(*subscribeResult*).
+        1. Let *innerSubscription* be *subscribeResult*.
+    1. Return **undefined**.
+1. Perform EnqueueJob(**"SubscriptionJobs"**, ObservableSubscribeJobs, «*‍startSubscription*»).
+1. Let *unsubscribe* be a new built-in anonymous function which performs the following
+   steps:
+    1. If *unsubscribed* is **true**, return **undefined**.
+    1. Let *unsubscribed* be **true**.
+    1. If *innerSubscription* is not **undefined**,
+        1. If Type(*innerSubscription*) is not Object, throw a **TypeError** exception.
+        1. Let *innerUnsubscribe* be Get(*innerSubscription*, **"unsubscribe"**).
+        1. ReturnIfAbrupt(*innerUnsubscribe*).
+        1. If IsCallable(*innerUnsubscribe*) is **false**, throw a **TypeError** exception.
+        1. Let *unsubscribeResult* be Invoke(*innerUnsubscribe*, *innerSubscription*, «»).
+        1. ReturnIfAbrupt(*unsubscribeResult*).
+        1. Return **undefined**.
+1. Let *subscription* be ObjectCreate(%ObjectPrototype%).
+1. Perform CreateDataProperty(*subscription*, **"unsubscribe"**, *unsubscribe*).
+1. Return *subscription*.
 
 #### Observable.prototype\[@@observer](observer) ####
 
