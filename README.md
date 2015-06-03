@@ -231,12 +231,6 @@ The *forEach* function performs the following steps:
 1. Let *O* be ToObject(**this** value).
 1. ReturnIfAbrupt(*O*).
 1. If *thisArg* was supplied, let *T* be *thisArg*; else let *T* be **undefined**.
-1. Let *observerNext* be a new built-in anonymous function which performs the following
-   steps when called with argument *value*:
-   1. Let *nextResult* be Call(*callbackfn*, *T*, «‍value»).
-   1. ReturnIfAbrupt(*nextResult*).
-   1. Return **undefined**.
-1. ReturnIfAbrupt(*observerNext*).
 1. Let *promiseCapability* be NewPromiseCapability(%Promise%).
 1. ReturnIfAbrupt(*promiseCapability*).
 1. If IsCallable(*callbackfn*) is **false**,
@@ -244,10 +238,21 @@ The *forEach* function performs the following steps:
         created **TypeError** object»).
     1. ReturnIfAbrupt(*rejectResult*).
     1. Return *promiseCapability*.[[Promise]].
+1. Let *observerNext* be a new built-in anonymous function which performs the following
+   steps when called with argument *value*:
+   1. Let *nextResult* be Call(*callbackfn*, *T*, «‍value»).
+   1. ReturnIfAbrupt(*nextResult*).
+   1. Return **undefined**.
+1. Let *observerThrow* be *promiseCapability*.[[Reject]].
+1. Let *observerReturn* be a new built-in anonymous function which performs the following
+   steps when called with argument *value*:
+   1. Let *returnResult* be Call(*promiseCapability*.[[Resolve]], **undefined**, «‍**undefined**»).
+   1. ReturnIfAbrupt(*returnResult*).
+   1. Return **undefined**.
 1. Let *observer* be ObjectCreate(%ObjectPrototype%).
 1. Perform CreateDataProperty(*observer*, **"next"**, *observerNext*).
-1. Perform CreateDataProperty(*observer*, **"throw"**, *promiseCapability*.[[Reject]]).
-1. Perform CreateDataProperty(*observer*, **"return"**, *promiseCapability*.[[Resolve]]).
+1. Perform CreateDataProperty(*observer*, **"throw"**, *observerThrow*).
+1. Perform CreateDataProperty(*observer*, **"return"**, *observerReturn*).
 1. Let *result* be Invoke(*O*, **"subscribe"**, «‍*observer*»).
 1. IfAbruptRejectPromise(*result*, *promiseCapability*).
 1. Return *promiseCapability*.[[Promise]].

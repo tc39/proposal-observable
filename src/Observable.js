@@ -260,9 +260,9 @@ export class Observable {
 
             this.subscribe({
 
-                next: value => { fn.call(thisArg, value) },
-                throw: reject,
-                return: resolve,
+                next(value) { fn.call(thisArg, value) },
+                throw(value) { reject(value) },
+                return(value) { resolve(undefined) },
             });
         });
     }
