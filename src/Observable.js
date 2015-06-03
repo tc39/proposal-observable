@@ -149,7 +149,7 @@ class SubscriptionObserver {
 
         // If the stream is closed, then return a done result
         if (!observer)
-            return { value: undefined, done: true };
+            return { value, done: true };
 
         this._observer = undefined;
 
@@ -157,7 +157,7 @@ class SubscriptionObserver {
 
             // If the sink does not support "return", then return a done result
             if (!("return" in observer))
-                return { value: undefined, done: true };
+                return { value, done: true };
 
             return observer.return(value);
 

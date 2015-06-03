@@ -371,7 +371,7 @@ intrinsic object.  The %SubscriptionObserverPrototype% object is an ordinary obj
    throw a **TypeError** exception.
 1. Let *subscription* be the value of the [[Subscription]] internal slot of *O*.
 1. Let *observer* be the value of the [[Observer]] internal slot of *O*.
-1. If *observer* is **undefined**, return CreateIterResultObject(**undefined**, **true**).
+1. If *observer* is **undefined**, return CreateIterResultObject(**value**, **true**).
 1. Set the value of the [[Observer]] internal slot of *O* to **undefined**.
 1. Let *result* be Get(*observer*, **"return"**).
 1. If *result*.[[type]] is **normal**,
@@ -379,7 +379,7 @@ intrinsic object.  The %SubscriptionObserverPrototype% object is an ordinary obj
     1. If IsCallable(*returnAction*) is **true**,
         1. Let *result* be Call(*returnAction*, *observer*, «‍value»).
     1. Else,
-        1. Let *result* be NormalCompletion(CreateIterResultObject(**undefined**,
+        1. Let *result* be NormalCompletion(CreateIterResultObject(**value**,
            **true**)).
 1. Let *cancelResult* be CancelSubscription(*subscription*).
 1. ReturnIfAbrupt(*cancelResult*).
