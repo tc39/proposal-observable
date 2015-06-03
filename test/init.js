@@ -18,9 +18,9 @@ runTests({
             .not().throws(_=> new Observable(sink => function() {})[Symbol.observer](sink))
             ._("Objects can be returned")
             .not().throws(_=> new Observable(sink => {})[Symbol.observer](sink))
-            ._("Non-functions cannot be returned")
-            .throws(_=> new Observable(sink => 0)[Symbol.observer](sink))
-            .throws(_=> new Observable(sink => false)[Symbol.observer](sink))
+            ._("Non-functions can be returned")
+            .not().throws(_=> new Observable(sink => 0)[Symbol.observer](sink))
+            .not().throws(_=> new Observable(sink => false)[Symbol.observer](sink))
             ;
         },
 

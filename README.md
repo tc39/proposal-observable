@@ -174,7 +174,7 @@ The **@@observer** function performs the following steps:
        «‍*subscriberResult*.[[value]]»).
     1. ReturnIfAbrupt(*throwResult*).
 1. Else, set the [[Subscription]] internal slot of *observer* to *subscriberResult*.[[value]].
-1. If the value of the [[Done]] internal slot of *observer* is **true**,
+1. If the value of the [[Observer]] internal slot of *observer* is **undefined**,
     1. Let *cancelResult* be CancelSubscription(*observer*).
     1. ReturnIfAbrupt(*cancelResult*).
 1. Return *subscription*.
@@ -279,10 +279,9 @@ function.  It performs the following steps:
 
 1. Assert: Type(*observer*) is Object.
 1. Let *subscriptionObserver* be ObjectCreate(%SubscriptionObserverPrototype%,
-   «‍[[Observer]], [[Subscription]], [[Done]]»).
+   «‍[[Observer]], [[Subscription]]»).
 1. Set *subscriptionObserver's* [[Observer]] internal slot to *observer*.
 1. Set *subscriptionObserver's* [[Subscription]] internal slot to *subscription*.
-1. Set *subscriptionObserver's* [[Done]] internal slot to **false**.
 1. Return *subscriptionObserver*.
 
 #### CloseSubscription(subscriptionObserver) Abstract Operation ####
@@ -290,8 +289,8 @@ function.  It performs the following steps:
 The abstract operation CloseSubscription with argument *subscriptionObserver* performs the
 following steps:
 
-1. Assert: The value of the [[Done]] internal slot of *subscriptionObserver* is **false**.
-1. Set the value of the [[Done]] internal slot of *subscriptionObserver* to **true**.
+1. Assert: The value of the [[Observer]] internal slot of *subscriptionObserver* is not **undefined**.
+1. Set the value of the [[Observer]] internal slot of *subscriptionObserver* to **undefined**.
 1. Return CancelSubscription(*subscriptionObserver*).
 
 #### CancelSubscription(subscriptionObserver) Abstract Operation ####
@@ -322,10 +321,9 @@ intrinsic object.  The %SubscriptionObserverPrototype% object is an ordinary obj
 1. If Type(*O*) is not Object, throw a **TypeError** exception.
 1. If *O* does not have all of the internal slots of a Subscription Observer instance,
    throw a **TypeError** exception.
-1. If the value of the [[Done]] internal slot of *O* is **true**, return
-   CreateIterResultObject(**undefined**, **true**).
 1. Let *subscription* be the value of the [[Subscription]] internal slot of *O*.
 1. Let *observer* be the value of the [[Observer]] internal slot of *O*.
+1. If *observer* is **undefined**, return CreateIterResultObject(**undefined**, **true**).
 1. Let *result* be Invoke(*observer*, **"next"**, «‍value»).
 1. Let *closeSubscription* be **false**.
 1. If *result* is an abrupt completion,
@@ -343,11 +341,11 @@ intrinsic object.  The %SubscriptionObserverPrototype% object is an ordinary obj
 1. If Type(*O*) is not Object, throw a **TypeError** exception.
 1. If *O* does not have all of the internal slots of a Subscription Observer instance,
    throw a **TypeError** exception.
-1. If the value of the [[Done]] internal slot of *O* is **true**, return Completion{[[type]]: **throw**,
-    [[value]]: *exception*, [[target]]: **empty**}.
 1. Let *subscription* be the value of the [[Subscription]] internal slot of *O*.
 1. Let *observer* be the value of the [[Observer]] internal slot of *O*.
-1. Set the value of the [[Done]] internal slot of *O* to **true**.
+1. If *observer* is **undefined**, return Completion{[[type]]: **throw**, [[value]]:
+   *exception*, [[target]]: **empty**}.
+1. Set the value of the [[Observer]] internal slot of *O* to **undefined**.
 1. Let *result* be Get(*observer*, **"throw"**).
 1. If *result*.[[type]] is **normal**,
     1. Let *throwAction* be *result*.[[value]].
@@ -366,11 +364,10 @@ intrinsic object.  The %SubscriptionObserverPrototype% object is an ordinary obj
 1. If Type(*O*) is not Object, throw a **TypeError** exception.
 1. If *O* does not have all of the internal slots of a Subscription Observer instance,
    throw a **TypeError** exception.
-1. If the value of the [[Done]] internal slot of *O* is **true**, return
-   CreateIterResultObject(**undefined**, **true**).
 1. Let *subscription* be the value of the [[Subscription]] internal slot of *O*.
 1. Let *observer* be the value of the [[Observer]] internal slot of *O*.
-1. Set the value of the [[Done]] internal slot of *O* to **true**.
+1. If *observer* is **undefined**, return CreateIterResultObject(**undefined**, **true**).
+1. Set the value of the [[Observer]] internal slot of *O* to **undefined**.
 1. Let *result* be Get(*observer*, **"return"**).
 1. If *result*.[[type]] is **normal**,
     1. Let *returnAction* be *result*.[[value]].

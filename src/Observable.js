@@ -73,7 +73,7 @@ function cancelSubscription(observer) {
 
 function closeSubscription(observer) {
 
-    observer._done = true;
+    observer._observer = undefined;
     cancelSubscription(observer);
 }
 
@@ -87,14 +87,15 @@ class SubscriptionObserver {
     constructor(observer) {
 
         this._observer = observer;
-        this._done = false;
         this._subscription = undefined;
     }
 
     next(value) {
 
+        let observer = this._observer;
+
         // If the stream if closed, then return a "done" result
-        if (this._done)
+        if (!observer)
             return { value: undefined, done: true };
 
         let result;
@@ -102,7 +103,7 @@ class SubscriptionObserver {
         try {
 
             // Send the next value to the sink
-            result = this._observer.next(value);
+            result = observer.next(value);
 
         } catch (e) {
 
@@ -120,19 +121,21 @@ class SubscriptionObserver {
 
     throw(value) {
 
+        let observer = this._observer;
+
         // If the stream is closed, throw the error to the caller
-        if (this._done)
+        if (!observer)
             throw value;
 
-        this._done = true;
+        this._observer = undefined;
 
         try {
 
             // If the sink does not support "throw", then throw the error to the caller
-            if (!("throw" in this._observer))
+            if (!("throw" in observer))
                 throw value;
 
-            return this._observer.throw(value);
+            return observer.throw(value);
 
         } finally {
 
@@ -142,19 +145,21 @@ class SubscriptionObserver {
 
     return(value) {
 
+        let observer = this._observer;
+
         // If the stream is closed, then return a done result
-        if (this._done)
+        if (!observer)
             return { value: undefined, done: true };
 
-        this._done = true;
+        this._observer = undefined;
 
         try {
 
             // If the sink does not support "return", then return a done result
-            if (!("return" in this._observer))
+            if (!("return" in observer))
                 return { value: undefined, done: true };
 
-            return this._observer.return(value);
+            return observer.return(value);
 
         } finally {
 
@@ -224,7 +229,7 @@ export class Observable {
 
                 let unsubscribe = typeof subscription === "function" ?
                     subscription :
-                    (_=> { obsever.return() });
+                    (_=> { observer.return() });
 
                 subscription = { unsubscribe };
             }
@@ -239,7 +244,7 @@ export class Observable {
         observer._subscription = subscription;
 
         // If the stream is already finished, then perform cleanup
-        if (observer._done)
+        if (!observer._observer)
             cancelSubscription(observer);
 
         // Return the subscription object
