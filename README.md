@@ -269,6 +269,7 @@ guarantees:
 - If the observer's **return** method is called, then the observer will not be invoked
   again and the observable's cancellation function will be called.
 - The observable's cancellation function will be called at most one time.
+- After the cancellation function has returned, the observer will not be invoked again.
 
 In addition, Subscription Observer objects provide default behaviors when the observer
 does not implement **throw** or **return**.
