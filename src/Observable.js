@@ -289,7 +289,7 @@ export class Observable {
         if (typeof subscribeFunction !== "function")
             throw new TypeError(subscribeFunction + " is not a function");
 
-        return new this.constructor(sink => subscribeFunction.call(x, sink));
+        return new this(sink => subscribeFunction.call(x, sink));
     }
 
     // === EXPERIMENTAL:  NOT SPECIFIED ===
