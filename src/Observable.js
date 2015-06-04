@@ -60,14 +60,23 @@ function cancelSubscription(observer) {
 
     let subscription = observer._subscription;
 
-    if (subscription) {
+    if (!subscription)
+        return;
 
-        // Drop the reference to the subscription so that we don't unsubscribe
-        // more than once.
-        observer._subscription = undefined;
+    // Drop the reference to the subscription so that we don't unsubscribe
+    // more than once
+    observer._subscription = undefined;
+
+    try {
 
         // Call the unsubscribe function
         subscription.unsubscribe();
+
+    } finally {
+
+        // Drop the reference to the inner observer so that no more notifications
+        // will be sent
+        observer._observer = undefined;
     }
 }
 

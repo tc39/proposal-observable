@@ -305,11 +305,10 @@ following steps:
 
 1. Let *subscription* be the value of the [[Subscription]] internal slot of *subscriptionObserver*.
 1. If *subscription* is **undefined**, return **undefined**.
+1. Assert: Type(*subscription*) is Object.
 1. Set the value of the [[Subscription]] internal slot of *subscriptionObserver* to **undefined**.
-1. Let *unsubscribe* be Get(*subscription*, **"unsubscribe"**).
-1. ReturnIfAbrupt(*unsubscribe*).
-1. If IsCallable(*unsubscribe*) is **false**, throw a **TypeError** exception.
-1. Let *result* be Call(*unsubscribe*, *subscription*, «‍»).
+1. Let *result* be Invoke(*subscription*, **"unsubscribe"**, «‍»).
+1. Set the value of the [[Observer]] internal slot of *subscriptionObserver* to **undefined**.
 1. ReturnIfAbrupt(*result*).
 1. Return **undefined**.
 
