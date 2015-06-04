@@ -138,10 +138,7 @@ The **subscribe** function performs the following steps:
     1. Let *unsubscribed* be **true**.
     1. If *innerSubscription* is not **undefined**,
         1. If Type(*innerSubscription*) is not Object, throw a **TypeError** exception.
-        1. Let *innerUnsubscribe* be Get(*innerSubscription*, **"unsubscribe"**).
-        1. ReturnIfAbrupt(*innerUnsubscribe*).
-        1. If IsCallable(*innerUnsubscribe*) is **false**, throw a **TypeError** exception.
-        1. Let *unsubscribeResult* be Invoke(*innerUnsubscribe*, *innerSubscription*, «»).
+        1. Let *unsubscribeResult* be Invoke(*innerSubscription*, **"unsubscribe"**, «»).
         1. ReturnIfAbrupt(*unsubscribeResult*).
         1. Return **undefined**.
 1. Let *subscription* be ObjectCreate(%ObjectPrototype%).
