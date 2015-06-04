@@ -281,6 +281,9 @@ export class Observable {
         if (Object(x) !== x)
             throw new TypeError(x + " is not an object");
 
+        if (x._subscriber && x.constructor === this)
+            return x;
+
         let subscribeFunction = x[Symbol.observer];
 
         if (typeof subscribeFunction !== "function")
