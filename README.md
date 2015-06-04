@@ -152,7 +152,8 @@ by executing the Observable object's *subscriber* function.  It returns a subscr
 object which may be used to cancel the subscription.
 
 The **@@observer** function is intended to be used by observable libraries that
-need to subscribe to an observable without deferring execution to the promise job queue.
+need to subscribe to an observable without deferring execution to the subscription job
+queue.
 
 The **@@observer** function performs the following steps:
 
