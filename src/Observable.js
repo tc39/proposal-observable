@@ -77,7 +77,7 @@ function closeSubscription(observer) {
     cancelSubscription(observer);
 }
 
-function isSubscription(x) {
+function hasUnsubscribe(x) {
 
     return Object(x) === x && typeof x.unsubscribe === "function";
 }
@@ -225,7 +225,7 @@ export class Observable {
             // Call the subscriber function
             subscription = this._subscriber.call(undefined, observer);
 
-            if (!isSubscription(subscription)) {
+            if (!hasUnsubscribe(subscription)) {
 
                 let unsubscribe = typeof subscription === "function" ?
                     subscription :

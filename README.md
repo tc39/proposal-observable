@@ -203,7 +203,7 @@ performs the following steps:
 
 #### HasUnsubscribe(x) Abstract Operation ####
 
-The abstract operation IsSubscription with argument *x* performs the following steps:
+The abstract operation HasUnsubscribe with argument *x* performs the following steps:
 
 1. If Type(*x*) is not Object, return **false**.
 1. Let *unsubscribe* be Get(*x*, **"unsubscribe"**).
@@ -223,8 +223,8 @@ following steps:
 
 The **forEach** function subscribes to the Observable object, calling *callbackfn*
 once for each value in the sequence.  It returns a Promise object which is either
-fulfilled with the return value of the sequence or rejected with the error value of
-the sequence.
+fulfilled with **undefined** when the sequence terminates normally or rejected
+with the error value of the sequence.
 
 The *forEach* function performs the following steps:
 
@@ -379,8 +379,7 @@ intrinsic object.  The %SubscriptionObserverPrototype% object is an ordinary obj
     1. If IsCallable(*returnAction*) is **true**,
         1. Let *result* be Call(*returnAction*, *observer*, «‍value»).
     1. Else,
-        1. Let *result* be NormalCompletion(CreateIterResultObject(**value**,
-           **true**)).
+        1. Let *result* be NormalCompletion(CreateIterResultObject(**value**, **true**)).
 1. Let *cancelResult* be CancelSubscription(*subscription*).
 1. ReturnIfAbrupt(*cancelResult*).
 1. Return Completion(*result*).
