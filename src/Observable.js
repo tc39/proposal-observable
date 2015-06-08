@@ -52,7 +52,7 @@ function polyfillSymbol(name) {
         Object.defineProperty(Symbol, name, { value: Symbol(name) });
 }
 
-polyfillSymbol("observer");
+polyfillSymbol("observable");
 
 // === Abstract Operations ===
 
@@ -199,8 +199,35 @@ export class Observable {
 
         enqueueJob(_=> {
 
-            if (!unsubscribed)
-                subscription = this[Symbol.observer](observer);
+            if (unsubscribed)
+                return;
+
+            try {
+
+                // Call the subscriber function
+                subscription = this._subscriber.call(undefined, observer);
+
+                if (!hasUnsubscribe(subscription)) {
+
+                    let unsubscribe = typeof subscription === "function" ?
+                        subscription :
+                        (_=> { observer.return() });
+
+                    subscription = { unsubscribe };
+                }
+
+            } catch (e) {
+
+                // If an error occurs during startup, then attempt to send the error
+                // to the observer
+                observer.throw(e);
+            }
+
+            observer._subscription = subscription;
+
+            // If the stream is already finished, then perform cleanup
+            if (!observer._observer)
+                cancelSubscription(observer);
         });
 
         return {
@@ -218,47 +245,7 @@ export class Observable {
         };
     }
 
-    [Symbol.observer](observer) {
-
-        // The sink must be an object
-        if (Object(observer) !== observer)
-            throw new TypeError("Observer must be an object");
-
-        // Wrap the observer in order to maintain observation invariants
-        observer = new SubscriptionObserver(observer);
-
-        let subscription;
-
-        try {
-
-            // Call the subscriber function
-            subscription = this._subscriber.call(undefined, observer);
-
-            if (!hasUnsubscribe(subscription)) {
-
-                let unsubscribe = typeof subscription === "function" ?
-                    subscription :
-                    (_=> { observer.return() });
-
-                subscription = { unsubscribe };
-            }
-
-        } catch (e) {
-
-            // If an error occurs during startup, then attempt to send the error
-            // to the observer
-            observer.throw(e);
-        }
-
-        observer._subscription = subscription;
-
-        // If the stream is already finished, then perform cleanup
-        if (!observer._observer)
-            cancelSubscription(observer);
-
-        // Return the subscription object
-        return subscription;
-    }
+    [Symbol.observable]() { return this }
 
     forEach(fn, thisArg = undefined) {
 
@@ -275,24 +262,6 @@ export class Observable {
             });
         });
     }
-
-    static from(x) {
-
-        if (Object(x) !== x)
-            throw new TypeError(x + " is not an object");
-
-        if (x._subscriber && x.constructor === this)
-            return x;
-
-        let subscribeFunction = x[Symbol.observer];
-
-        if (typeof subscribeFunction !== "function")
-            throw new TypeError(subscribeFunction + " is not a function");
-
-        return new this(sink => subscribeFunction.call(x, sink));
-    }
-
-    // === EXPERIMENTAL:  NOT SPECIFIED ===
 
     map(fn, thisArg = undefined) {
 
@@ -334,6 +303,69 @@ export class Observable {
         }));
     }
 
+    static from(x) {
+
+        let C = typeof this === "function" ? this : Observable;
+
+        if (x == null)
+            throw new TypeError(x + " is not an object");
+
+        let method = x[Symbol.observable];
+
+        if (method != null) {
+
+            if (typeof method !== "function")
+                throw new TypeError(method + " is not a function");
+
+            let observable = method.call(x);
+
+            if (Object(observable) !== observable)
+                throw new TypeError(observable + " is not an object");
+
+            if (observable.constructor === C)
+                return observable;
+
+            return new C(sink => observable.subscribe(sink));
+        }
+
+        method = x[Symbol.iterator];
+
+        if (typeof method !== "function")
+            throw new TypeError(method + " is not a function");
+
+        return new C(sink => {
+
+            for (let item of method.call(x)) {
+
+                let result = sink.next(item);
+
+                if (result && result.done)
+                    return;
+            }
+
+            sink.return();
+        });
+    }
+
+    static of(...items) {
+
+        let C = typeof this === "function" ? this : Observable;
+
+        return new C(sink => {
+
+            for (let item of items) {
+
+                let result = sink.next(item);
+
+                if (result && result.done)
+                    return;
+            }
+
+            sink.return();
+        });
+    }
+
     static get [Symbol.species]() { return this }
 
 }
+
