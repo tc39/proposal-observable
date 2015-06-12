@@ -194,6 +194,9 @@ export class Observable {
         if (Object(observer) !== observer)
             throw new TypeError("Observer must be an object");
 
+        // Wrap the observer in order to maintain observation invariants
+        observer = new SubscriptionObserver(observer);
+
         let unsubscribed = false,
             subscription;
 
@@ -268,7 +271,7 @@ export class Observable {
         if (typeof fn !== "function")
             throw new TypeError(fn + " is not a function");
 
-        return new this.constructor[Symbol.species](sink => this[Symbol.observer]({
+        return new this.constructor[Symbol.species](sink => this.subscribe({
 
             next(value) {
 
@@ -288,7 +291,7 @@ export class Observable {
         if (typeof fn !== "function")
             throw new TypeError(fn + " is not a function");
 
-        return new this.constructor[Symbol.species](sink => this[Symbol.observer]({
+        return new this.constructor[Symbol.species](sink => this.subscribe({
 
             next(value) {
 
