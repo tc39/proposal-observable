@@ -64,14 +64,8 @@ function listen(element, eventName) {
     return new Observable(sink => {
 
         function handler(event) { sink.next(event) }
-
         element.addEventListener(eventName, handler);
-
-        return _=> {
-
-            element.removeEventListener(eventName, handler);
-            sink.return();
-        };
+        return _=> element.removeEventListener(eventName, handler);
     });
 }
 

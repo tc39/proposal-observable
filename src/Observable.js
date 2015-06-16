@@ -58,6 +58,8 @@ polyfillSymbol("observable");
 
 function cancelSubscription(observer) {
 
+    // Assert:  observer._observer is undefined
+
     let subscription = observer._subscription;
 
     if (!subscription)
@@ -67,17 +69,8 @@ function cancelSubscription(observer) {
     // more than once
     observer._subscription = undefined;
 
-    try {
-
-        // Call the unsubscribe function
-        subscription.unsubscribe();
-
-    } finally {
-
-        // Drop the reference to the inner observer so that no more notifications
-        // will be sent
-        observer._observer = undefined;
-    }
+    // Call the unsubscribe function
+    subscription.unsubscribe();
 }
 
 function closeSubscription(observer) {
@@ -86,7 +79,12 @@ function closeSubscription(observer) {
     cancelSubscription(observer);
 }
 
-function hasUnsubscribe(x) {
+function createSubscription(unsubscribe) {
+
+    return { unsubscribe };
+}
+
+function isSubscription(x) {
 
     return Object(x) === x && typeof x.unsubscribe === "function";
 }
@@ -197,55 +195,42 @@ export class Observable {
         // Wrap the observer in order to maintain observation invariants
         observer = new SubscriptionObserver(observer);
 
-        let unsubscribed = false,
-            subscription;
-
         enqueueJob(_=> {
 
-            if (unsubscribed)
+            // If the subscription has already been cancelled, then abort the
+            // following steps
+            if (!observer._observer)
                 return;
 
             try {
 
                 // Call the subscriber function
-                subscription = this._subscriber.call(undefined, observer);
+                let subscription = this._subscriber.call(undefined, observer);
 
-                if (!hasUnsubscribe(subscription)) {
+                if (subscription != null && !isSubscription(subscription)) {
 
-                    let unsubscribe = typeof subscription === "function" ?
-                        subscription :
-                        (_=> { observer.return() });
+                    if (typeof subscription !== "function")
+                        throw new TypeError(subscription + " is not a function");
 
-                    subscription = { unsubscribe };
+                    subscription = createSubscription(subscription);
                 }
+
+                observer._subscription = subscription;
 
             } catch (e) {
 
                 // If an error occurs during startup, then attempt to send the error
                 // to the observer
                 observer.throw(e);
+                return;
             }
-
-            observer._subscription = subscription;
 
             // If the stream is already finished, then perform cleanup
             if (!observer._observer)
                 cancelSubscription(observer);
         });
 
-        return {
-
-            unsubscribe() {
-
-                if (unsubscribed)
-                    return;
-
-                unsubscribed = true;
-
-                if (subscription)
-                    subscription.unsubscribe();
-            }
-        };
+        return createSubscription(_=> { observer.return(true) });
     }
 
     [Symbol.observable]() { return this }
@@ -371,4 +356,3 @@ export class Observable {
     static get [Symbol.species]() { return this }
 
 }
-
