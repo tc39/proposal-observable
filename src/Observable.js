@@ -56,6 +56,19 @@ polyfillSymbol("observable");
 
 // === Abstract Operations ===
 
+function getMethod(obj, key) {
+
+    let value = obj[key];
+
+    if (value == null)
+        return undefined;
+
+    if (typeof value !== "function")
+        throw new TypeError(value + " is not a function");
+
+    return value;
+}
+
 function cancelSubscription(observer) {
 
     // Assert:  observer._observer is undefined
@@ -69,8 +82,8 @@ function cancelSubscription(observer) {
     // more than once
     observer._subscription = undefined;
 
-    // Call the unsubscribe function
-    subscription.unsubscribe();
+    // Call the cancellation function
+    subscription.cancel();
 }
 
 function closeSubscription(observer) {
@@ -79,14 +92,9 @@ function closeSubscription(observer) {
     cancelSubscription(observer);
 }
 
-function createSubscription(unsubscribe) {
+function isCancelable(x) {
 
-    return { unsubscribe };
-}
-
-function isSubscription(x) {
-
-    return Object(x) === x && typeof x.unsubscribe === "function";
+    return Object(x) === x && typeof x.cancel === "function";
 }
 
 class SubscriptionObserver {
@@ -109,8 +117,11 @@ class SubscriptionObserver {
 
         try {
 
+            let m = getMethod(observer, "next");
+
             // Send the next value to the sink
-            result = observer.next(value);
+            if (m)
+                result = m.call(observer, value);
 
         } catch (e) {
 
@@ -138,11 +149,13 @@ class SubscriptionObserver {
 
         try {
 
+            let m = getMethod(observer, "throw");
+
             // If the sink does not support "throw", then throw the error to the caller
-            if (!("throw" in observer))
+            if (!m)
                 throw value;
 
-            return observer.throw(value);
+            return m.call(observer, value);
 
         } finally {
 
@@ -162,17 +175,20 @@ class SubscriptionObserver {
 
         try {
 
+            let m = getMethod(observer, "return");
+
             // If the sink does not support "return", then return a done result
-            if (!("return" in observer))
+            if (!m)
                 return { value, done: true };
 
-            return observer.return(value);
+            return m.call(observer, value);
 
         } finally {
 
             cancelSubscription(this);
         }
     }
+
 }
 
 export class Observable {
@@ -207,12 +223,12 @@ export class Observable {
                 // Call the subscriber function
                 let subscription = this._subscriber.call(undefined, observer);
 
-                if (subscription != null && !isSubscription(subscription)) {
+                if (subscription != null && !isCancelable(subscription)) {
 
                     if (typeof subscription !== "function")
                         throw new TypeError(subscription + " is not a function");
 
-                    subscription = createSubscription(subscription);
+                    subscription = { cancel: subscription };
                 }
 
                 observer._subscription = subscription;
@@ -230,7 +246,12 @@ export class Observable {
                 cancelSubscription(observer);
         });
 
-        return createSubscription(_=> { observer.return(true) });
+        return {
+
+            throw(value) { observer.throw(value) },
+            return(value) { observer.return(value) },
+            cancel() { cancelSubscription(observer) },
+        };
     }
 
     [Symbol.observable]() { return this }
@@ -298,12 +319,9 @@ export class Observable {
         if (x == null)
             throw new TypeError(x + " is not an object");
 
-        let method = x[Symbol.observable];
+        let method = getMethod(x, Symbol.observable);
 
-        if (method != null) {
-
-            if (typeof method !== "function")
-                throw new TypeError(method + " is not a function");
+        if (method) {
 
             let observable = method.call(x);
 
@@ -316,10 +334,10 @@ export class Observable {
             return new C(sink => observable.subscribe(sink));
         }
 
-        method = x[Symbol.iterator];
+        method = getMethod(x, Symbol.iterator);
 
-        if (typeof method !== "function")
-            throw new TypeError(method + " is not a function");
+        if (!method)
+            throw new TypeError(x + " is not observable");
 
         return new C(sink => {
 

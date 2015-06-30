@@ -5,9 +5,15 @@ runTests({
 
     "Cancellation functions": {
 
-        "Allowed return values" (test) {
+        async "Allowed return values" (test) {
 
-            let sink = { next(v) {} };
+            let type = "";
+
+            let sink = {
+                next(v) {},
+                throw(v) {},
+                return(v) {},
+            };
 
             test
             ._("Undefined can be returned")
