@@ -82,8 +82,8 @@ function cancelSubscription(observer) {
     // more than once
     observer._subscription = undefined;
 
-    // Call the cancellation function
-    subscription.cancel();
+    // Call the unsubscribe function
+    subscription.unsubscribe();
 }
 
 function closeSubscription(observer) {
@@ -92,9 +92,23 @@ function closeSubscription(observer) {
     cancelSubscription(observer);
 }
 
-function isCancelable(x) {
+function createSubscription(unsubscribe) {
 
-    return Object(x) === x && typeof x.cancel === "function";
+    return {
+
+        unsubscribe() {
+
+            this.unsubscribed = true;
+            unsubscribe();
+        },
+
+        unsubscribed: false
+    };
+}
+
+function isSubscription(x) {
+
+    return Object(x) === x && typeof x.unsubscribe === "function";
 }
 
 class SubscriptionObserver {
@@ -223,12 +237,12 @@ export class Observable {
                 // Call the subscriber function
                 let subscription = this._subscriber.call(undefined, observer);
 
-                if (subscription != null && !isCancelable(subscription)) {
+                if (subscription != null && !isSubscription(subscription)) {
 
                     if (typeof subscription !== "function")
                         throw new TypeError(subscription + " is not a function");
 
-                    subscription = { cancel: subscription };
+                    subscription = { unsubscribe: subscription };
                 }
 
                 observer._subscription = subscription;
@@ -246,12 +260,7 @@ export class Observable {
                 cancelSubscription(observer);
         });
 
-        return {
-
-            throw(value) { observer.throw(value) },
-            return(value) { observer.return(value) },
-            cancel() { cancelSubscription(observer) },
-        };
+        return createSubscription(_=> { observer.return() });
     }
 
     [Symbol.observable]() { return this }
