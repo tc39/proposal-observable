@@ -8,9 +8,9 @@ function takeUntil(stream, control) {
 
         let input = control.subscribe({
 
-            next: x => sink.return(x),
-            throw: x => sink.throw(x),
-            return: x => sink.return(x),
+            next: x => sink.complete(x),
+            error: x => sink.error(x),
+            complete: x => sink.complete(x),
         });
 
         return _=> {
@@ -39,12 +39,12 @@ function switchLatest(stream) {
                 inner = value.subscribe({
 
                     next: x => sink.next(x),
-                    throw: x => sink.throw(x),
+                    error: x => sink.error(x),
                 });
             },
 
-            throw: x => sink.throw(x),
-            return: x => sink.return(x),
+            error: x => sink.error(x),
+            complete: x => sink.complete(x),
 
         });
 
@@ -90,6 +90,6 @@ function mouseDrags(element) {
 let subscription = mouseDrags(document.body).subscribe({
 
     next(e) { console.log(`DRAG: <${ e.x }:${ e.y }>`) },
-    throw(x) { console.log(`ERROR: ${ x }`) },
-    return(x) { console.log(`COMPLETE: ${ x }`) },
+    error(x) { console.log(`ERROR: ${ x }`) },
+    complete(x) { console.log(`COMPLETE: ${ x }`) },
 });

@@ -11,22 +11,22 @@ runTests({
 
             let sink = {
                 next(v) {},
-                throw(v) {},
-                return(v) {},
+                error(v) {},
+                complete(v) {},
             };
 
             test
             ._("Undefined can be returned")
-            .not().throws(_=> new Observable(sink => undefined)[Symbol.observer](sink))
+            .not().throws(_=> new Observable(sink => undefined).subscribe(sink))
             ._("Null can be returned")
-            .not().throws(_=> new Observable(sink => null)[Symbol.observer](sink))
+            .not().throws(_=> new Observable(sink => null).subscribe(sink))
             ._("Functions can be returned")
-            .not().throws(_=> new Observable(sink => function() {})[Symbol.observer](sink))
+            .not().throws(_=> new Observable(sink => function() {}).subscribe(sink))
             ._("Objects can be returned")
-            .not().throws(_=> new Observable(sink => {})[Symbol.observer](sink))
+            .not().throws(_=> new Observable(sink => {}).subscribe(sink))
             ._("Non-functions can be returned")
-            .not().throws(_=> new Observable(sink => 0)[Symbol.observer](sink))
-            .not().throws(_=> new Observable(sink => false)[Symbol.observer](sink))
+            .not().throws(_=> new Observable(sink => 0).subscribe(sink))
+            .not().throws(_=> new Observable(sink => false).subscribe(sink))
             ;
         },
 
@@ -38,9 +38,9 @@ runTests({
 
             let subscription = new Observable(sink => {
                 return _=> { called++ };
-            })[Symbol.observer]({
+            }).subscribe({
                 next(v) {},
-                return(v) { returned++ },
+                complete(v) { returned++ },
             });
 
             subscription.unsubscribe();
@@ -51,7 +51,7 @@ runTests({
             subscription.unsubscribe();
 
             test._("The stop function is called again when unsubscribe is called again")
-            .equals(called, 2);
+            .equals(called, 1);
 
             test._("The return method of the sink is not automatically called")
             .equals(returned, 0);
@@ -59,23 +59,11 @@ runTests({
             called = 0;
 
             new Observable(sink => {
-                sink.next(1);
+                sink.error(1);
                 return _=> { called++ };
-            })[Symbol.observer]({
-                next(v) { return { done: true } },
-            });
-
-            test._("The stop function is called when the sink returns a done result")
-            .equals(called, 1);
-
-            called = 0;
-
-            new Observable(sink => {
-                sink.throw(1);
-                return _=> { called++ };
-            })[Symbol.observer]({
+            }).subscribe({
                 next(v) {},
-                throw(v) {},
+                error(v) {},
             });
 
             test._("The stop function is called when an error is sent to the sink")
@@ -84,51 +72,16 @@ runTests({
             called = 0;
 
             new Observable(sink => {
-                sink.return(1);
+                sink.complete(1);
                 return _=> { called++ };
-            })[Symbol.observer]({
+            }).subscribe({
                 next(v) {},
-                return(v) {},
+                complete(v) {},
             });
 
             test._("The stop function is called when a return is sent to the sink")
             .equals(called, 1);
 
-        },
-
-
-        "Default stop behavior" (test) {
-
-            let subscription;
-
-            let sink = {
-
-                called: 0,
-                next(v) {},
-                throw(v) {},
-                return(v) { this.called++ },
-            };
-
-            subscription = new Observable(sink => {})[Symbol.observer](sink);
-            subscription.unsubscribe();
-
-            test
-            ._("The default stop function calls return on the underlying sink")
-            .equals(sink.called, 1);
-
-            sink.called = 0;
-            subscription = new Observable(sink => null)[Symbol.observer](sink);
-            subscription.unsubscribe();
-
-            test
-            ._("The default stop function is used when the return value is null")
-            .equals(sink.called, 1);
-
-            subscription.unsubscribe();
-
-            test
-            ._("Return is not called on the underlying sink more than once")
-            .equals(sink.called, 1);
         },
 
     }

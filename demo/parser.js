@@ -1,3 +1,5 @@
+import { Observable } from "../src/Observable.js";
+
 // A sequence of token objects
 const TOKENS = [
 
@@ -16,7 +18,7 @@ function tokenStream() {
         for (let t of TOKENS)
             sink.next(t);
 
-        sink.return();
+        sink.complete();
     });
 }
 
@@ -91,21 +93,21 @@ function parse(tokenStream) {
                 let result;
 
                 try { result = generator.next(x) }
-                catch (x) { return sink.throw(x) }
+                catch (x) { return sink.error(x) }
 
                 if (result.done)
-                    sink.return(result.value);
+                    sink.complete(result.value);
 
                 return result;
             },
 
-            throw(x) { return sink.throw(x) },
-            return() { return this.next({ type: "EOF" }) },
+            error(x) { return sink.error(x) },
+            complete() { return this.next({ type: "EOF" }) },
         });
     });
 }
 
 parse(tokenStream()).subscribe({
-    return(ast) { console.log(ast) },
-    throw(error) { console.log(error) },
+    complete(ast) { console.log(ast) },
+    error(error) { console.log(error) },
 });
