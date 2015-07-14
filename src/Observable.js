@@ -23,6 +23,12 @@ function getMethod(obj, key) {
     return value;
 }
 
+function isPromise(x) {
+
+    // TODO:  Should this be duck-typed or nominal?
+    return "then" in x;
+}
+
 function wrapUnsubscribe(obj) {
 
     if (Object(obj) !== obj)
@@ -191,6 +197,15 @@ export class Observable {
 
             // Call the subscriber function
             let cleanup = this._subscriber.call(undefined, observer);
+
+            if (isPromise(cleanup)) {
+
+                Promise.resolve(cleanup).then(
+                    x => observer.complete(x),
+                    err => observer.error(err));
+
+                cleanup = null;
+            }
 
             if (cleanup != null && typeof cleanup !== "function")
                 cleanup = wrapUnsubscribe(cleanup);
