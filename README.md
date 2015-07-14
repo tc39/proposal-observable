@@ -6,7 +6,6 @@ events, timer intervals, and sockets.  In addition, observables are:
 
 - *Compositional*: Observables can be composed with higher-order combinators.
 - *Lazy*: Observables do not start emitting data until an **observer** has subscribed.
-- *Integrated with ES6*: Data is sent to consumers using the ES6 generator interface.
 
 > The **Observable** concept comes from *reactive programming*.  See http://reactivex.io/
 > for more information.
@@ -18,9 +17,9 @@ observable stream of events for an arbitrary DOM element and event type.
 
 ```js
 function listen(element, eventName) {
-    return new Observable(sink => {
+    return new Observable(observer => {
         // Create an event handler which sends data to the sink
-        let handler = event => sink.next(event);
+        let handler = event => observer.next(event);
 
         // Attach the event handler
         element.addEventListener(eventName, handler, true);
@@ -29,9 +28,6 @@ function listen(element, eventName) {
         return _ => {
             // Detach the event handler from the element
             element.removeEventListener(eventName, handler, true);
-
-            // Terminate the stream
-            sink.return();
         };
     });
 }
@@ -55,29 +51,10 @@ When we want to consume the event stream, we subscribe with an **observer**.
 
 ```js
 commandKeys(inputElement).subscribe({
-    next(value) { console.log("Recieved key command: " + value) },
-    throw(error) { console.log("Recieved an error: " + error) },
-    return() { console.log("Stream complete") },
+    next(val) { console.log("Recieved key command: " + val) },
+    error(err) { console.log("Recieved an error: " + err) },
+    complete() { console.log("Stream complete") },
 });
-```
-
-Because observers implement the ES6 **generator** interface, we can use a generator
-function to consume the events.
-
-```js
-function consumer() {
-    let generator = function*() {
-        while (true) {
-            console.log("Recieved key command: " + (yield));
-        }
-    }();
-
-    // "Prime" the generator so that it can receive the first value from the producer
-    generator.next();
-    return generator;
-}
-
-commandKeys(inputElement).subscribe(consumer());
 ```
 
 ### API Specification ###
@@ -87,7 +64,6 @@ for a more complete implementation.*
 
 - [Observable Constructor](#observablesubscriber)
 - [Observable.prototype.subscribe](#observableprototypesubscribeobserver)
-- [Observable.prototype[@@observer]](#observableprototypeobserverobserver)
 - [Observable.prototype.forEach](#observableprototypeforeachcallbackfn--thisarg)
 
 #### Observable(subscriber) ###
