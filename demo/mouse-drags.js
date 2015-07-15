@@ -90,6 +90,6 @@ function mouseDrags(element) {
 let subscription = mouseDrags(document.body).subscribe({
 
     next(e) { console.log(`DRAG: <${ e.x }:${ e.y }>`) },
-    error(x) { console.log(`ERROR: ${ x }`) },
+    error(x) { console.log(`ERROR: ${ x }`); console.error(x); },
     complete(x) { console.log(`COMPLETE: ${ x }`) },
 });
