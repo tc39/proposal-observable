@@ -131,12 +131,13 @@ A Subscription Observer is an object which wraps the *observer* argument supplie
 the single parameter to an observable's *subscriber* function.  They enforce the following
 guarantees:
 
-- If the observer's **error** method is called, then the observer will not be invoked
-  again and the observable's cancellation function will be called.
-- If the observer's **complete** method is called, then the observer will not be invoked
-  again and the observable's cancellation function will be called.
-- The observable's cancellation function will be called at most one time.
-- After the cancellation function has returned, the observer will not be invoked again.
+- If the observer's **error** method is called, the observer will not be invoked
+  again and the observable's cleanup function will be called.
+- If the observer's **complete** method is called, the observer will not be invoked
+  again and the observable's cleanup function will be called.
+- If the observer throws an exception, the observable's cleanup function will be
+  called.
+- When the subscription is canceled, the observer will not be invoked again.
 
 In addition, Subscription Observer objects provide default behaviors when the observer
 does not implement **next**, **error** or **complete**.

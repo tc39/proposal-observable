@@ -313,8 +313,6 @@ export class Observable {
 
     static get [Symbol.species]() { return this }
 
-    // == Extensions ==
-
     forEach(fn, thisArg = undefined) {
 
         if (typeof fn !== "function")
