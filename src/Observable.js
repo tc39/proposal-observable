@@ -1,3 +1,49 @@
+// === Non-Promise Job Queueing ===
+
+const enqueueJob = (function() {
+
+    // Node
+    if (typeof self === "undefined" && typeof global !== "undefined") {
+
+        return global.setImmediate ?
+            fn => { global.setImmediate(fn) } :
+            fn => { process.nextTick(fn) };
+    }
+
+    // Newish Browsers
+    let Observer = self.MutationObserver || self.WebKitMutationObserver;
+
+    if (Observer) {
+
+        let div = document.createElement("div"),
+            twiddle = _=> div.classList.toggle("x"),
+            queue = [];
+
+        let observer = new Observer(_=> {
+
+            if (queue.length > 1)
+                twiddle();
+
+            while (queue.length > 0)
+                queue.shift()();
+        });
+
+        observer.observe(div, { attributes: true });
+
+        return fn => {
+
+            queue.push(fn);
+
+            if (queue.length === 1)
+                twiddle();
+        };
+    }
+
+    // Fallback
+    return fn => { setTimeout(fn, 0) };
+
+})();
+
 // === Symbol Polyfills ===
 
 function polyfillSymbol(name) {
@@ -43,7 +89,6 @@ function cleanupSubscription(observer) {
 function cancelSubscription(observer) {
 
     observer._observer = undefined;
-    observer._subscription = undefined;
     cleanupSubscription(observer);
 }
 
@@ -52,35 +97,22 @@ function subscriptionClosed(observer) {
     return observer._observer === undefined;
 }
 
-class Subscription {
-
-    constructor(observer) {
-
-        this._observer = observer;
-    }
-
-    unsubscribe() {
-
-        cancelSubscription(this._observer);
-    }
-}
-
 class SubscriptionObserver {
 
     constructor(observer) {
 
         this._observer = observer;
         this._cleanup = undefined;
-        this._subscription = new Subscription(this);
+        this._cancel = (_=> { cancelSubscription(this) });
     }
 
-    next(value, subscription = this._subscription) {
-
-        let observer = this._observer;
+    next(value, cancel = this._cancel) {
 
         // If the stream if closed, then return undefined
-        if (!observer)
+        if (subscriptionClosed(this))
             return undefined;
+
+        let observer = this._observer;
 
         try {
 
@@ -91,7 +123,7 @@ class SubscriptionObserver {
                 return undefined;
 
             // Send the next value to the sink
-            return m.call(observer, value, subscription);
+            return m.call(observer, value, cancel);
 
         } catch (e) {
 
@@ -103,12 +135,11 @@ class SubscriptionObserver {
 
     error(value) {
 
-        let observer = this._observer;
-
         // If the stream is closed, throw the error to the caller
-        if (!observer)
+        if (subscriptionClosed(this))
             throw value;
 
+        let observer = this._observer;
         this._observer = undefined;
 
         try {
@@ -129,12 +160,11 @@ class SubscriptionObserver {
 
     complete(value) {
 
-        let observer = this._observer;
-
         // If the stream is closed, then return undefined
-        if (!observer)
+        if (subscriptionClosed(this))
             return undefined;
 
+        let observer = this._observer;
         this._observer = undefined;
 
         try {
@@ -198,31 +228,7 @@ export class Observable {
         if (subscriptionClosed(observer))
             cleanupSubscription(observer);
 
-        return observer._subscription;
-    }
-
-    forEach(fn, thisArg = undefined) {
-
-        return new Promise((resolve, reject) => {
-
-            if (typeof fn !== "function")
-                throw new TypeError(fn + " is not a function");
-
-            Promise.resolve().then(_=> {
-
-                this.subscribe({
-
-                    next(value, subscription) {
-
-                        try { fn.call(thisArg, value, subscription) }
-                        catch (x) { reject(x) }
-                    },
-
-                    error(value) { reject(value) },
-                    complete(value) { resolve(value) },
-                });
-            });
-        });
+        return observer._cancel;
     }
 
     [Symbol.observable]() { return this }
@@ -246,29 +252,33 @@ export class Observable {
             if (observable.constructor === C)
                 return observable;
 
-            return new C(observer => {
-
-                let subscription = observable.subscribe(observer);
-                return _=> subscription.unsubscribe();
-            });
+            return new C(observer => observable.subscribe(observer));
         }
 
         return new C(observer => {
 
-            if (subscriptionClosed(observer))
-                return;
+            enqueueJob(_=> {
 
-            // Assume that the object is iterable.  If not, then the observer
-            // will receive an error.
-            for (let item of x[Symbol.iterator]()) {
+                // Assume that the object is iterable.  If not, then the observer
+                // will receive an error.
+                try {
 
-                let result = observer.next(item);
+                    for (let item of x[Symbol.iterator]()) {
 
-                if (subscriptionClosed(observer))
+                        let result = observer.next(item);
+
+                        if (subscriptionClosed(observer))
+                            return;
+                    }
+
+                } catch (x) {
+
+                    observer.error(x);
                     return;
-            }
+                }
 
-            observer.complete();
+                observer.complete();
+            });
         });
     }
 
@@ -278,24 +288,43 @@ export class Observable {
 
         return new C(observer => {
 
-            if (subscriptionClosed(observer))
-                return;
+            enqueueJob(_=> {
 
-            for (let i = 0; i < items.length; ++i) {
+                try {
 
-                observer.next(items[i]);
+                    for (let i = 0; i < items.length; ++i) {
 
-                if (subscriptionClosed(observer))
+                        observer.next(items[i]);
+
+                        if (subscriptionClosed(observer))
+                            return;
+                    }
+
+                } catch (x) {
+
+                    observer.error(x);
                     return;
-            }
+                }
 
-            observer.complete();
+                observer.complete();
+            });
         });
     }
 
     static get [Symbol.species]() { return this }
 
     // == Extensions ==
+
+    forEach(fn, thisArg = undefined) {
+
+        if (typeof fn !== "function")
+            throw new TypeError(fn + " is not a function");
+
+        return this.subscribe({
+
+            next(value, subscription) { fn.call(thisArg, value, subscription) }
+        });
+    }
 
     map(fn, thisArg = undefined) {
 
@@ -304,24 +333,19 @@ export class Observable {
 
         let C = this.constructor[Symbol.species];
 
-        return new C(observer => {
+        return new C(observer => this.subscribe({
 
-            let subscription = this.subscribe({
+            next(value) {
 
-                next(value) {
+                try { value = fn.call(thisArg, value) }
+                catch (e) { return observer.error(e) }
 
-                    try { value = fn.call(thisArg, value) }
-                    catch (e) { return observer.error(e) }
+                return observer.next(value);
+            },
 
-                    return observer.next(value);
-                },
-
-                error(value) { return observer.error(value) },
-                complete(value) { return observer.complete(value) },
-            });
-
-            return _=> subscription.unsubscribe();
-        });
+            error(value) { return observer.error(value) },
+            complete(value) { return observer.complete(value) },
+        }));
     }
 
     filter(fn, thisArg = undefined) {
@@ -331,24 +355,19 @@ export class Observable {
 
         let C = this.constructor[Symbol.species];
 
-        return new C(observer => {
+        return new C(observer => this.subscribe({
 
-            let subscription = this.subscribe({
+            next(value) {
 
-                next(value) {
+                try { if (!fn.call(thisArg, value)) return undefined; }
+                catch (e) { return observer.error(e) }
 
-                    try { if (!fn.call(thisArg, value)) return undefined; }
-                    catch (e) { return observer.error(e) }
+                return observer.next(value);
+            },
 
-                    return observer.next(value);
-                },
-
-                error(value) { return observer.error(value) },
-                complete(value) { return observer.complete(value) },
-            });
-
-            return _=> subscription.unsubscribe();
-        });
+            error(value) { return observer.error(value) },
+            complete(value) { return observer.complete(value) },
+        }));
     }
 
 }

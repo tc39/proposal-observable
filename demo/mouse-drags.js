@@ -4,9 +4,9 @@ function takeUntil(stream, control) {
 
     return new Observable(sink => {
 
-        let source = stream.subscribe(sink);
+        let cancelSource = stream.subscribe(sink);
 
-        let input = control.subscribe({
+        let cancelInput = control.subscribe({
 
             next: x => sink.complete(x),
             error: x => sink.error(x),
@@ -15,8 +15,8 @@ function takeUntil(stream, control) {
 
         return _=> {
 
-            source.unsubscribe();
-            input.unsubscribe();
+            cancelSource();
+            cancelInput();
         };
     });
 }
@@ -34,7 +34,7 @@ function switchLatest(stream) {
             next(value) {
 
                 if (inner)
-                    inner.unsubscribe();
+                    inner();
 
                 inner = value.subscribe({
 
@@ -51,9 +51,9 @@ function switchLatest(stream) {
         return _=> {
 
             if (inner)
-                inner.unsubscribe();
+                inner();
 
-            outer.unsubscribe();
+            outer();
         };
     });
 }
@@ -87,7 +87,7 @@ function mouseDrags(element) {
     return switchLatest(moveStreams);
 }
 
-let subscription = mouseDrags(document.body).subscribe({
+let cancel = mouseDrags(document.body).subscribe({
 
     next(e) { console.log(`DRAG: <${ e.x }:${ e.y }>`) },
     error(x) { console.log(`ERROR: ${ x }`); console.error(x); },

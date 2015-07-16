@@ -36,19 +36,19 @@ runTests({
             let called = 0,
                 returned = 0;
 
-            let subscription = new Observable(sink => {
+            let unsubscribe = new Observable(sink => {
                 return _=> { called++ };
             }).subscribe({
                 next(v) {},
                 complete(v) { returned++ },
             });
 
-            subscription.unsubscribe();
+            unsubscribe();
 
             test._("The stop function is called when unsubscribing")
             .equals(called, 1);
 
-            subscription.unsubscribe();
+            unsubscribe();
 
             test._("The stop function is called again when unsubscribe is called again")
             .equals(called, 1);
