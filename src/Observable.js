@@ -59,7 +59,7 @@ class Subscription {
         this._observer = observer;
     }
 
-    unsubscribe() {
+    cancel() {
 
         cancelSubscription(this._observer);
     }
@@ -74,7 +74,7 @@ class SubscriptionObserver {
         this._subscription = new Subscription(this);
     }
 
-    next(value) {
+    next(value, subscription = this._subscription) {
 
         let observer = this._observer;
 
@@ -91,7 +91,7 @@ class SubscriptionObserver {
                 return undefined;
 
             // Send the next value to the sink
-            return m.call(observer, value, this._subscription);
+            return m.call(observer, value, subscription);
 
         } catch (e) {
 
@@ -180,6 +180,7 @@ export class Observable {
             // Call the subscriber function
             let cleanup = this._subscriber.call(undefined, observer);
 
+            // The return value must be undefined, null, or a function
             if (cleanup != null && typeof cleanup !== "function")
                 throw new TypeError(cleanup + " is not a function");
 
@@ -202,25 +203,26 @@ export class Observable {
 
     forEach(fn, thisArg = undefined) {
 
-        return Promise.resolve().then(_=> new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
 
             if (typeof fn !== "function")
                 throw new TypeError(fn + " is not a function");
 
-            this.subscribe({
+            Promise.resolve().then(_=> {
 
-                subscription: null,
+                this.subscribe({
 
-                next(value, subscription) {
+                    next(value, subscription) {
 
-                    try { fn.call(thisArg, value, subscription) }
-                    catch (x) { reject(x) }
-                },
+                        try { fn.call(thisArg, value, subscription) }
+                        catch (x) { reject(x) }
+                    },
 
-                error(value) { reject(value) },
-                complete(value) { resolve(value) },
+                    error(value) { reject(value) },
+                    complete(value) { resolve(value) },
+                });
             });
-        }));
+        });
     }
 
     [Symbol.observable]() { return this }
@@ -247,7 +249,7 @@ export class Observable {
             return new C(observer => {
 
                 let subscription = observable.subscribe(observer);
-                return _=> subscription.unsubscribe();
+                return _=> subscription.cancel();
             });
         }
 
@@ -318,7 +320,7 @@ export class Observable {
                 complete(value) { return observer.complete(value) },
             });
 
-            return _=> subscription.unsubscribe();
+            return _=> subscription.cancel();
         });
     }
 
@@ -345,7 +347,7 @@ export class Observable {
                 complete(value) { return observer.complete(value) },
             });
 
-            return _=> subscription.unsubscribe();
+            return _=> subscription.cancel();
         });
     }
 
