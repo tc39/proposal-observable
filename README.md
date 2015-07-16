@@ -7,9 +7,6 @@ events, timer intervals, and sockets.  In addition, observables are:
 - *Compositional*: Observables can be composed with higher-order combinators.
 - *Lazy*: Observables do not start emitting data until an **observer** has subscribed.
 
-> The **Observable** concept comes from *reactive programming*.  See http://reactivex.io/
-> for more information.
-
 ### Example: Observing Keyboard Events ###
 
 Using the **Observable** constructor, we can create a function which returns an
