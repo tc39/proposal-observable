@@ -15,8 +15,8 @@ function takeUntil(stream, control) {
 
         return _=> {
 
-            source.cancel();
-            input.cancel();
+            source.unsubscribe();
+            input.unsubscribe();
         };
     });
 }
@@ -34,7 +34,7 @@ function switchLatest(stream) {
             next(value) {
 
                 if (inner)
-                    inner.cancel();
+                    inner.unsubscribe();
 
                 inner = value.subscribe({
 
@@ -51,9 +51,9 @@ function switchLatest(stream) {
         return _=> {
 
             if (inner)
-                inner.cancel();
+                inner.unsubscribe();
 
-            outer.cancel();
+            outer.unsubscribe();
         };
     });
 }

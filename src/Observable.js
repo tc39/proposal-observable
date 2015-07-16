@@ -59,7 +59,7 @@ class Subscription {
         this._observer = observer;
     }
 
-    cancel() {
+    unsubscribe() {
 
         cancelSubscription(this._observer);
     }
@@ -249,7 +249,7 @@ export class Observable {
             return new C(observer => {
 
                 let subscription = observable.subscribe(observer);
-                return _=> subscription.cancel();
+                return _=> subscription.unsubscribe();
             });
         }
 
@@ -320,7 +320,7 @@ export class Observable {
                 complete(value) { return observer.complete(value) },
             });
 
-            return _=> subscription.cancel();
+            return _=> subscription.unsubscribe();
         });
     }
 
@@ -347,7 +347,7 @@ export class Observable {
                 complete(value) { return observer.complete(value) },
             });
 
-            return _=> subscription.cancel();
+            return _=> subscription.unsubscribe();
         });
     }
 
