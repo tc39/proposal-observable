@@ -172,7 +172,7 @@ function.  It performs the following steps:
 
 #### CancelSubscription(subscriptionObserver) Abstract Operation ####
 
-The abstract operation CloseSubscription with argument *subscriptionObserver* performs the
+The abstract operation CancelSubscription with argument *subscriptionObserver* performs the
 following steps:
 
 1. Assert: *subscriptionObserver* is a Subscription Observer object.
@@ -182,7 +182,7 @@ following steps:
 
 #### CleanupSubscription(subscriptionObserver) Abstract Operation ####
 
-The abstract operation CancelSubscription with argument *subscriptionObserver* performs the
+The abstract operation CleanupSubscription with argument *subscriptionObserver* performs the
 following steps:
 
 1. Assert: *subscriptionObserver* is a Subscription Observer object.
