@@ -160,7 +160,7 @@ does not implement **next**, **error** or **complete**.
 #### CreateSubscriptionObserver(observer) Abstract Operation ####
 
 The abstract operation CreateSubscriptionObserver with argument *observer* is used to
-create a normalized observer which can be supplied the an observable's *subscriber*
+create a normalized observer which can be supplied to an observable's *subscriber*
 function.  It performs the following steps:
 
 1. Assert: Type(*observer*) is Object.
