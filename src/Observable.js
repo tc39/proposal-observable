@@ -103,10 +103,11 @@ class SubscriptionObserver {
 
         this._observer = observer;
         this._cleanup = undefined;
-        this._cancel = (_=> { cancelSubscription(this) });
     }
 
-    next(value, cancel = this._cancel) {
+    get closed() { return subscriptionClosed(this) }
+
+    next(value) {
 
         // If the stream if closed, then return undefined
         if (subscriptionClosed(this))
@@ -123,7 +124,7 @@ class SubscriptionObserver {
                 return undefined;
 
             // Send the next value to the sink
-            return m.call(observer, value, cancel);
+            return m.call(observer, value);
 
         } catch (e) {
 
@@ -187,6 +188,8 @@ class SubscriptionObserver {
 
 export class Observable {
 
+    // == Fundamental ==
+
     constructor(subscriber) {
 
         // The stream subscriber must be a function
@@ -228,10 +231,14 @@ export class Observable {
         if (subscriptionClosed(observer))
             cleanupSubscription(observer);
 
-        return observer._cancel;
+        return _=> { cancelSubscription(observer) };
     }
 
     [Symbol.observable]() { return this }
+
+    static get [Symbol.species]() { return this }
+
+    // == Derived ==
 
     static from(x) {
 
@@ -259,15 +266,18 @@ export class Observable {
 
             enqueueJob(_=> {
 
+                if (observer.closed)
+                    return;
+
                 // Assume that the object is iterable.  If not, then the observer
                 // will receive an error.
                 try {
 
-                    for (let item of x[Symbol.iterator]()) {
+                    for (let item of x) {
 
-                        let result = observer.next(item);
+                        observer.next(item);
 
-                        if (subscriptionClosed(observer))
+                        if (observer.closed)
                             return;
                     }
 
@@ -292,11 +302,14 @@ export class Observable {
 
                 try {
 
+                    if (observer.closed)
+                        return;
+
                     for (let i = 0; i < items.length; ++i) {
 
                         observer.next(items[i]);
 
-                        if (subscriptionClosed(observer))
+                        if (observer.closed)
                             return;
                     }
 
@@ -311,20 +324,40 @@ export class Observable {
         });
     }
 
-    static get [Symbol.species]() { return this }
+    forEach(next, error, complete) {
 
-    forEach(fn, thisArg = undefined) {
+        if (next != null && typeof next !== "function")
+            throw new TypeError(next + " is not a function");
 
-        if (typeof fn !== "function")
-            throw new TypeError(fn + " is not a function");
+        if (error != null && typeof error !== "function")
+            throw new TypeError(error + " is not a function");
+
+        if (complete != null && typeof complete !== "function")
+            throw new TypeError(complete + " is not a function");
 
         return this.subscribe({
 
-            next(value, subscription) { fn.call(thisArg, value, subscription) }
+            next(value) {
+
+                if (!next) return undefined;
+                next(value);
+            },
+
+            error(value) {
+
+                if (!error) throw value;
+                error(value);
+            },
+
+            complete(value) {
+
+                if (!complete) return undefined;
+                complete(value);
+            },
         });
     }
 
-    map(fn, thisArg = undefined) {
+    map(fn) {
 
         if (typeof fn !== "function")
             throw new TypeError(fn + " is not a function");
@@ -335,7 +368,7 @@ export class Observable {
 
             next(value) {
 
-                try { value = fn.call(thisArg, value) }
+                try { value = fn(value) }
                 catch (e) { return observer.error(e) }
 
                 return observer.next(value);
@@ -346,7 +379,7 @@ export class Observable {
         }));
     }
 
-    filter(fn, thisArg = undefined) {
+    filter(fn) {
 
         if (typeof fn !== "function")
             throw new TypeError(fn + " is not a function");
@@ -357,7 +390,7 @@ export class Observable {
 
             next(value) {
 
-                try { if (!fn.call(thisArg, value)) return undefined; }
+                try { if (!fn(value)) return undefined; }
                 catch (e) { return observer.error(e) }
 
                 return observer.next(value);

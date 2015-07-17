@@ -54,7 +54,7 @@ commandKeys(inputElement).subscribe({
 });
 ```
 
-### API Specification ###
+### Core API Specification ###
 
 *This specification is a work-in-progress.  Please see the [polyfill](src/Observable.js)
 for a more complete implementation.*
@@ -106,7 +106,10 @@ The **subscribe** function performs the following steps:
 1. If SubscriptionClosed(*observer*) is **true**,
     1. Let *cancelResult* be CancelSubscription(*observer*).
     1. ReturnIfAbrupt(*cancelResult*).
-1. Return *subscription*.
+1. Let *cancelFunction* be a new built-in function object as defined in Subscription Cancel
+   Functions.
+1. Set the [[SubscriptionObserver]] internal slot of *cancelFunction* to *observer*.
+1. Return *cancelFunction*.
 
 #### ExecuteSubscriber(subscriber, observer) ####
 
@@ -120,6 +123,21 @@ performs the following steps:
 1. If *subscriberResult* is **null** or **undefined**, return **undefined**.
 1. If IsCallable(*subscriberResult*) is **false**, throw a **TypeError** exception.
 1. Return *subscriberResult*.
+
+#### Subscription Cancel Functions ####
+
+A subscription cancel function is an anonymous built-in function that has a
+[[SubscriptionObserver]] internal slot.
+
+When a subscription cancel function *F* is called with argument *resolution*, the
+following steps are taken:
+
+1. Assert: *F* as a [[SubscriptionObserver]] internal slot whose value is an Object.
+1. Let *subscriptionObserver* be the value of the [[SubscriptionObserver]] internal
+   slot of *F*.
+1. Return CancelSubscription(*subscriptionObserver*).
+
+The **length** property of a subscription cancel function is **0**.
 
 #### Subscription Observer Objects ####
 
@@ -150,10 +168,6 @@ function.  It performs the following steps:
    «‍[[Observer]], [[Cleanup]], [[Cancel]]»).
 1. Set *subscriptionObserver's* [[Observer]] internal slot to *observer*.
 1. Set *subscriptionObserver's* [[Cleanup]] internal slot to **undefined**.
-1. Let *cancel* be a new built-in anonymous function which performs the following steps:
-    1. TODO: Use specification standard for writing closures
-    1. Return CancelSubscription(*subscriptionObserver*).
-1. Set *subscriptionObserver's* [[Cancel]] internal slot to *cancel*.
 1. Return *subscriptionObserver*.
 
 #### CancelSubscription(subscriptionObserver) Abstract Operation ####
@@ -197,7 +211,7 @@ intrinsic object.  The %SubscriptionObserverPrototype% object is an ordinary obj
 [[Prototype]] internal slot is the %ObjectPrototype% intrinsic object. In addition,
 %SubscriptionObserverPrototype% has the following properties:
 
-#### %SubscriptionObserverPrototype%.next(value [, cancel]) ####
+#### %SubscriptionObserverPrototype%.next(value) ####
 
 1. Let *O* be the **this** value.
 1. If Type(*O*) is not Object, throw a **TypeError** exception.
@@ -206,13 +220,11 @@ intrinsic object.  The %SubscriptionObserverPrototype% object is an ordinary obj
 1. If SubscriptionClosed(*O*) is **true**, return **undefined**.
 1. Let *observer* be the value of the [[Observer]] internal slot of *O*.
 1. Assert: Type(*observer*) is Object.
-1. If *cancel* was not supplied, or is **undefined**, let *cancel* be the value of the
-   [[Cancel]] internal slot of *O*.
 1. Let *result* be GetMethod(*observer*, **"next"**).
 1. If *result*.[[type]] is **normal**,
     1. Let *nextMethod* be *result*.[[value]].
     1. If *nextMethod* is **undefined**, let *result* be NormalCompletion(**undefined**).
-    1. Else, let *result* be Call(*nextMethod*, *observer*, «‍*value*, *cancel*»).
+    1. Else, let *result* be Call(*nextMethod*, *observer*, «‍*value*»).
 1. If *result* is an abrupt completion,
     1. Let *cancelResult* be CancelSubscription(*O*).
     1. ReturnIfAbrupt(*cancelResult*).
@@ -258,3 +270,13 @@ intrinsic object.  The %SubscriptionObserverPrototype% object is an ordinary obj
 1. ReturnIfAbrupt(*cleanupResult*).
 1. Return Completion(*result*).
 
+#### get %SubscriptionObserverPrototype%.closed ####
+
+%SubscriptionObserverPrototype%.closed is an accessor property whose set accessor function
+is undefined. Its get accessor function performs the following steps:
+
+1. Let *O* be the **this** value.
+1. If Type(*O*) is not Object, throw a **TypeError** exception.
+1. If *O* does not have all of the internal slots of a Subscription Observer instance,
+   throw a **TypeError** exception.
+1. Return SubscriptionClosed(*O*).
