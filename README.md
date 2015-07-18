@@ -54,6 +54,74 @@ commandKeys(inputElement).subscribe({
 });
 ```
 
+### API ###
+
+#### Observable ####
+
+```js
+interface Observable {
+
+    constructor(subscriber : Function);
+
+    // Subscribes to the sequence with an Observer
+    subscribe(observer : Observer) : Function;
+
+    // Subscribes to the sequence with callbacks
+    forEach(onNext : Function,
+            onError : Function,
+            onComplete : Function) : Function;
+
+    // Standard combinators
+    filter(callback : Function) : Observable;
+    map(callback : Function) : Observable;
+
+    // Returns itself
+    get [Symbol.observable]() : Observable;
+
+    // Converts items to an Observable
+    static of(...items: [any]) : Observable;
+
+    // Converts an observable or iterable to an Observable
+    static from(observable: any) : Observable;
+
+}
+```
+
+#### Observer ####
+
+```js
+interface Observer {
+
+    // Recieves the next value in the sequence
+    next(value : any);
+
+    // Recieves the sequence error
+    error(errorValue : any);
+
+    // Receives the sequence completion value
+    complete(completeValue: any);
+}
+```
+
+#### SubscriptionObserver ####
+
+```js
+interface SubscriptionObserver {
+
+    // Returns true if the subscription is closed
+    get closed() : Boolean;
+
+    // Sends the next value in the sequence
+    next(value : any);
+
+    // Sends the sequence error
+    error(errorValue : any);
+
+    // Sends the sequence completion value
+    complete(completeValue: any);
+}
+```
+
 ### Core API Specification ###
 
 *This specification is a work-in-progress.  Please see the [polyfill](src/Observable.js)
