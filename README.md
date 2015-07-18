@@ -215,8 +215,7 @@ performs the following steps:
 A subscription cancel function is an anonymous built-in function that has a
 [[SubscriptionObserver]] internal slot.
 
-When a subscription cancel function *F* is called with argument *resolution*, the
-following steps are taken:
+When a subscription cancel function *F* is called the following steps are taken:
 
 1. Assert: *F* as a [[SubscriptionObserver]] internal slot whose value is an Object.
 1. Let *subscriptionObserver* be the value of the [[SubscriptionObserver]] internal
