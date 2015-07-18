@@ -47,11 +47,80 @@ function commandKeys(element) {
 When we want to consume the event stream, we subscribe with an **observer**.
 
 ```js
-commandKeys(inputElement).subscribe({
+let unsubscribe = commandKeys(inputElement).subscribe({
     next(val) { console.log("Recieved key command: " + val) },
     error(err) { console.log("Recieved an error: " + err) },
     complete() { console.log("Stream complete") },
 });
+```
+
+If we want to supply callbacks instead of an observer object, we can use the **forEach**
+method.
+
+```js
+let unsubscribe = commandKeys(inputElement).forEach(val => {
+    console.log("Recieved key command: " + val);
+});
+```
+
+The function returned by **subscribe** or **forEach** will allow us to cancel the
+subscription at any time.  Upon cancelation, the Observable's cleanup function will be
+executed.
+
+```js
+// After calling this function, no more events will be sent
+unsubscribe();
+```
+
+We can create an Observable of values using the **Observable.of** function.
+
+```js
+// Converting a list of arguments to an Observable
+Observable.of(1, 2, 3, 4).forEach(i => console.log(i));
+/*
+ > 1
+ > 2
+ > 3
+ > 4
+*/
+```
+
+We can convert a "observable" object (an object that has a `Symbol.observable` method),
+or an iterable object to an Observable using the **Observable.from** function.
+
+```js
+function *range(from, to) {
+    for (let i = from; i < to; ++i)
+        yield i;
+}
+
+// Converting an iterable into an Observable
+Observable.from(range(0, 3)).forEach(i => console.log(i));
+/*
+ > 0
+ > 1
+ > 2
+*/
+
+let potentiallyObservable = {
+    name: "zen",
+    [Symbol.observable]() {
+        return new Observable(observer => {
+            setTimeout(_=> {
+                observer.next("hello");
+                observer.next(this.name);
+            }, 1000);
+        });
+    }
+};
+
+// Converting an object which implements Symbol.observable
+// to an Observable
+Observable.from(potentiallyObservable).forEach(msg => console.log(msg));
+/*
+ > "hello"
+ > "zen"
+*/
 ```
 
 ### API ###
