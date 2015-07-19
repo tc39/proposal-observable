@@ -54,18 +54,8 @@ let unsubscribe = commandKeys(inputElement).subscribe({
 });
 ```
 
-If we want to supply callbacks instead of an observer object, we can use the **forEach**
-method.
-
-```js
-let unsubscribe = commandKeys(inputElement).forEach(val => {
-    console.log("Recieved key command: " + val);
-});
-```
-
-The function returned by **subscribe** or **forEach** will allow us to cancel the
-subscription at any time.  Upon cancelation, the Observable's cleanup function will be
-executed.
+The function returned by **subscribe** will allow us to cancel the subscription at any time.
+Upon cancelation, the Observable's cleanup function will be executed.
 
 ```js
 // After calling this function, no more events will be sent
@@ -81,13 +71,8 @@ interface Observable {
 
     constructor(subscriber : Function);
 
-    // Subscribes to the sequence with an Observer
+    // Subscribes to the sequence
     subscribe(observer : Observer) : Function;
-
-    // Subscribes to the sequence with callbacks
-    forEach(onNext : Function,
-            onError : Function,
-            onComplete : Function) : Function;
 
     // Standard combinators
     filter(callback : Function) : Observable;

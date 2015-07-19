@@ -324,39 +324,6 @@ export class Observable {
         });
     }
 
-    forEach(next, error, complete) {
-
-        if (next != null && typeof next !== "function")
-            throw new TypeError(next + " is not a function");
-
-        if (error != null && typeof error !== "function")
-            throw new TypeError(error + " is not a function");
-
-        if (complete != null && typeof complete !== "function")
-            throw new TypeError(complete + " is not a function");
-
-        return this.subscribe({
-
-            next(value) {
-
-                if (!next) return undefined;
-                next(value);
-            },
-
-            error(value) {
-
-                if (!error) throw value;
-                error(value);
-            },
-
-            complete(value) {
-
-                if (!complete) return undefined;
-                complete(value);
-            },
-        });
-    }
-
     map(fn) {
 
         if (typeof fn !== "function")
