@@ -82,10 +82,10 @@ interface Observable {
     get [Symbol.observable]() : Observable;
 
     // Converts items to an Observable
-    static of(...items: [any]) : Observable;
+    static of(...items) : Observable;
 
     // Converts an observable or iterable to an Observable
-    static from(observable: any) : Observable;
+    static from(observable) : Observable;
 
     // Subclassing support
     static get [Symbol.species]() : Function;
@@ -99,13 +99,13 @@ interface Observable {
 interface Observer {
 
     // Recieves the next value in the sequence
-    next(value : any);
+    next(value);
 
     // Recieves the sequence error
-    error(errorValue : any);
+    error(errorValue);
 
     // Receives the sequence completion value
-    complete(completeValue: any);
+    complete(completeValue);
 }
 ```
 
@@ -118,13 +118,13 @@ interface SubscriptionObserver {
     get closed() : Boolean;
 
     // Sends the next value in the sequence
-    next(value : any);
+    next(value);
 
     // Sends the sequence error
-    error(errorValue : any);
+    error(errorValue);
 
     // Sends the sequence completion value
-    complete(completeValue: any);
+    complete(completeValue);
 }
 ```
 
