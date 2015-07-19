@@ -324,36 +324,27 @@ export class Observable {
         });
     }
 
-    forEach(next, error, complete) {
+    forEach(fn, cancel = undefined) {
 
-        if (next != null && typeof next !== "function")
-            throw new TypeError(next + " is not a function");
+        return new Promise((resolve, reject) => {
 
-        if (error != null && typeof error !== "function")
-            throw new TypeError(error + " is not a function");
+            if (typeof fn !== "function")
+                throw new TypeError(fn + " is not a function");
 
-        if (complete != null && typeof complete !== "function")
-            throw new TypeError(complete + " is not a function");
+            let unsubscribe = this.subscribe({
 
-        return this.subscribe({
+                next(value) {
 
-            next(value) {
+                    try { return fn(value) }
+                    catch (x) { reject(x) }
+                },
 
-                if (!next) return undefined;
-                next(value);
-            },
+                error: reject,
+                complete: resolve,
+            });
 
-            error(value) {
-
-                if (!error) throw value;
-                error(value);
-            },
-
-            complete(value) {
-
-                if (!complete) return undefined;
-                complete(value);
-            },
+            if (cancel)
+                cancel.forEach(unsubscribe);
         });
     }
 

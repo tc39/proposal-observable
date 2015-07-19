@@ -76,6 +76,10 @@ interface Observable {
     // Subscribes to the sequence
     subscribe(observer : Observer) : Function;
 
+    // Subscribes to the sequence with a callback and returns a
+    // Promise for its completion
+    forEach(callback : Function) : Promise;
+
     // Standard combinators
     filter(callback : Function) : Observable;
     map(callback : Function) : Observable;
