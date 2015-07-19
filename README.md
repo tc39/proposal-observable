@@ -66,7 +66,7 @@ unsubscribe();
 
 #### Observable ####
 
-An **Observable** represents a sequence of values which may be observed.
+An Observable represents a sequence of values which may be observed.
 
 ```js
 interface Observable {
@@ -97,8 +97,8 @@ interface Observable {
 
 #### Observer ####
 
-An **Observer** is used to recieve data from an Observable, and is supplied as an
-argument to **Observable.prototype.subscribe**.
+An Observer is used to recieve data from an Observable, and is supplied as an
+argument to **subscribe**.
 
 All methods are optional.
 
@@ -118,10 +118,9 @@ interface Observer {
 
 #### SubscriptionObserver ####
 
-A **SubscriptionObserver** is a normalized **Observer** which wraps the observer
-supplied to **Observable.prototype.subscribe**.  It also provides a **closed**
-property which may be used to determine whether the corresponding subscription has
-been closed.
+A SubscriptionObserver is a normalized Observer which wraps the observer supplied to
+**subscribe**.  It also provides a **closed** property which may be used to determine
+whether the corresponding subscription has been closed.
 
 ```js
 interface SubscriptionObserver {
