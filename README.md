@@ -87,6 +87,9 @@ interface Observable {
     // Converts an observable or iterable to an Observable
     static from(observable: any) : Observable;
 
+    // Subclassing support
+    static get [Symbol.species]() : Function;
+
 }
 ```
 
@@ -150,6 +153,13 @@ The **Observable** constructor performs the following steps:
 1. ReturnIfAbrupt(**observable**).
 1. Set *observable's* [[Subscriber]] internal slot to *subscriber*.
 1. Return *observable*.
+
+#### get Observable[@@species] ###
+
+**Observable[@@species]** is an accessor property whose set accessor function is
+**undefined**. Its get accessor function performs the following steps:
+
+1. Return the **this** value.
 
 #### Observable.prototype.subscribe(observer) ####
 
