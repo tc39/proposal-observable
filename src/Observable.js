@@ -201,7 +201,7 @@ export class Observable {
 
     subscribe(observer) {
 
-        // The sink must be an object
+        // The observer must be an object
         if (Object(observer) !== observer)
             throw new TypeError("Observer must be an object");
 
@@ -321,30 +321,6 @@ export class Observable {
 
                 observer.complete();
             });
-        });
-    }
-
-    forEach(fn, cancel = undefined) {
-
-        return new Promise((resolve, reject) => {
-
-            if (typeof fn !== "function")
-                throw new TypeError(fn + " is not a function");
-
-            let unsubscribe = this.subscribe({
-
-                next(value) {
-
-                    try { return fn(value) }
-                    catch (x) { reject(x) }
-                },
-
-                error: reject,
-                complete: resolve,
-            });
-
-            if (cancel)
-                cancel.forEach(unsubscribe);
         });
     }
 
