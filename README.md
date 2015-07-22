@@ -95,6 +95,76 @@ interface Observable {
 }
 ```
 
+**Observable.of** creates an Observable of the values provided as arguments.  The values
+are delivered asynchronously, in a future turn of the event loop.
+
+```js
+Observable.of("red", "green", "blue").subscribe({
+    next(color) {
+        console.log(color);
+    }
+});
+
+/*
+ > "red"
+ > "green"
+ > "blue"
+*/
+```
+
+**Observable.from** converts its argument to an Observable.
+
+- If the argument has a `Symbol.observable` method, then it returns the result of
+  invoking that method.  If the resulting object is not an instance of Observable,
+  then it is wrapped in an Observable which will delegate subscription.
+- Otherwise, the argument is assumed to be an iterable and the iteration values are
+  delivered asynchronously in a future turn of the event loop.
+
+Converting from an object which supports [Symbol.observer] to an Observable:
+
+```js
+Observable.from({
+    [Symbol.observable]() {
+        return new Observable(observer => {
+            setTimeout(_=> {
+                observer.next("hello");
+                observer.next("world");
+                observer.complete();
+            }, 2000);
+        });
+    }
+}).subscribe({
+    next(value) {
+        console.log(value);
+    }
+});
+
+/*
+ > "hello"
+ > "world"
+*/
+
+let observable = new Observable(observer => {});
+Observable.from(observable) === observable; // true
+
+```
+
+Converting from an iterable to an Observable:
+
+```js
+Observable.from(["mercury", "venus", "earth"]).subscribe({
+    next(value) {
+        console.log(value);
+    }
+});
+
+/*
+ > "mercury"
+ > "venus"
+ > "earth"
+*/
+```
+
 #### Observer ####
 
 An Observer is used to recieve data from an Observable, and is supplied as an
