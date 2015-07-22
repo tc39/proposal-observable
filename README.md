@@ -97,7 +97,7 @@ interface Observable {
 
 #### Observable.of ####
 
-**Observable.of** creates an Observable of the values provided as arguments.  The values
+`Observable.of` creates an Observable of the values provided as arguments.  The values
 are delivered asynchronously, in a future turn of the event loop.
 
 ```js
@@ -116,7 +116,7 @@ Observable.of("red", "green", "blue").subscribe({
 
 #### Observable.from ####
 
-**Observable.from** converts its argument to an Observable.
+`Observable.from` converts its argument to an Observable.
 
 - If the argument has a `Symbol.observable` method, then it returns the result of
   invoking that method.  If the resulting object is not an instance of Observable,
@@ -124,7 +124,7 @@ Observable.of("red", "green", "blue").subscribe({
 - Otherwise, the argument is assumed to be an iterable and the iteration values are
   delivered asynchronously in a future turn of the event loop.
 
-Converting from an object which supports [Symbol.observer] to an Observable:
+Converting from an object which supports `Symbol.observer` to an Observable:
 
 ```js
 Observable.from({
