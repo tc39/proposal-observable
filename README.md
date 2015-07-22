@@ -95,6 +95,8 @@ interface Observable {
 }
 ```
 
+#### Observable.of ####
+
 **Observable.of** creates an Observable of the values provided as arguments.  The values
 are delivered asynchronously, in a future turn of the event loop.
 
@@ -111,6 +113,8 @@ Observable.of("red", "green", "blue").subscribe({
  > "blue"
 */
 ```
+
+#### Observable.from ####
 
 **Observable.from** converts its argument to an Observable.
 
