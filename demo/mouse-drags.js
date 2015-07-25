@@ -87,4 +87,6 @@ function mouseDrags(element) {
     return switchLatest(moveStreams);
 }
 
-mouseDrags(document.body).forEach(e => console.log(`DRAG: <${ e.x }:${ e.y }>`));
+let cancel = mouseDrags(document.body).subscribe({
+    next(e) { console.log(`DRAG: <${ e.x }:${ e.y }>`) }
+});
