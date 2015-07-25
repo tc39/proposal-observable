@@ -13,13 +13,7 @@ const TOKENS = [
 // Returns an observable sequence of token objects
 function tokenStream() {
 
-    return new Observable(sink => {
-
-        for (let t of TOKENS)
-            sink.next(t);
-
-        sink.complete();
-    });
+    return Observable.from(TOKENS);
 }
 
 // Returns an observable which outputs an AST from an input observable of token objects
