@@ -39,12 +39,7 @@ class EventTarget {
         return new Observable(observer => {
 
             // On subscription, add a listener
-            this.@listeners.push({
-
-                observer,
-                type,
-                capture,
-            });
+            this.@listeners.push({ observer, type, capture });
 
             // On unsubscription, remove the listener
             return _=> {
