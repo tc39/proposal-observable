@@ -29,6 +29,13 @@ To invoke the event listeners for an object with an event run these steps:
 ### EventTarget Implementation in JavaScript ###
 
 ```js
+function findHandler(list, type, handler, capture) {
+    return list.findIndex(x =>
+        x.type === type &&
+        x.handler === handler &&
+        x.capture === capture);
+}
+
 class EventTarget {
 
     @listeners = [];
@@ -55,37 +62,32 @@ class EventTarget {
 
     addEventListener(type, handler, capture = false) {
 
-        let index = this.@findHandler(type, handler, capture);
+        let index = findHandler(this.@handlers, type, handler, capture);
 
         // Dedupe:  exit if listener is already registered
         if (index >= 0)
             return;
 
+        // Subscribe to the event stream
         let cancel = this.observe(type, capture).subscribe({
             next(event) { handler.call(event.currentTarget, event) }
         });
 
+        // Store the handler and cancellation function
         this.@handlers.push({ type, handler, capture, cancel });
     }
 
     removeEventListener(type, handler, capture = false) {
 
-        let index = this.@findHandler(type, handler, capture);
+        let index = findHandler(this.@handlers, type, handler, capture);
 
         // Exit if listener is not registered
         if (index < 0)
             return;
 
+        // Call the cancellation function and remove the handler
         this.@handlers[index].cancel();
         this.@handlers.splice(index, 1);
-    }
-
-    @findHandler(type, handler, capture) {
-
-        return this.@handlers.findIndex(x =>
-            x.type === x.type &&
-            x.handler === handler &&
-            x.capture === capture);
     }
 
 }
