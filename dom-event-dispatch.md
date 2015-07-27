@@ -1,7 +1,12 @@
 ## Implementing EventTarget with Observable ##
 
-
 ### Changes to Event Dispatch ###
+
+We modify the "invoke event listener" algorithm so that each event listener holds a
+reference to an **observer**.  The observer's **next** method is invoked with the
+current event.
+
+#### Invoking Event Listeners ####
 
 To invoke the event listeners for an object with an event run these steps:
 
