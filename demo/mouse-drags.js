@@ -90,3 +90,14 @@ function mouseDrags(element) {
 let cancel = mouseDrags(document.body).subscribe({
     next(e) { console.log(`DRAG: <${ e.x }:${ e.y }>`) }
 });
+
+/*
+
+(async _=> {
+
+    for await (let e of mouseDrags(document.body))
+        console.log(`DRAG: <${ e.x }:${ e.y }>`);
+
+})();
+
+*/
