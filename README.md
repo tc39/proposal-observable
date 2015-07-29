@@ -227,7 +227,7 @@ that manner.
 The *subscriber* argument must be a function object.  It is called each time the
 *subscribe* method of the Observable object is invoked.  The *subscriber* function is
 called with a wrapped observer object and may optionally return a function which will
-cancel the subscription, or an object which has an "unsubscribe" method.
+cancel the subscription.
 
 The **Observable** constructor performs the following steps:
 
@@ -460,7 +460,7 @@ observable.forEach(x => console.log(x)).then(_=> {
 });
 ```
 
-Unfortunately, we would lose the ability to cancel the stream, whcih is extremely
+Unfortunately, we would lose the ability to cancel the stream, which is extremely
 important for event handling use cases.  If the **forEach** method returns a promise,
 then it is essentially an async task, and we have still not settled on a solution
 for task cancellation in ES.
