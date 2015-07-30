@@ -48,8 +48,8 @@ When we want to consume the event stream, we subscribe with an **observer**.
 
 ```js
 let unsubscribe = commandKeys(inputElement).subscribe({
-    next(val) { console.log("Recieved key command: " + val) },
-    error(err) { console.log("Recieved an error: " + err) },
+    next(val) { console.log("Received key command: " + val) },
+    error(err) { console.log("Received an error: " + err) },
     complete() { console.log("Stream complete") },
 });
 ```
@@ -60,6 +60,13 @@ Upon cancelation, the Observable's cleanup function will be executed.
 ```js
 // After calling this function, no more events will be sent
 unsubscribe();
+```
+
+Alternatively, we can subscribe to an Observable with the **do** method, which accepts
+a single callback and returns a Promise.
+
+```js
+commandKeys(inputElement).do(val => console.log("Received key command: " + val));
 ```
 
 ### API ###
@@ -75,6 +82,9 @@ interface Observable {
 
     // Subscribes to the sequence
     subscribe(observer : Observer) : Function;
+
+    // Subscribes to the sequence with a callback, returning a promise
+    do(onNext : Function) : Promise;
 
     // Standard combinators
     filter(callback : Function) : Observable;
