@@ -234,6 +234,27 @@ export class Observable {
         return _=> { cancelSubscription(observer) };
     }
 
+    do(fn) {
+
+        return new Promise((resolve, reject) => {
+
+            if (typeof fn !== "function")
+                throw new TypeError(fn + " is not a function");
+
+            this.subscribe({
+
+                next(value) {
+
+                    try { return fn(value) }
+                    catch (x) { reject(x) }
+                },
+
+                error: reject,
+                complete: resolve,
+            });
+        });
+    }
+
     [Symbol.observable]() { return this }
 
     static get [Symbol.species]() { return this }
