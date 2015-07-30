@@ -66,7 +66,17 @@ Alternatively, we can subscribe to an Observable with the **do** method, which a
 a single callback and returns a Promise.
 
 ```js
-commandKeys(inputElement).do(val => console.log("Received key command: " + val));
+commandKeys(inputElement).do(val => {
+    console.log("Received key command: " + val);
+});
+```
+
+```js
+Observable.of(1, 2, 3, 4, 5)
+    .map(n => n * n)
+    .filter(n => n > 10)
+    .do(n => console.log(n))
+    .then(_ => console.log("All done!"));
 ```
 
 ### API ###
