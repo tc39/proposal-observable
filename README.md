@@ -465,22 +465,3 @@ is undefined. Its get accessor function performs the following steps:
 1. If *O* does not have all of the internal slots of a Subscription Observer instance,
    throw a **TypeError** exception.
 1. Return SubscriptionClosed(*O*).
-
-### Open Design Issues ###
-
-*Adding a forEach method which returns a Promise.*
-
-It would be a nice if there were an alternate subscription method that accepts
-a single callback for sequence values and returns a promise for the sequence
-completion value.
-
-```js
-observable.forEach(x => console.log(x)).then(_=> {
-    // Do something after the sequence has completed
-});
-```
-
-Unfortunately, we would lose the ability to cancel the stream, which is extremely
-important for event handling use cases.  If the **forEach** method returns a promise,
-then it is essentially an async task, and we have still not settled on a solution
-for task cancellation in ES.
