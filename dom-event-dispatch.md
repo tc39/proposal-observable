@@ -46,7 +46,7 @@ class EventTarget {
     @listeners = [];
     @handlers = [];
 
-    observe(type, capture = false) {
+    on(type, capture = false) {
 
         return new Observable(observer => {
 
@@ -74,7 +74,7 @@ class EventTarget {
             return;
 
         // Subscribe to the event stream
-        let cancel = this.observe(type, capture).subscribe({
+        let cancel = this.on(type, capture).subscribe({
             next(event) { handler.call(event.currentTarget, event) }
         });
 
