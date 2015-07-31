@@ -91,7 +91,7 @@ interface Observable {
     constructor(subscriber : SubscriberFunction);
 
     // Subscribes to the sequence
-    subscribe(observer : Observer) : Function;
+    subscribe(observer : Observer) : (void => void);
 
     // Subscribes to the sequence with a callback, returning a promise
     do(onNext : any => any) : Promise;
@@ -110,7 +110,7 @@ interface Observable {
     static from(observable) : Observable;
 
     // Subclassing support
-    static get [Symbol.species]() : Function;
+    static get [Symbol.species]() : Constructor;
 
 }
 
