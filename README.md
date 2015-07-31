@@ -88,17 +88,17 @@ An Observable represents a sequence of values which may be observed.
 ```js
 interface Observable {
 
-    constructor(subscriber : Function);
+    constructor(subscriber : SubscriberFunction);
 
     // Subscribes to the sequence
     subscribe(observer : Observer) : Function;
 
     // Subscribes to the sequence with a callback, returning a promise
-    do(onNext : Function) : Promise;
+    do(onNext : any => any) : Promise;
 
     // Standard combinators
-    filter(callback : Function) : Observable;
-    map(callback : Function) : Observable;
+    filter(callback : any => Boolean) : Observable;
+    map(callback : any => any) : Observable;
 
     // Returns itself
     get [Symbol.observable]() : Observable;
@@ -113,6 +113,8 @@ interface Observable {
     static get [Symbol.species]() : Function;
 
 }
+
+function SubscriberFunction(observer: SubscriptionObserver) : (void => void);
 ```
 
 #### Observable.of ####
