@@ -56,7 +56,7 @@ class EventTarget {
             // On unsubscription, remove the listener
             return _=> {
 
-                let index = this.@listeners.find(
+                let index = this.@listeners.findIndex(
                     listener => listener.observer === observer);
 
                 if (index >= 0)
