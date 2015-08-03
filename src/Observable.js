@@ -234,7 +234,7 @@ export class Observable {
         return _=> { cancelSubscription(observer) };
     }
 
-    do(fn) {
+    forEach(fn) {
 
         return new Promise((resolve, reject) => {
 

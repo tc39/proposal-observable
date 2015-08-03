@@ -62,11 +62,11 @@ Upon cancelation, the Observable's cleanup function will be executed.
 unsubscribe();
 ```
 
-Alternatively, we can subscribe to an Observable with the **do** method, which accepts
+Alternatively, we can subscribe to an Observable with the **forEach** method, which accepts
 a single callback and returns a Promise.
 
 ```js
-commandKeys(inputElement).do(val => {
+commandKeys(inputElement).forEach(val => {
     console.log("Received key command: " + val);
 });
 ```
@@ -75,7 +75,7 @@ commandKeys(inputElement).do(val => {
 Observable.of(1, 2, 3, 4, 5)
     .map(n => n * n)
     .filter(n => n > 10)
-    .do(n => console.log(n))
+    .forEach(n => console.log(n))
     .then(_ => console.log("All done!"));
 ```
 
@@ -94,7 +94,7 @@ interface Observable {
     subscribe(observer : Observer) : (void => void);
 
     // Subscribes to the sequence with a callback, returning a promise
-    do(onNext : any => any) : Promise;
+    forEach(onNext : any => any) : Promise;
 
     // Standard combinators
     filter(callback : any => Boolean) : Observable;
