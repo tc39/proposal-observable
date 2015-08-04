@@ -86,12 +86,6 @@ function cleanupSubscription(observer) {
     cleanup();
 }
 
-function cancelSubscription(observer) {
-
-    observer._observer = undefined;
-    cleanupSubscription(observer);
-}
-
 function subscriptionClosed(observer) {
 
     return observer._observer === undefined;
@@ -103,6 +97,12 @@ class SubscriptionObserver {
 
         this._observer = observer;
         this._cleanup = undefined;
+    }
+
+    cancel() {
+
+        this._observer = undefined;
+        cleanupSubscription(this);
     }
 
     get closed() { return subscriptionClosed(this) }
@@ -129,7 +129,7 @@ class SubscriptionObserver {
         } catch (e) {
 
             // If the observer throws, then close the stream and rethrow the error
-            cancelSubscription(this);
+            this.cancel();
             throw e;
         }
     }
@@ -208,6 +208,11 @@ export class Observable {
         // Wrap the observer in order to maintain observation invariants
         observer = new SubscriptionObserver(observer);
 
+        // NOTE: This logic can be moved into the SubscriptionObserver
+        // constructor to avoid cross-class private state access.  Should
+        // it be moved?  To what extent is the SubscriptionObserver constructor
+        // observable?
+
         try {
 
             // Call the subscriber function
@@ -231,7 +236,7 @@ export class Observable {
         if (subscriptionClosed(observer))
             cleanupSubscription(observer);
 
-        return _=> { cancelSubscription(observer) };
+        return _=> { observer.cancel() };
     }
 
     forEach(fn) {

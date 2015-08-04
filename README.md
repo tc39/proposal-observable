@@ -221,6 +221,9 @@ whether the corresponding subscription has been closed.
 ```js
 interface SubscriptionObserver {
 
+    // Cancels the subscription
+    cancel();
+
     // Returns true if the subscription is closed
     get closed() : Boolean;
 
@@ -292,8 +295,8 @@ The **subscribe** function performs the following steps:
     1. ReturnIfAbrupt(*errorResult*).
 1. Else, set the [[Cleanup]] internal slot of *observer* to *subscriberResult*.[[value]].
 1. If SubscriptionClosed(*observer*) is **true**,
-    1. Let *cancelResult* be CancelSubscription(*observer*).
-    1. ReturnIfAbrupt(*cancelResult*).
+    1. Let *cleanupResult* be CleanupSubscription(*observer*).
+    1. ReturnIfAbrupt(*cleanupResult*).
 1. Let *cancelFunction* be a new built-in function object as defined in Subscription Cancel
    Functions.
 1. Set the [[SubscriptionObserver]] internal slot of *cancelFunction* to *observer*.
@@ -322,7 +325,7 @@ When a subscription cancel function *F* is called the following steps are taken:
 1. Assert: *F* as a [[SubscriptionObserver]] internal slot whose value is an Object.
 1. Let *subscriptionObserver* be the value of the [[SubscriptionObserver]] internal
    slot of *F*.
-1. Return CancelSubscription(*subscriptionObserver*).
+1. Return Invoke(*subscriptionObserver*, **"cancel"**, «‍»).
 
 The **length** property of a subscription cancel function is **0**.
 
@@ -356,16 +359,6 @@ function.  It performs the following steps:
 1. Set *subscriptionObserver's* [[Observer]] internal slot to *observer*.
 1. Set *subscriptionObserver's* [[Cleanup]] internal slot to **undefined**.
 1. Return *subscriptionObserver*.
-
-#### CancelSubscription(subscriptionObserver) Abstract Operation ####
-
-The abstract operation CancelSubscription with argument *subscriptionObserver* performs the
-following steps:
-
-1. Assert: *subscriptionObserver* is a Subscription Observer object.
-1. Assert: The value of the [[Observer]] internal slot of *subscriptionObserver* is not **undefined**.
-1. Set the value of the [[Observer]] internal slot of *subscriptionObserver* to **undefined**.
-1. Return CleanupSubscription(*subscriptionObserver*).
 
 #### CleanupSubscription(subscriptionObserver) Abstract Operation ####
 
@@ -413,7 +406,7 @@ intrinsic object.  The %SubscriptionObserverPrototype% object is an ordinary obj
     1. If *nextMethod* is **undefined**, let *result* be NormalCompletion(**undefined**).
     1. Else, let *result* be Call(*nextMethod*, *observer*, «‍*value*»).
 1. If *result* is an abrupt completion,
-    1. Let *cancelResult* be CancelSubscription(*O*).
+    1. Let *cancelResult* be Invoke(*O*, **"cancel"**, «‍»).
     1. ReturnIfAbrupt(*cancelResult*).
 1. Return Completion(*result*).
 
@@ -456,6 +449,15 @@ intrinsic object.  The %SubscriptionObserverPrototype% object is an ordinary obj
 1. Let *cleanupResult* be CleanupSubscription(*O*).
 1. ReturnIfAbrupt(*cleanupResult*).
 1. Return Completion(*result*).
+
+#### %SubscriptionObserverPrototype%.cancel() ####
+
+1. Let *O* be the **this** value.
+1. If Type(*O*) is not Object, throw a **TypeError** exception.
+1. If *O* does not have all of the internal slots of a Subscription Observer instance,
+   throw a **TypeError** exception.
+1. Set the value of the [[Observer]] internal slot of *O* to **undefined**.
+1. Return CleanupSubscription(*O*).
 
 #### get %SubscriptionObserverPrototype%.closed ####
 
