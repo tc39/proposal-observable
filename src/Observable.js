@@ -319,6 +319,8 @@ export class Observable {
 
                 } catch (x) {
 
+                    // If observer.next throws an error, then the subscription will
+                    // be closed and the error method will simply rethrow
                     observer.error(x);
                     return;
                 }
@@ -336,23 +338,15 @@ export class Observable {
 
             enqueueJob(_=> {
 
-                try {
+                if (observer.closed)
+                    return;
+
+                for (let i = 0; i < items.length; ++i) {
+
+                    observer.next(items[i]);
 
                     if (observer.closed)
                         return;
-
-                    for (let i = 0; i < items.length; ++i) {
-
-                        observer.next(items[i]);
-
-                        if (observer.closed)
-                            return;
-                    }
-
-                } catch (x) {
-
-                    observer.error(x);
-                    return;
                 }
 
                 observer.complete();
