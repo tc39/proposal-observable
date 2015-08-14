@@ -101,6 +101,9 @@ class SubscriptionObserver {
 
     cancel() {
 
+        if (subscriptionClosed(this))
+            return;
+
         this._observer = undefined;
         cleanupSubscription(this);
     }
@@ -129,8 +132,8 @@ class SubscriptionObserver {
         } catch (e) {
 
             // If the observer throws, then close the stream and rethrow the error
-            this.cancel();
-            throw e;
+            try { this.cancel() }
+            finally { throw e }
         }
     }
 
@@ -151,12 +154,17 @@ class SubscriptionObserver {
             if (!m)
                 throw value;
 
-            return m.call(observer, value);
+            value = m.call(observer, value);
 
-        } finally {
+        } catch (e) {
 
-            cleanupSubscription(this);
+            try { cleanupSubscription(this) }
+            finally { throw e }
         }
+
+        cleanupSubscription(this);
+
+        return value;
     }
 
     complete(value) {
@@ -173,15 +181,17 @@ class SubscriptionObserver {
             let m = getMethod(observer, "complete");
 
             // If the sink does not support "complete", then return undefined
-            if (!m)
-                return undefined;
+            value = m ? m.call(observer, value) : undefined;
 
-            return m.call(observer, value);
+        } catch (e) {
 
-        } finally {
-
-            cleanupSubscription(this);
+            try { cleanupSubscription(this) }
+            finally { throw e }
         }
+
+        cleanupSubscription(this);
+
+        return value;
     }
 
 }
