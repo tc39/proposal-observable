@@ -1,4 +1,4 @@
-/*=esdown=*/(function(fn, deps, name) { function obj() { return {} } if (typeof exports !== 'undefined') fn(require, exports, module); else if (typeof define === 'function' && define.amd) define(['require', 'exports', 'module'].concat(deps), fn); else if (typeof window !== 'undefined' && name) fn(obj, window[name] = {}, {}); else fn(obj, {}, {}); })(function(require, exports, module) { 'use strict'; function __load(p, l) { module.__es6 = !l; var e = require(p); if (e && e.constructor !== Object) e.default = e; return e; } var _M6 = {}, _M4 = {}, _M5 = {}, _M3 = {}, _M2 = {}, _M1 = exports;
+/*=esdown=*/(function(fn, deps, name) { function obj() { return {} } if (typeof exports !== 'undefined') fn(require, exports, module); else if (typeof define === 'function' && define.amd) define(['require', 'exports', 'module'].concat(deps), fn); else if (typeof window !== 'undefined' && name) fn(obj, window[name] = {}, {}); else fn(obj, {}, {}); })(function(require, exports, module) { 'use strict'; function __load(p, l) { module.__es6 = !l; var e = require(p); if (e && e.constructor !== Object) e.default = e; return e; } var _M4 = {}, _M5 = {}, _M6 = {}, _M3 = {}, _M2 = {}, _M1 = exports;
 
 (function(exports) {
 
@@ -98,7 +98,9 @@ var Test = _esdown.class(function(__) { var Test;
 	assert: function(val) {
 
 		return this._assert(val, {
-			method: "assert"
+			method: "assert",
+            actual: val,
+            expected: true,
 		});
 	},
 
@@ -113,13 +115,19 @@ var Test = _esdown.class(function(__) { var Test;
 
 	throws: function(fn, error) {
 
-		var threw = false;
+		var threw = false,
+            actual;
 
-		try { fn(); }
-		catch (x) { threw = (error === undefined || x === error || x instanceof error); }
+		try { fn() }
+		catch (x) {
+            actual = x;
+            threw = (error === undefined || x === error || x instanceof error);
+        }
 
 		return this._assert(threw, {
-			method: "throws"
+			method: "throws",
+            actual: actual,
+            expected: error,
 		});
 	},
 
@@ -152,7 +160,7 @@ var Test = _esdown.class(function(__) { var Test;
 exports.Test = Test;
 
 
-}).call(this, _M6);
+}).call(this, _M4);
 
 (function(exports) {
 
@@ -266,7 +274,7 @@ var HtmlLogger = _esdown.class(function(__) { var HtmlLogger;
 exports.HtmlLogger = HtmlLogger;
 
 
-}).call(this, _M4);
+}).call(this, _M5);
 
 (function(exports) {
 
@@ -287,33 +295,39 @@ var NodeLogger = _esdown.class(function(__) { var NodeLogger;
 
     clear: function() {
 
-        this.depth = 0;
         this.passed = 0;
         this.failed = 0;
+        this.failList = [];
+        this.path = [];
         this.margin = false;
     },
 
     get indent() {
 
-        return " ".repeat(Math.max(this.depth, 0) * 2);
+        return " ".repeat(Math.max(this.path.length, 0) * 2);
     },
 
-    end: function() {
+    end: function() { var __$2; 
 
-        // Empty
+        for (var __$0 = (this.failList)[Symbol.iterator](), __$1; __$1 = __$0.next(), !__$1.done;) { var path$0 = (__$2 = _esdown.objd(__$1.value), __$2.path), result$0 = __$2.result; 
+
+            this._write(Style.bold(path$0 + " > " + result$0.name));
+            this._write("  Actual: " + result$0.actual);
+            this._write("  Expected: " + result$0.expected);
+            this._newline();
+        }
     },
 
     pushGroup: function(name) {
 
         this._newline();
         this._write(Style.bold("" + (this.indent) + "" + (name) + ""));
-
-        this.depth += 1;
+        this.path.push(name);
     },
 
     popGroup: function() {
 
-        this.depth -= 1;
+        this.path.pop();
     },
 
     log: function(result) {
@@ -322,6 +336,9 @@ var NodeLogger = _esdown.class(function(__) { var NodeLogger;
 
         if (passed) this.passed++;
         else this.failed++;
+
+        if (!passed)
+            this.failList.push({ path: this.path.join(" > "), result: result });
 
         this._write("" + (this.indent) + "" + (result.name) + " " +
             "" + (Style.bold(passed ? Style.green("OK") : Style.red("FAIL"))) + "");
@@ -358,12 +375,12 @@ var NodeLogger = _esdown.class(function(__) { var NodeLogger;
 exports.NodeLogger = NodeLogger;
 
 
-}).call(this, _M5);
+}).call(this, _M6);
 
 (function(exports) {
 
-var HtmlLogger = _M4.HtmlLogger;
-var NodeLogger = _M5.NodeLogger;
+var HtmlLogger = _M5.HtmlLogger;
+var NodeLogger = _M6.NodeLogger;
 
 var Logger = (typeof global === "object" && global.process) ?
     NodeLogger :
@@ -376,7 +393,7 @@ exports.Logger = Logger;
 
 (function(exports) {
 
-var Test = _M6.Test;
+var Test = _M4.Test;
 var Logger = _M3.Logger;
 
 var TestRunner = _esdown.class(function(__) { var TestRunner;

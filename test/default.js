@@ -1,4 +1,4 @@
-import { TestRunner } from "moon-unit";
+import { TestRunner } from "./moon-unit.js";
 
 import constructor from "./constructor.js";
 import subscribe from "./subscribe.js";
