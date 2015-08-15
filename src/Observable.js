@@ -229,8 +229,8 @@ class SubscriptionObserver {
 
 // SubscriptionObserver instances should report Object as their constructor
 // (see ArrayIterator and MapIterator).  Ideally, the prototype should not
-// have an own constructor property, but we for this polyfill we want to
-// avoid using the delete operator.
+// have an own constructor property, but for this polyfill we want to avoid
+// using the delete operator.
 SubscriptionObserver.prototype.constructor = Object;
 
 export class Observable {
