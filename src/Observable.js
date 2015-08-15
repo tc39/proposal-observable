@@ -3,7 +3,9 @@
 const enqueueJob = (function() {
 
     // Node
-    if (typeof self === "undefined" && typeof global !== "undefined") {
+    if (typeof global !== "undefined" &&
+        typeof process !== "undefined" &&
+        process.nextTick) {
 
         return global.setImmediate ?
             fn => { global.setImmediate(fn) } :
@@ -93,10 +95,39 @@ function subscriptionClosed(observer) {
 
 class SubscriptionObserver {
 
-    constructor(observer) {
+    constructor(observer, subscriber) {
+
+        // Assert: subscriber is callable
+
+        // The observer must be an object
+        if (Object(observer) !== observer)
+            throw new TypeError("Observer must be an object");
 
         this._observer = observer;
         this._cleanup = undefined;
+
+        try {
+
+            // Call the subscriber function
+            let cleanup = subscriber.call(undefined, this);
+
+            // The return value must be undefined, null, or a function
+            if (cleanup != null && typeof cleanup !== "function")
+                throw new TypeError(cleanup + " is not a function");
+
+            this._cleanup = cleanup;
+
+        } catch (e) {
+
+            // If an error occurs during startup, then attempt to send the error
+            // to the observer
+            this.error(e);
+            return;
+        }
+
+        // If the stream is already finished, then perform cleanup
+        if (subscriptionClosed(this))
+            cleanupSubscription(this);
     }
 
     cancel() {
@@ -196,6 +227,12 @@ class SubscriptionObserver {
 
 }
 
+// SubscriptionObserver instances should report Object as their constructor
+// (see ArrayIterator and MapIterator).  Ideally, the prototype should not
+// have an own constructor property, but we for this polyfill we want to
+// avoid using the delete operator.
+SubscriptionObserver.prototype.constructor = Object;
+
 export class Observable {
 
     // == Fundamental ==
@@ -211,41 +248,8 @@ export class Observable {
 
     subscribe(observer) {
 
-        // The observer must be an object
-        if (Object(observer) !== observer)
-            throw new TypeError("Observer must be an object");
-
         // Wrap the observer in order to maintain observation invariants
-        observer = new SubscriptionObserver(observer);
-
-        // NOTE: This logic can be moved into the SubscriptionObserver
-        // constructor to avoid cross-class private state access.  Should
-        // it be moved?  To what extent is the SubscriptionObserver constructor
-        // observable?
-
-        try {
-
-            // Call the subscriber function
-            let cleanup = this._subscriber.call(undefined, observer);
-
-            // The return value must be undefined, null, or a function
-            if (cleanup != null && typeof cleanup !== "function")
-                throw new TypeError(cleanup + " is not a function");
-
-            observer._cleanup = cleanup;
-
-        } catch (e) {
-
-            // If an error occurs during startup, then attempt to send the error
-            // to the observer
-            observer.error(e);
-            return;
-        }
-
-        // If the stream is already finished, then perform cleanup
-        if (subscriptionClosed(observer))
-            cleanupSubscription(observer);
-
+        observer = new SubscriptionObserver(observer, this._subscriber);
         return _=> { observer.cancel() };
     }
 
