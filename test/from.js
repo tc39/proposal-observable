@@ -134,8 +134,6 @@ export default {
             let values = [],
                 turns = 0;
 
-            Promise.resolve().then(_=> turns++);
-
             let iterable = {
                 [Symbol.iterator]() { return [1, 2, 3, 4][Symbol.iterator]() }
             };
@@ -156,6 +154,8 @@ export default {
                     resolve();
                 },
             });
+
+            turns++;
 
         });
     },
