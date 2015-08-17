@@ -398,7 +398,7 @@ _esdown = {
 
 
 
-var _M23 = {}, _M21 = {}, _M22 = {}, _M20 = {}, _M19 = {}, _M17 = {}, _M2 = {}, _M3 = {}, _M18 = {}, _M4 = {}, _M5 = {}, _M6 = {}, _M7 = {}, _M8 = {}, _M9 = {}, _M10 = {}, _M11 = {}, _M12 = {}, _M13 = {}, _M14 = {}, _M15 = {}, _M16 = {}, _M1 = exports;
+var _M21 = {}, _M22 = {}, _M23 = {}, _M20 = {}, _M19 = {}, _M17 = {}, _M2 = {}, _M3 = {}, _M18 = {}, _M4 = {}, _M5 = {}, _M6 = {}, _M7 = {}, _M8 = {}, _M9 = {}, _M10 = {}, _M11 = {}, _M12 = {}, _M13 = {}, _M14 = {}, _M15 = {}, _M16 = {}, _M1 = exports;
 
 (function(exports) {
 
@@ -560,7 +560,7 @@ var Test = _esdown.class(function(__) { var Test;
 exports.Test = Test;
 
 
-}).call(this, _M23);
+}).call(this, _M21);
 
 (function(exports) {
 
@@ -674,7 +674,7 @@ var HtmlLogger = _esdown.class(function(__) { var HtmlLogger;
 exports.HtmlLogger = HtmlLogger;
 
 
-}).call(this, _M21);
+}).call(this, _M22);
 
 (function(exports) {
 
@@ -775,12 +775,12 @@ var NodeLogger = _esdown.class(function(__) { var NodeLogger;
 exports.NodeLogger = NodeLogger;
 
 
-}).call(this, _M22);
+}).call(this, _M23);
 
 (function(exports) {
 
-var HtmlLogger = _M21.HtmlLogger;
-var NodeLogger = _M22.NodeLogger;
+var HtmlLogger = _M22.HtmlLogger;
+var NodeLogger = _M23.NodeLogger;
 
 var Logger = (typeof global === "object" && global.process) ?
     NodeLogger :
@@ -793,7 +793,7 @@ exports.Logger = Logger;
 
 (function(exports) {
 
-var Test = _M23.Test;
+var Test = _M21.Test;
 var Logger = _M20.Logger;
 
 var TestRunner = _esdown.class(function(__) { var TestRunner;
