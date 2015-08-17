@@ -11,21 +11,19 @@ export default {
         });
     },
 
-    async "Argument must be a function" (test, { Observable }) {
+    "Argument must be a function" (test, { Observable }) {
 
         let result = Observable.prototype.forEach.call({}, {});
 
         test._("If the first argument is not a function, a promise is returned")
         .assert(result instanceof Promise);
 
-        let error = null;
+        return result.then(_=> null, e => e).then(error => {
 
-        try { await result }
-        catch (e) { error = e }
-
-        test._("The promise is rejected with a TypeError")
-        .assert(Boolean(error))
-        .assert(error instanceof TypeError);
+            test._("The promise is rejected with a TypeError")
+            .assert(Boolean(error))
+            .assert(error instanceof TypeError);
+        });
     },
 
     "Subscribe is called on the 'this' value" (test, { Observable }) {
