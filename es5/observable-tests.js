@@ -1150,22 +1150,20 @@ exports["default"] = {
         });
     },
 
-    "Argument must be a function": function(test, __$1) { return _esdown.async(function*(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
+    "Argument must be a function": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
 
         var result = Observable.prototype.forEach.call({}, {});
 
         test._("If the first argument is not a function, a promise is returned")
         .assert(result instanceof Promise);
 
-        var error = null;
+        return result.then(function(_) { return null; }, function(e) { return e; }).then(function(error) {
 
-        try { (yield result) }
-        catch (e) { error = e }
-
-        test._("The promise is rejected with a TypeError")
-        .assert(Boolean(error))
-        .assert(error instanceof TypeError);
-    }.apply(this, arguments)); },
+            test._("The promise is rejected with a TypeError")
+            .assert(Boolean(error))
+            .assert(error instanceof TypeError);
+        });
+    },
 
     "Subscribe is called on the 'this' value": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
 
@@ -2652,4 +2650,4 @@ exports.runTests = runTests;
 }).call(this, _M1);
 
 
-}, [], "");
+}, [], "ObservableTests");
