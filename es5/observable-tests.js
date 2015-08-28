@@ -398,7 +398,7 @@ _esdown = {
 
 
 
-var _M23 = {}, _M21 = {}, _M22 = {}, _M20 = {}, _M19 = {}, _M17 = {}, _M2 = {}, _M3 = {}, _M18 = {}, _M4 = {}, _M5 = {}, _M6 = {}, _M7 = {}, _M8 = {}, _M9 = {}, _M10 = {}, _M11 = {}, _M12 = {}, _M13 = {}, _M14 = {}, _M15 = {}, _M16 = {}, _M1 = exports;
+var _M23 = {}, _M21 = {}, _M22 = {}, _M20 = {}, _M19 = {}, _M17 = {}, _M2 = {}, _M18 = {}, _M3 = {}, _M4 = {}, _M5 = {}, _M6 = {}, _M7 = {}, _M8 = {}, _M9 = {}, _M10 = {}, _M11 = {}, _M12 = {}, _M13 = {}, _M14 = {}, _M15 = {}, _M16 = {}, _M1 = exports;
 
 (function(exports) {
 
@@ -895,41 +895,6 @@ Object.keys(_M17).forEach(function(k) { exports[k] = _M17[k]; });
 
 (function(exports) {
 
-exports["default"] = {
-
-    "Argument types": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        test
-        ._("The first argument cannot be a non-callable object")
-        .throws(function(_) { return new Observable({}); }, TypeError)
-        ._("The first argument cannot be a primative value")
-        .throws(function(_) { return new Observable(false); }, TypeError)
-        .throws(function(_) { return new Observable(null); }, TypeError)
-        .throws(function(_) { return new Observable(undefined); }, TypeError)
-        .throws(function(_) { return new Observable(1); }, TypeError)
-        ._("The first argument can be a function")
-        .not().throws(function(_) { return new Observable(function() {}); })
-        ;
-    },
-
-    "Subscriber function is not called by constructor": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        var called = 0;
-        new Observable(function(_) { return called++; });
-
-        test
-        ._("The constructor does not call the subscriber function")
-        .equals(called, 0)
-        ;
-    },
-
-};
-
-
-}).call(this, _M3);
-
-(function(exports) {
-
 function testLength(test, value, length) {
 
     if (typeof value !== "function" || typeof length !== "number")
@@ -980,6 +945,55 @@ exports.testMethodProperty = testMethodProperty;
 
 
 }).call(this, _M18);
+
+(function(exports) {
+
+var testMethodProperty = _M18.testMethodProperty;
+
+exports["default"] = {
+
+    "Argument types": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
+
+        test
+        ._("The first argument cannot be a non-callable object")
+        .throws(function(_) { return new Observable({}); }, TypeError)
+        ._("The first argument cannot be a primative value")
+        .throws(function(_) { return new Observable(false); }, TypeError)
+        .throws(function(_) { return new Observable(null); }, TypeError)
+        .throws(function(_) { return new Observable(undefined); }, TypeError)
+        .throws(function(_) { return new Observable(1); }, TypeError)
+        ._("The first argument can be a function")
+        .not().throws(function(_) { return new Observable(function() {}); })
+        ;
+    },
+
+    "Observable.prototype has a constructor property": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
+
+        testMethodProperty(test, Observable.prototype, "constructor", {
+            configurable: true,
+            writable: true,
+            length: 1,
+        });
+
+        test._("Observable.prototype.constructor === Observable")
+        .equals(Observable.prototype.constructor, Observable);
+    },
+
+    "Subscriber function is not called by constructor": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
+
+        var called = 0;
+        new Observable(function(_) { return called++; });
+
+        test
+        ._("The constructor does not call the subscriber function")
+        .equals(called, 0)
+        ;
+    },
+
+};
+
+
+}).call(this, _M3);
 
 (function(exports) {
 
