@@ -1,3 +1,5 @@
+import { testMethodProperty } from "./helpers.js";
+
 export default {
 
     "Argument types" (test, { Observable }) {
@@ -13,6 +15,18 @@ export default {
         ._("The first argument can be a function")
         .not().throws(_=> new Observable(function() {}))
         ;
+    },
+
+    "Observable.prototype has a constructor property" (test, { Observable }) {
+
+        testMethodProperty(test, Observable.prototype, "constructor", {
+            configurable: true,
+            writable: true,
+            length: 1,
+        });
+
+        test._("Observable.prototype.constructor === Observable")
+        .equals(Observable.prototype.constructor, Observable);
     },
 
     "Subscriber function is not called by constructor" (test, { Observable }) {
