@@ -1,4 +1,4 @@
-/*=esdown=*/(function(fn, deps, name) { function obj() { return {} } if (typeof exports !== 'undefined') fn(require, exports, module); else if (typeof define === 'function' && define.amd) define(['require', 'exports', 'module'].concat(deps), fn); else if (typeof window !== 'undefined' && name) fn(obj, window[name] = {}, {}); else fn(obj, {}, {}); })(function(require, exports, module) { 'use strict'; function __load(p, l) { module.__es6 = !l; var e = require(p); if (e && e.constructor !== Object) e.default = e; return e; } 
+/*=esdown=*/(function(fn, deps, name) { function obj() { return {} } if (typeof exports !== 'undefined') fn(require, exports, module); else if (typeof define === 'function' && define.amd) define(['require', 'exports', 'module'].concat(deps), fn); else if (typeof self !== 'undefined' && name) fn(obj, name === '*' ? self : (self[name] = {}), {}); else fn(obj, {}, {}); })(function(require, exports, module) { 'use strict'; function __load(p, l) { module.__es6 = !l; var e = require(p); if (e && e.constructor !== Object) e.default = e; return e; } 
 var _esdown; (function() {
 
 var VERSION = "0.9.11";
@@ -26,10 +26,15 @@ function forEachDesc(obj, fn) {
     for (var i$0 = 0; i$0 < names.length; ++i$0)
         fn(names[i$0], Object.getOwnPropertyDescriptor(obj, names[i$0]));
 
-    names = Object.getOwnPropertySymbols(obj);
+    var getSymbols = Object.getOwnPropertySymbols;
 
-    for (var i$1 = 0; i$1 < names.length; ++i$1)
-        fn(names[i$1], Object.getOwnPropertyDescriptor(obj, names[i$1]));
+    if (getSymbols) {
+
+        names = getSymbols.call(null, obj);
+
+        for (var i$1 = 0; i$1 < names.length; ++i$1)
+            fn(names[i$1], Object.getOwnPropertyDescriptor(obj, names[i$1]));
+    }
 
     return obj;
 }
