@@ -22,7 +22,6 @@ export default {
         .throws(_=> x.subscribe(1), TypeError)
         .throws(_=> x.subscribe(true), TypeError)
         .throws(_=> x.subscribe("string"), TypeError)
-        .throws(_=> x.subscribe(Symbol("test")), TypeError)
 
         ._("Any object may be an observer")
         .not().throws(_=> x.subscribe({}))
