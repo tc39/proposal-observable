@@ -1,12 +1,10 @@
-import { testMethodProperty } from "./helpers.js";
+import { testMethodProperty, getSymbol } from "./helpers.js";
 
 export default {
 
     "Observable.prototype has a Symbol.observable method" (test, { Observable }) {
 
-        test._("Symbol.observable exists").assert(Symbol.observable);
-
-        testMethodProperty(test, Observable.prototype, Symbol.observable, {
+        testMethodProperty(test, Observable.prototype, getSymbol("observable"), {
             configurable: true,
             writable: true,
             length: 0
@@ -15,7 +13,7 @@ export default {
 
     "Return value" (test, { Observable }) {
 
-        let desc = Object.getOwnPropertyDescriptor(Observable.prototype, Symbol.observable),
+        let desc = Object.getOwnPropertyDescriptor(Observable.prototype, getSymbol("observable")),
             thisVal = {};
 
         test._("Returns the 'this' value").equals(desc.value.call(thisVal), thisVal);

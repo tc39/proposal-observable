@@ -1,10 +1,10 @@
-import { testMethodProperty } from "./helpers.js";
+import { testMethodProperty, getSymbol } from "./helpers.js";
 
 export default {
 
     "Observable has a species method" (test, { Observable }) {
 
-        testMethodProperty(test, Observable, Symbol.species, {
+        testMethodProperty(test, Observable, getSymbol("species"), {
             get: true,
             configurable: true
         });
@@ -12,7 +12,7 @@ export default {
 
     "Return value" (test, { Observable }) {
 
-        let desc = Object.getOwnPropertyDescriptor(Observable, Symbol.species),
+        let desc = Object.getOwnPropertyDescriptor(Observable, getSymbol("species")),
             thisVal = {};
 
         test._("Returns the 'this' value").equals(desc.get.call(thisVal), thisVal);

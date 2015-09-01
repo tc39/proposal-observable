@@ -1,7 +1,5 @@
 var ChildProcess = require("child_process");
 
-var args = "- ./src/Observable.js ../build/esdown.js -b -r -p -g esdown";
-
 function compile(args) {
 
     return new Promise(function(resolve) {

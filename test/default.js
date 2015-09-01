@@ -16,6 +16,7 @@ import observerComplete from "./observer-complete.js";
 import observerCancel from "./observer-cancel.js";
 import observerClosed from "./observer-closed.js";
 
+
 export function runTests(C) {
 
     return new TestRunner().inject({ Observable: C }).run({

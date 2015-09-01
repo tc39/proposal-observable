@@ -1,4 +1,4 @@
-import { testMethodProperty } from "./helpers.js";
+import { testMethodProperty, getSymbol } from "./helpers.js";
 
 export default {
 
@@ -32,12 +32,12 @@ export default {
         }
 
         observable.constructor = function() {};
-        observable.constructor[Symbol.species] = species;
+        observable.constructor[getSymbol("species")] = species;
 
         test._("Constructor species is used as the new constructor")
         .equals(observable.filter(_=> {}).token, token);
 
-        observable.constructor[Symbol.species] = null;
+        observable.constructor[getSymbol("species")] = null;
         test._("An error is thrown if instance does not have a constructor species")
         .throws(_=> observable.filter(_=> {}), TypeError);
 

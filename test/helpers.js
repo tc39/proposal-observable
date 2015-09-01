@@ -43,3 +43,13 @@ export function testMethodProperty(test, object, key, options) {
     ;
 
 }
+
+export function hasSymbol(name) {
+
+    return typeof Symbol === "function" && Boolean(Symbol[name]);
+}
+
+export function getSymbol(name) {
+
+    return hasSymbol(name) ? Symbol[name] : "@@" + name;
+}

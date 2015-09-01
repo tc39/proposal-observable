@@ -1,4 +1,4 @@
-import { testMethodProperty } from "./helpers.js";
+import { testMethodProperty, hasSymbol, getSymbol } from "./helpers.js";
 
 export default {
 
@@ -43,7 +43,7 @@ export default {
         let called = 0;
 
         Observable.from({
-            get [Symbol.observable]() {
+            get [getSymbol("observable")]() {
                 called++;
                 return _=> ({});
             }
@@ -54,17 +54,17 @@ export default {
 
         test
         ._("Symbol.observable must be a function")
-        .throws(_=> Observable.from({ [Symbol.observable]: {} }), TypeError)
-        .throws(_=> Observable.from({ [Symbol.observable]: 0 }), TypeError)
+        .throws(_=> Observable.from({ [getSymbol("observable")]: {} }), TypeError)
+        .throws(_=> Observable.from({ [getSymbol("observable")]: 0 }), TypeError)
         ._("Null is allowed")
-        .not().throws(_=> Observable.from({ [Symbol.observable]: null }))
+        .not().throws(_=> Observable.from({ [getSymbol("observable")]: null }))
         ._("Undefined is allowed")
-        .not().throws(_=> Observable.from({ [Symbol.observable]: undefined }))
+        .not().throws(_=> Observable.from({ [getSymbol("observable")]: undefined }))
         ;
 
         called = 0;
         Observable.from({
-            [Symbol.observable]() {
+            [getSymbol("observable")]() {
                 called++;
                 return {};
             }
@@ -77,18 +77,18 @@ export default {
     "Return value of Symbol.observable" (test, { Observable }) {
 
         test._("Throws if the return value of Symbol.observable is not an object")
-        .throws(_=> Observable.from({ [Symbol.observable]() { return 0 } }), TypeError)
-        .throws(_=> Observable.from({ [Symbol.observable]() { return null } }), TypeError)
-        .throws(_=> Observable.from({ [Symbol.observable]() {} }), TypeError)
-        .not().throws(_=> Observable.from({ [Symbol.observable ]() { return {} } }))
-        .not().throws(_=> Observable.from({ [Symbol.observable ]() { return _=> {} } }))
+        .throws(_=> Observable.from({ [getSymbol("observable")]() { return 0 } }), TypeError)
+        .throws(_=> Observable.from({ [getSymbol("observable")]() { return null } }), TypeError)
+        .throws(_=> Observable.from({ [getSymbol("observable")]() {} }), TypeError)
+        .not().throws(_=> Observable.from({ [getSymbol("observable")]() { return {} } }))
+        .not().throws(_=> Observable.from({ [getSymbol("observable")]() { return _=> {} } }))
         ;
 
         let target = function() {},
             returnValue = { constructor: target };
 
         let result = Observable.from.call(target, {
-            [Symbol.observable]() { return returnValue }
+            [getSymbol("observable")]() { return returnValue }
         });
 
         test._("Returns the result of Symbol.observable if the object's constructor property " +
@@ -104,7 +104,7 @@ export default {
         };
 
         result = Observable.from.call(target, {
-            [Symbol.observable]() {
+            [getSymbol("observable")]() {
                 return {
                     subscribe(x) {
                         input = x;
@@ -127,16 +127,16 @@ export default {
 
     },
 
-    "Iterables: arguments are delivered to next" (test, { Observable }) {
+    "Iterables: values are delivered to next" (test, { Observable }) {
 
         return new Promise(resolve => {
 
             let values = [],
-                turns = 0;
+                turns = 0,
+                iterable = [1, 2, 3, 4];
 
-            let iterable = {
-                [Symbol.iterator]() { return [1, 2, 3, 4][Symbol.iterator]() }
-            };
+            if (hasSymbol("iterator"))
+                iterable = iterable[Symbol.iterator]();
 
             Observable.from(iterable).subscribe({
 
