@@ -79,6 +79,24 @@ Observable.of(1, 2, 3, 4, 5)
     .then(_ => console.log("All done!"));
 ```
 
+### Implementations ###
+
+- [zen-observable](https://github.com/zenparsing/zen-observable)
+
+### Running Tests ###
+
+To run the unit tests, install the **es-observable-tests** package into your project.
+
+```
+npm install es-observable-tests
+```
+
+Then call the exported `runTests` function with the constructor you want to test.
+
+```js
+require("es-observable-tests").runTests(MyObservable);
+```
+
 ### API ###
 
 #### Observable ####

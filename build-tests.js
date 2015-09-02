@@ -13,6 +13,4 @@ function compile(args) {
     });
 }
 
-compile("./polyfill.js ./es5/observable-polyfill.js -b -r").then(function() {
-    return compile("./test/default.js ./es5/observable-tests.js -b -r -g ObservableTests");
-});
+compile("./test/default.js ./es-observable-tests/es-observable-tests.js -b -r -g ObservableTests");

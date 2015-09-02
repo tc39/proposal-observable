@@ -718,7 +718,7 @@ var NodeLogger = _esdown.class(function(__) { var NodeLogger;
 
     get indent() {
 
-        return " ".repeat(Math.max(this.path.length, 0) * 2);
+        return new Array(Math.max(this.path.length, 0) * 2 + 1).join(" ");
     },
 
     end: function() { var __this = this; 
