@@ -1,9 +1,8 @@
-/*=esdown=*/(function(fn, deps, name) { function obj() { return {} } if (typeof exports !== 'undefined') fn(require, exports, module); else if (typeof define === 'function' && define.amd) define(['require', 'exports', 'module'].concat(deps), fn); else if (typeof self !== 'undefined' && name) fn(obj, name === '*' ? self : (self[name] = {}), {}); else fn(obj, {}, {}); })(function(require, exports, module) { 'use strict'; function __load(p, l) { module.__es6 = !l; var e = require(p); if (e && e.constructor !== Object) e.default = e; return e; } 
-var _esdown; (function() {
+/*=esdown=*/(function(fn, name) { if (typeof exports !== 'undefined') fn(require, exports, module); else if (typeof self !== 'undefined') fn(function() { return {} }, name === '*' ? self : (self[name] = {}), {}); })(function(require, exports, module) { 'use strict'; var _esdown = {}; (function(exports) {
 
-var VERSION = "0.9.11";
+var VERSION = "0.9.13";
 
-var Global = (function() {
+var GLOBAL = (function() {
 
     try { return global.global } catch (x) {}
     try { return self.self } catch (x) {}
@@ -30,7 +29,7 @@ function forEachDesc(obj, fn) {
 
     if (getSymbols) {
 
-        names = getSymbols.call(null, obj);
+        names = getSymbols(obj);
 
         for (var i$1 = 0; i$1 < names.length; ++i$1)
             fn(names[i$1], Object.getOwnPropertyDescriptor(obj, names[i$1]));
@@ -61,7 +60,7 @@ function mergeProperties(target, source, enumerable) {
 }
 
 // Builds a class
-function buildClass(base, def) {
+function makeClass(base, def) {
 
     var parent;
 
@@ -122,288 +121,270 @@ function buildClass(base, def) {
     return ctor;
 }
 
-// The "_esdown" must be defined in the outer scope
-_esdown = {
+// Support for computed property names
+function computed(target) {
 
-    version: VERSION,
+    for (var i$2 = 1; i$2 < arguments.length; i$2 += 3) {
 
-    global: Global,
+        var desc$0 = Object.getOwnPropertyDescriptor(arguments[i$2 + 1], "_");
+        mergeProperty(target, arguments[i$2], desc$0, true);
 
-    class: buildClass,
+        if (i$2 + 2 < arguments.length)
+            mergeProperties(target, arguments[i$2 + 2], true);
+    }
 
-    // Support for computed property names
-    computed: function(target) {
+    return target;
+}
 
-        for (var i$2 = 1; i$2 < arguments.length; i$2 += 3) {
+// Support for async functions
+function asyncFunction(iter) {
 
-            var desc$0 = Object.getOwnPropertyDescriptor(arguments[i$2 + 1], "_");
-            mergeProperty(target, arguments[i$2], desc$0, true);
+    return new Promise(function(resolve, reject) {
 
-            if (i$2 + 2 < arguments.length)
-                mergeProperties(target, arguments[i$2 + 2], true);
-        }
-
-        return target;
-    },
-
-    // Support for tagged templates
-    callSite: function(values, raw) {
-
-        values.raw = raw || values;
-        return values;
-    },
-
-    // Support for async functions
-    async: function(iter) {
-
-        return new Promise(function(resolve, reject) {
-
-            resume("next", void 0);
-
-            function resume(type, value) {
-
-                try {
-
-                    var result$0 = iter[type](value);
-
-                    if (result$0.done) {
-
-                        resolve(result$0.value);
-
-                    } else {
-
-                        Promise.resolve(result$0.value).then(
-                            function(x) { return resume("next", x); },
-                            function(x) { return resume("throw", x); });
-                    }
-
-                } catch (x) { reject(x) }
-            }
-        });
-    },
-
-    // Support for async generators
-    asyncGen: function(iter) {
-
-        var front = null, back = null;
-
-        return _esdown.computed({
-
-            next: function(val) { return send("next", val) },
-            throw: function(val) { return send("throw", val) },
-            return: function(val) { return send("return", val) },
-            }, Symbol.asyncIterator, { _: function() { return this },
-        });
-
-        function send(type, value) {
-
-            return new Promise(function(resolve, reject) {
-
-                var x = { type: type, value: value, resolve: resolve, reject: reject, next: null };
-
-                if (back) {
-
-                    // If list is not empty, then push onto the end
-                    back = back.next = x;
-
-                } else {
-
-                    // Create new list and resume generator
-                    front = back = x;
-                    resume(type, value);
-                }
-            });
-        }
-
-        function fulfill(type, value) {
-
-            switch (type) {
-
-                case "return":
-                    front.resolve({ value: value, done: true });
-                    break;
-
-                case "throw":
-                    front.reject(value);
-                    break;
-
-                default:
-                    front.resolve({ value: value, done: false });
-                    break;
-            }
-
-            front = front.next;
-
-            if (front) resume(front.type, front.value);
-            else back = null;
-        }
-
-        function awaitValue(result) {
-
-            var value = result.value;
-
-            if (typeof value === "object" && "_esdown_await" in value) {
-
-                if (result.done)
-                    throw new Error("Invalid async generator return");
-
-                return value._esdown_await;
-            }
-
-            return null;
-        }
+        resume("next", void 0);
 
         function resume(type, value) {
 
-            // HACK: If the generator does not support the "return" method, then
-            // emulate it (poorly) using throw.  (V8 circa 2015-02-13 does not support
-            // generator.return.)
-            if (type === "return" && !(type in iter)) {
-
-                type = "throw";
-                value = { value: value, __return: true };
-            }
-
             try {
 
-                var result$1 = iter[type](value),
-                    awaited$0 = awaitValue(result$1);
+                var result$0 = iter[type](value);
 
-                if (awaited$0) {
+                if (result$0.done) {
 
-                    Promise.resolve(awaited$0).then(
+                    resolve(result$0.value);
+
+                } else {
+
+                    Promise.resolve(result$0.value).then(
                         function(x) { return resume("next", x); },
                         function(x) { return resume("throw", x); });
-
-                } else {
-
-                    Promise.resolve(result$1.value).then(
-                        function(x) { return fulfill(result$1.done ? "return" : "normal", x); },
-                        function(x) { return fulfill("throw", x); });
                 }
 
-            } catch (x) {
-
-                // HACK: Return-as-throw
-                if (x && x.__return === true)
-                    return fulfill("return", x.value);
-
-                fulfill("throw", x);
-            }
+            } catch (x) { reject(x) }
         }
-    },
+    });
+}
 
-    // Support for spread operations
-    spread: function(initial) {
+// Support for async generators
+function asyncGenerator(iter) {
 
-        return {
+    var front = null, back = null;
 
-            a: initial || [],
+    var aIter = {
 
-            // Add items
-            s: function() {
+        next: function(val) { return send("next", val) },
+        throw: function(val) { return send("throw", val) },
+        return: function(val) { return send("return", val) },
+    };
 
-                for (var i$3 = 0; i$3 < arguments.length; ++i$3)
-                    this.a.push(arguments[i$3]);
+    aIter[Symbol.asyncIterator] = function() { return this };
+    return aIter;
 
-                return this;
-            },
+    function send(type, value) {
 
-            // Add the contents of iterables
-            i: function(list) {
+        return new Promise(function(resolve, reject) {
 
-                if (Array.isArray(list)) {
+            var x = { type: type, value: value, resolve: resolve, reject: reject, next: null };
 
-                    this.a.push.apply(this.a, list);
+            if (back) {
 
-                } else {
+                // If list is not empty, then push onto the end
+                back = back.next = x;
 
-                    for (var __$0 = (list)[Symbol.iterator](), __$1; __$1 = __$0.next(), !__$1.done;)
-                        { var item$0 = __$1.value; this.a.push(item$0); }
-                }
+            } else {
 
-                return this;
+                // Create new list and resume generator
+                front = back = x;
+                resume(type, value);
             }
-
-        };
-    },
-
-    // Support for object destructuring
-    objd: function(obj) {
-
-        return toObject(obj);
-    },
-
-    // Support for array destructuring
-    arrayd: function(obj) {
-
-        if (Array.isArray(obj)) {
-
-            return {
-
-                at: function(skip, pos) { return obj[pos] },
-                rest: function(skip, pos) { return obj.slice(pos) }
-            };
-        }
-
-        var iter = toObject(obj)[Symbol.iterator]();
-
-        return {
-
-            at: function(skip) {
-
-                var r;
-
-                while (skip--)
-                    r = iter.next();
-
-                return r.value;
-            },
-
-            rest: function(skip) {
-
-                var a = [], r;
-
-                while (--skip)
-                    r = iter.next();
-
-                while (r = iter.next(), !r.done)
-                    a.push(r.value);
-
-                return a;
-            }
-        };
-    },
-
-    // Support for private fields
-    getPrivate: function(obj, map, name) {
-
-        var entry = map.get(Object(obj));
-
-        if (!entry)
-            throw new TypeError;
-
-        return entry[name];
-    },
-
-    setPrivate: function(obj, map, name, value) {
-
-        var entry = map.get(Object(obj));
-
-        if (!entry)
-            throw new TypeError;
-
-        return entry[name] = value;
+        });
     }
 
-};
+    function fulfill(type, value) {
+
+        switch (type) {
+
+            case "return":
+                front.resolve({ value: value, done: true });
+                break;
+
+            case "throw":
+                front.reject(value);
+                break;
+
+            default:
+                front.resolve({ value: value, done: false });
+                break;
+        }
+
+        front = front.next;
+
+        if (front) resume(front.type, front.value);
+        else back = null;
+    }
+
+    function awaitValue(result) {
+
+        var value = result.value;
+
+        if (typeof value === "object" && "_esdown_await" in value) {
+
+            if (result.done)
+                throw new Error("Invalid async generator return");
+
+            return value._esdown_await;
+        }
+
+        return null;
+    }
+
+    function resume(type, value) {
+
+        // HACK: If the generator does not support the "return" method, then
+        // emulate it (poorly) using throw.  (V8 circa 2015-02-13 does not support
+        // generator.return.)
+        if (type === "return" && !(type in iter)) {
+
+            type = "throw";
+            value = { value: value, __return: true };
+        }
+
+        try {
+
+            var result$1 = iter[type](value),
+                awaited$0 = awaitValue(result$1);
+
+            if (awaited$0) {
+
+                Promise.resolve(awaited$0).then(
+                    function(x) { return resume("next", x); },
+                    function(x) { return resume("throw", x); });
+
+            } else {
+
+                Promise.resolve(result$1.value).then(
+                    function(x) { return fulfill(result$1.done ? "return" : "normal", x); },
+                    function(x) { return fulfill("throw", x); });
+            }
+
+        } catch (x) {
+
+            // HACK: Return-as-throw
+            if (x && x.__return === true)
+                return fulfill("return", x.value);
+
+            fulfill("throw", x);
+        }
+    }
+}
+
+// Support for spread operations
+function spread(initial) {
+
+    return {
+
+        a: initial || [],
+
+        // Add items
+        s: function() {
+
+            for (var i$3 = 0; i$3 < arguments.length; ++i$3)
+                this.a.push(arguments[i$3]);
+
+            return this;
+        },
+
+        // Add the contents of iterables
+        i: function(list) {
+
+            if (Array.isArray(list)) {
+
+                this.a.push.apply(this.a, list);
+
+            } else {
+
+                for (var __$0 = (list)[Symbol.iterator](), __$1; __$1 = __$0.next(), !__$1.done;)
+                    { var item$0 = __$1.value; this.a.push(item$0); }
+            }
+
+            return this;
+        }
+
+    };
+}
+
+// Support for object destructuring
+function objd(obj) {
+
+    return toObject(obj);
+}
+
+// Support for array destructuring
+function arrayd(obj) {
+
+    if (Array.isArray(obj)) {
+
+        return {
+
+            at: function(skip, pos) { return obj[pos] },
+            rest: function(skip, pos) { return obj.slice(pos) }
+        };
+    }
+
+    var iter = toObject(obj)[Symbol.iterator]();
+
+    return {
+
+        at: function(skip) {
+
+            var r;
+
+            while (skip--)
+                r = iter.next();
+
+            return r.value;
+        },
+
+        rest: function(skip) {
+
+            var a = [], r;
+
+            while (--skip)
+                r = iter.next();
+
+            while (r = iter.next(), !r.done)
+                a.push(r.value);
+
+            return a;
+        }
+    };
+}
 
 
-}).call(this);
 
 
 
-var _M21 = {}, _M22 = {}, _M23 = {}, _M20 = {}, _M19 = {}, _M17 = {}, _M2 = {}, _M18 = {}, _M3 = {}, _M4 = {}, _M5 = {}, _M6 = {}, _M7 = {}, _M8 = {}, _M9 = {}, _M10 = {}, _M11 = {}, _M12 = {}, _M13 = {}, _M14 = {}, _M15 = {}, _M16 = {}, _M1 = exports;
+
+
+
+
+exports.makeClass = makeClass;
+exports.computed = computed;
+exports.asyncFunction = asyncFunction;
+exports.asyncGenerator = asyncGenerator;
+exports.spread = spread;
+exports.objd = objd;
+exports.arrayd = arrayd;
+exports.class = makeClass;
+exports.version = VERSION;
+exports.global = GLOBAL;
+exports.async = asyncFunction;
+exports.asyncGen = asyncGenerator;
+
+
+})(_esdown);
+
+var _M21 = {},_M22 = {},_M23 = {},_M20 = {},_M19 = {},_M17 = {},_M2 = {},_M18 = {},_M3 = {},_M4 = {},_M5 = {},_M6 = {},_M7 = {},_M8 = {},_M9 = {},_M10 = {},_M11 = {},_M12 = {},_M13 = {},_M14 = {},_M15 = {},_M16 = {},_M1 = exports;
 
 (function(exports) {
 
@@ -574,7 +555,7 @@ var Test = _esdown.class(function(__) { var Test;
 exports.Test = Test;
 
 
-}).call(this, _M21);
+})(_M21);
 
 (function(exports) {
 
@@ -688,7 +669,7 @@ var HtmlLogger = _esdown.class(function(__) { var HtmlLogger;
 exports.HtmlLogger = HtmlLogger;
 
 
-}).call(this, _M22);
+})(_M22);
 
 (function(exports) {
 
@@ -789,7 +770,7 @@ var NodeLogger = _esdown.class(function(__) { var NodeLogger;
 exports.NodeLogger = NodeLogger;
 
 
-}).call(this, _M23);
+})(_M23);
 
 (function(exports) {
 
@@ -803,7 +784,7 @@ var Logger = (typeof global === "object" && global.process) ?
 exports.Logger = Logger;
 
 
-}).call(this, _M20);
+})(_M20);
 
 (function(exports) {
 
@@ -880,7 +861,7 @@ var TestRunner = _esdown.class(function(__) { var TestRunner;
 exports.TestRunner = TestRunner;
 
 
-}).call(this, _M19);
+})(_M19);
 
 (function(exports) {
 
@@ -898,14 +879,14 @@ exports.runTests = runTests;
 exports.TestRunner = TestRunner;
 
 
-}).call(this, _M17);
+})(_M17);
 
 (function(exports) {
 
 Object.keys(_M17).forEach(function(k) { exports[k] = _M17[k]; });
 
 
-}).call(this, _M2);
+})(_M2);
 
 (function(exports) {
 
@@ -970,7 +951,7 @@ exports.hasSymbol = hasSymbol;
 exports.getSymbol = getSymbol;
 
 
-}).call(this, _M18);
+})(_M18);
 
 (function(exports) {
 
@@ -1019,7 +1000,7 @@ exports["default"] = {
 };
 
 
-}).call(this, _M3);
+})(_M3);
 
 (function(exports) {
 
@@ -1172,7 +1153,7 @@ exports["default"] = {
 };
 
 
-}).call(this, _M4);
+})(_M4);
 
 (function(exports) {
 
@@ -1290,7 +1271,7 @@ exports["default"] = {
 };
 
 
-}).call(this, _M5);
+})(_M5);
 
 (function(exports) {
 
@@ -1429,7 +1410,7 @@ exports["default"] = {
 };
 
 
-}).call(this, _M6);
+})(_M6);
 
 (function(exports) {
 
@@ -1570,7 +1551,7 @@ exports["default"] = {
 };
 
 
-}).call(this, _M7);
+})(_M7);
 
 (function(exports) {
 
@@ -1598,7 +1579,7 @@ exports["default"] = {
 };
 
 
-}).call(this, _M8);
+})(_M8);
 
 (function(exports) {
 
@@ -1625,7 +1606,7 @@ exports["default"] = {
 };
 
 
-}).call(this, _M9);
+})(_M9);
 
 (function(exports) {
 
@@ -1733,7 +1714,7 @@ exports["default"] = {
 };
 
 
-}).call(this, _M10);
+})(_M10);
 
 (function(exports) {
 
@@ -1963,7 +1944,7 @@ exports["default"] = {
 };
 
 
-}).call(this, _M11);
+})(_M11);
 
 (function(exports) {
 
@@ -2109,7 +2090,7 @@ exports["default"] = {
 };
 
 
-}).call(this, _M12);
+})(_M12);
 
 (function(exports) {
 
@@ -2288,7 +2269,7 @@ exports["default"] = {
 };
 
 
-}).call(this, _M13);
+})(_M13);
 
 (function(exports) {
 
@@ -2465,7 +2446,7 @@ exports["default"] = {
 };
 
 
-}).call(this, _M14);
+})(_M14);
 
 (function(exports) {
 
@@ -2570,7 +2551,7 @@ exports["default"] = {
 };
 
 
-}).call(this, _M15);
+})(_M15);
 
 (function(exports) {
 
@@ -2634,7 +2615,7 @@ exports["default"] = {
 };
 
 
-}).call(this, _M16);
+})(_M16);
 
 (function(exports) {
 
@@ -2685,7 +2666,7 @@ function runTests(C) {
 exports.runTests = runTests;
 
 
-}).call(this, _M1);
+})(_M1);
 
 
-}, [], "ObservableTests");
+}, "ObservableTests");
