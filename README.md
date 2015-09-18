@@ -119,7 +119,7 @@ interface Observable {
     map(callback : any => any) : Observable;
 
     // Returns itself
-    get [Symbol.observable]() : Observable;
+    [Symbol.observable]() : Observable;
 
     // Converts items to an Observable
     static of(...items) : Observable;
