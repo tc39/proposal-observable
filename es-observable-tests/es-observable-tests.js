@@ -1,6 +1,6 @@
-/*=esdown=*/(function(fn, name) { if (typeof exports !== 'undefined') fn(require, exports, module); else if (typeof self !== 'undefined') fn(function() { return {} }, name === '*' ? self : (self[name] = {}), {}); })(function(require, exports, module) { 'use strict'; var _esdown = {}; (function(exports) {
+/*=esdown=*/(function(fn, name) { if (typeof exports !== 'undefined') fn(require, exports, module); else if (typeof self !== 'undefined') fn(void 0, name === '*' ? self : (name ? self[name] = {} : {})); })(function(require, exports, module) { 'use strict'; var _esdown = {}; (function() { var exports = _esdown;
 
-var VERSION = "0.9.13";
+var VERSION = "0.9.16";
 
 var GLOBAL = (function() {
 
@@ -9,9 +9,14 @@ var GLOBAL = (function() {
     return null;
 })();
 
+var ownNames = Object.getOwnPropertyNames,
+      ownSymbols = Object.getOwnPropertySymbols,
+      getDesc = Object.getOwnPropertyDescriptor,
+      defineProp = Object.defineProperty;
+
 function toObject(val) {
 
-    if (val == null)
+    if (val == null) // null or undefined
         throw new TypeError(val + " is not an object");
 
     return Object(val);
@@ -20,26 +25,12 @@ function toObject(val) {
 // Iterates over the descriptors for each own property of an object
 function forEachDesc(obj, fn) {
 
-    var names = Object.getOwnPropertyNames(obj);
-
-    for (var i$0 = 0; i$0 < names.length; ++i$0)
-        fn(names[i$0], Object.getOwnPropertyDescriptor(obj, names[i$0]));
-
-    var getSymbols = Object.getOwnPropertySymbols;
-
-    if (getSymbols) {
-
-        names = getSymbols(obj);
-
-        for (var i$1 = 0; i$1 < names.length; ++i$1)
-            fn(names[i$1], Object.getOwnPropertyDescriptor(obj, names[i$1]));
-    }
-
-    return obj;
+    ownNames(obj).forEach(function(name) { return fn(name, getDesc(obj, name)); });
+    if (ownSymbols) ownSymbols(obj).forEach(function(name) { return fn(name, getDesc(obj, name)); });
 }
 
 // Installs a property into an object, merging "get" and "set" functions
-function mergeProperty(target, name, desc, enumerable) {
+function mergeProp(target, name, desc, enumerable) {
 
     if (desc.get || desc.set) {
 
@@ -50,73 +41,30 @@ function mergeProperty(target, name, desc, enumerable) {
     }
 
     desc.enumerable = enumerable;
-    Object.defineProperty(target, name, desc);
+    defineProp(target, name, desc);
 }
 
 // Installs properties on an object, merging "get" and "set" functions
-function mergeProperties(target, source, enumerable) {
+function mergeProps(target, source, enumerable) {
 
-    forEachDesc(source, function(name, desc) { return mergeProperty(target, name, desc, enumerable); });
+    forEachDesc(source, function(name, desc) { return mergeProp(target, name, desc, enumerable); });
 }
 
 // Builds a class
-function makeClass(base, def) {
+function makeClass(def) {
 
-    var parent;
-
-    if (def === void 0) {
-
-        // If no base class is specified, then Object.prototype
-        // is the parent prototype
-        def = base;
-        base = null;
-        parent = Object.prototype;
-
-    } else if (base === null) {
-
-        // If the base is null, then then then the parent prototype is null
-        parent = null;
-
-    } else if (typeof base === "function") {
-
-        parent = base.prototype;
-
-        // Prototype must be null or an object
-        if (parent !== null && Object(parent) !== parent)
-            parent = void 0;
-    }
-
-    if (parent === void 0)
-        throw new TypeError;
-
-    // Create the prototype object
-    var proto = Object.create(parent),
+    var parent = Object.prototype,
+        proto = Object.create(parent),
         statics = {};
 
-    function __(target, obj) {
-
-        if (!obj) mergeProperties(proto, target, false);
-        else mergeProperties(target, obj, false);
-    }
-
-    __.static = function(obj) { return mergeProperties(statics, obj, false); };
-    __.super = parent;
-    __.csuper = base || Function.prototype;
-
-    // Generate method collections, closing over super bindings
-    def(__);
+    def(function(obj) { return mergeProps(proto, obj, false); },
+        function(obj) { return mergeProps(statics, obj, false); });
 
     var ctor = proto.constructor;
-
-    // Set constructor's prototype
     ctor.prototype = proto;
 
     // Set class "static" methods
-    forEachDesc(statics, function(name, desc) { return Object.defineProperty(ctor, name, desc); });
-
-    // Inherit from base constructor
-    if (base && ctor.__proto__)
-        Object.setPrototypeOf(ctor, base);
+    forEachDesc(statics, function(name, desc) { return defineProp(ctor, name, desc); });
 
     return ctor;
 }
@@ -124,13 +72,13 @@ function makeClass(base, def) {
 // Support for computed property names
 function computed(target) {
 
-    for (var i$2 = 1; i$2 < arguments.length; i$2 += 3) {
+    for (var i$0 = 1; i$0 < arguments.length; i$0 += 3) {
 
-        var desc$0 = Object.getOwnPropertyDescriptor(arguments[i$2 + 1], "_");
-        mergeProperty(target, arguments[i$2], desc$0, true);
+        var desc$0 = getDesc(arguments[i$0 + 1], "_");
+        mergeProp(target, arguments[i$0], desc$0, true);
 
-        if (i$2 + 2 < arguments.length)
-            mergeProperties(target, arguments[i$2 + 2], true);
+        if (i$0 + 2 < arguments.length)
+            mergeProps(target, arguments[i$0 + 2], true);
     }
 
     return target;
@@ -288,8 +236,8 @@ function spread(initial) {
         // Add items
         s: function() {
 
-            for (var i$3 = 0; i$3 < arguments.length; ++i$3)
-                this.a.push(arguments[i$3]);
+            for (var i$1 = 0; i$1 < arguments.length; ++i$1)
+                this.a.push(arguments[i$1]);
 
             return this;
         },
@@ -308,7 +256,7 @@ function spread(initial) {
             }
 
             return this;
-        }
+        },
 
     };
 }
@@ -327,7 +275,7 @@ function arrayd(obj) {
         return {
 
             at: function(skip, pos) { return obj[pos] },
-            rest: function(skip, pos) { return obj.slice(pos) }
+            rest: function(skip, pos) { return obj.slice(pos) },
         };
     }
 
@@ -356,7 +304,7 @@ function arrayd(obj) {
                 a.push(r.value);
 
             return a;
-        }
+        },
     };
 }
 
@@ -382,11 +330,10 @@ exports.async = asyncFunction;
 exports.asyncGen = asyncGenerator;
 
 
-})(_esdown);
+})();
 
-var _M21 = {},_M22 = {},_M23 = {},_M20 = {},_M19 = {},_M17 = {},_M2 = {},_M18 = {},_M3 = {},_M4 = {},_M5 = {},_M6 = {},_M7 = {},_M8 = {},_M9 = {},_M10 = {},_M11 = {},_M12 = {},_M13 = {},_M14 = {},_M15 = {},_M16 = {},_M1 = exports;
-
-(function(exports) {
+var __M; (function(a) { var list = Array(a.length / 2); __M = function require(i) { var m = list[i], f, e; if (typeof m !== 'function') return m.exports; f = m; m = { exports: i ? {} : exports }; f(list[i] = m, e = m.exports); if (m.exports !== e && !('default' in m.exports)) m.exports['default'] = m.exports; return m.exports; }; for (var i = 0; i < a.length; i += 2) { var j = Math.abs(a[i]); list[j] = a[i + 1]; if (a[i] >= 0) __M(j); } })([
+20, function(module, exports) {
 
 var OP_toString = Object.prototype.toString,
     OP_hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -555,9 +502,8 @@ var Test = _esdown.class(function(__) { var Test;
 exports.Test = Test;
 
 
-})(_M21);
-
-(function(exports) {
+},
+21, function(module, exports) {
 
 var ELEMENT_ID = "moon-unit";
 
@@ -669,9 +615,8 @@ var HtmlLogger = _esdown.class(function(__) { var HtmlLogger;
 exports.HtmlLogger = HtmlLogger;
 
 
-})(_M22);
-
-(function(exports) {
+},
+22, function(module, exports) {
 
 var Style = {
 
@@ -706,9 +651,12 @@ var NodeLogger = _esdown.class(function(__) { var NodeLogger;
 
         this.failList.forEach(function(__$0) { var __$1; var path = (__$1 = _esdown.objd(__$0), __$1.path), result = __$1.result; 
 
-            __this._write(Style.bold(path + " > " + result.name));
-            __this._write("  Actual: " + result.actual);
-            __this._write("  Expected: " + result.expected);
+            if (result.name)
+                path += " > " + result.name;
+
+            __this._write(Style.bold("[" + path + "]"));
+            __this._write("Actual: " + result.actual);
+            __this._write("Expected: " + result.expected);
             __this._newline();
         });
     },
@@ -770,12 +718,11 @@ var NodeLogger = _esdown.class(function(__) { var NodeLogger;
 exports.NodeLogger = NodeLogger;
 
 
-})(_M23);
+},
+19, function(module, exports) {
 
-(function(exports) {
-
-var HtmlLogger = _M22.HtmlLogger;
-var NodeLogger = _M23.NodeLogger;
+var HtmlLogger = __M(21).HtmlLogger;
+var NodeLogger = __M(22).NodeLogger;
 
 var Logger = (typeof global === "object" && global.process) ?
     NodeLogger :
@@ -784,12 +731,11 @@ var Logger = (typeof global === "object" && global.process) ?
 exports.Logger = Logger;
 
 
-})(_M20);
+},
+18, function(module, exports) {
 
-(function(exports) {
-
-var Test = _M21.Test;
-var Logger = _M20.Logger;
+var Test = __M(20).Test;
+var Logger = __M(19).Logger;
 
 var TestRunner = _esdown.class(function(__) { var TestRunner;
 
@@ -861,12 +807,11 @@ var TestRunner = _esdown.class(function(__) { var TestRunner;
 exports.TestRunner = TestRunner;
 
 
-})(_M19);
+},
+16, function(module, exports) {
 
-(function(exports) {
-
-var TestRunner = _M19.TestRunner;
-var Logger = _M20.Logger;
+var TestRunner = __M(18).TestRunner;
+var Logger = __M(19).Logger;
 
 function runTests(tests) {
 
@@ -879,16 +824,14 @@ exports.runTests = runTests;
 exports.TestRunner = TestRunner;
 
 
-})(_M17);
+},
+1, function(module, exports) {
 
-(function(exports) {
-
-Object.keys(_M17).forEach(function(k) { exports[k] = _M17[k]; });
+Object.keys(__M(16)).forEach(function(k) { exports[k] = __M(16)[k]; });
 
 
-})(_M2);
-
-(function(exports) {
+},
+17, function(module, exports) {
 
 function testLength(test, value, length) {
 
@@ -951,11 +894,10 @@ exports.hasSymbol = hasSymbol;
 exports.getSymbol = getSymbol;
 
 
-})(_M18);
+},
+2, function(module, exports) {
 
-(function(exports) {
-
-var testMethodProperty = _M18.testMethodProperty;
+var testMethodProperty = __M(17).testMethodProperty;
 
 exports["default"] = {
 
@@ -1000,11 +942,10 @@ exports["default"] = {
 };
 
 
-})(_M3);
+},
+3, function(module, exports) {
 
-(function(exports) {
-
-var testMethodProperty = _M18.testMethodProperty;
+var testMethodProperty = __M(17).testMethodProperty;
 
 exports["default"] = {
 
@@ -1153,11 +1094,10 @@ exports["default"] = {
 };
 
 
-})(_M4);
+},
+4, function(module, exports) {
 
-(function(exports) {
-
-var testMethodProperty = _M18.testMethodProperty;
+var testMethodProperty = __M(17).testMethodProperty;
 
 exports["default"] = {
 
@@ -1271,11 +1211,10 @@ exports["default"] = {
 };
 
 
-})(_M5);
+},
+5, function(module, exports) {
 
-(function(exports) {
-
-var testMethodProperty = _M18.testMethodProperty, getSymbol = _M18.getSymbol;
+var testMethodProperty = __M(17).testMethodProperty, getSymbol = __M(17).getSymbol;
 
 exports["default"] = {
 
@@ -1410,11 +1349,10 @@ exports["default"] = {
 };
 
 
-})(_M6);
+},
+6, function(module, exports) {
 
-(function(exports) {
-
-var testMethodProperty = _M18.testMethodProperty, getSymbol = _M18.getSymbol;
+var testMethodProperty = __M(17).testMethodProperty, getSymbol = __M(17).getSymbol;
 
 exports["default"] = {
 
@@ -1551,11 +1489,10 @@ exports["default"] = {
 };
 
 
-})(_M7);
+},
+7, function(module, exports) {
 
-(function(exports) {
-
-var testMethodProperty = _M18.testMethodProperty, getSymbol = _M18.getSymbol;
+var testMethodProperty = __M(17).testMethodProperty, getSymbol = __M(17).getSymbol;
 
 exports["default"] = {
 
@@ -1579,11 +1516,10 @@ exports["default"] = {
 };
 
 
-})(_M8);
+},
+8, function(module, exports) {
 
-(function(exports) {
-
-var testMethodProperty = _M18.testMethodProperty, getSymbol = _M18.getSymbol;
+var testMethodProperty = __M(17).testMethodProperty, getSymbol = __M(17).getSymbol;
 
 exports["default"] = {
 
@@ -1606,11 +1542,10 @@ exports["default"] = {
 };
 
 
-})(_M9);
+},
+9, function(module, exports) {
 
-(function(exports) {
-
-var testMethodProperty = _M18.testMethodProperty;
+var testMethodProperty = __M(17).testMethodProperty;
 
 exports["default"] = {
 
@@ -1714,11 +1649,10 @@ exports["default"] = {
 };
 
 
-})(_M10);
+},
+10, function(module, exports) {
 
-(function(exports) {
-
-var testMethodProperty = _M18.testMethodProperty, hasSymbol = _M18.hasSymbol, getSymbol = _M18.getSymbol;
+var testMethodProperty = __M(17).testMethodProperty, hasSymbol = __M(17).hasSymbol, getSymbol = __M(17).getSymbol;
 
 exports["default"] = {
 
@@ -1944,11 +1878,10 @@ exports["default"] = {
 };
 
 
-})(_M11);
+},
+11, function(module, exports) {
 
-(function(exports) {
-
-var testMethodProperty = _M18.testMethodProperty;
+var testMethodProperty = __M(17).testMethodProperty;
 
 exports["default"] = {
 
@@ -2090,11 +2023,10 @@ exports["default"] = {
 };
 
 
-})(_M12);
+},
+12, function(module, exports) {
 
-(function(exports) {
-
-var testMethodProperty = _M18.testMethodProperty;
+var testMethodProperty = __M(17).testMethodProperty;
 
 exports["default"] = {
 
@@ -2269,11 +2201,10 @@ exports["default"] = {
 };
 
 
-})(_M13);
+},
+13, function(module, exports) {
 
-(function(exports) {
-
-var testMethodProperty = _M18.testMethodProperty;
+var testMethodProperty = __M(17).testMethodProperty;
 
 exports["default"] = {
 
@@ -2446,11 +2377,10 @@ exports["default"] = {
 };
 
 
-})(_M14);
+},
+14, function(module, exports) {
 
-(function(exports) {
-
-var testMethodProperty = _M18.testMethodProperty;
+var testMethodProperty = __M(17).testMethodProperty;
 
 exports["default"] = {
 
@@ -2551,11 +2481,10 @@ exports["default"] = {
 };
 
 
-})(_M15);
+},
+15, function(module, exports) {
 
-(function(exports) {
-
-var testMethodProperty = _M18.testMethodProperty;
+var testMethodProperty = __M(17).testMethodProperty;
 
 exports["default"] = {
 
@@ -2615,27 +2544,26 @@ exports["default"] = {
 };
 
 
-})(_M16);
+},
+0, function(module, exports) {
 
-(function(exports) {
+var TestRunner = __M(1).TestRunner;
 
-var TestRunner = _M2.TestRunner;
+var constructor = __M(2)['default'];
+var subscribe = __M(3)['default'];
+var forEach = __M(4)['default'];
+var map = __M(5)['default'];
+var filter = __M(6)['default'];
+var observable = __M(7)['default'];
+var species = __M(8)['default'];
+var ofTests = __M(9)['default'];
+var fromTests = __M(10)['default'];
 
-var constructor = _M3['default'];
-var subscribe = _M4['default'];
-var forEach = _M5['default'];
-var map = _M6['default'];
-var filter = _M7['default'];
-var observable = _M8['default'];
-var species = _M9['default'];
-var ofTests = _M10['default'];
-var fromTests = _M11['default'];
-
-var observerNext = _M12['default'];
-var observerError = _M13['default'];
-var observerComplete = _M14['default'];
-var observerCancel = _M15['default'];
-var observerClosed = _M16['default'];
+var observerNext = __M(11)['default'];
+var observerError = __M(12)['default'];
+var observerComplete = __M(13)['default'];
+var observerCancel = __M(14)['default'];
+var observerClosed = __M(15)['default'];
 
 
 function runTests(C) {
@@ -2666,7 +2594,7 @@ function runTests(C) {
 exports.runTests = runTests;
 
 
-})(_M1);
+}]);
 
 
 }, "ObservableTests");
