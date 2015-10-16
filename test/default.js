@@ -13,7 +13,7 @@ import fromTests from "./from.js";
 import observerNext from "./observer-next.js";
 import observerError from "./observer-error.js";
 import observerComplete from "./observer-complete.js";
-import observerCancel from "./observer-cancel.js";
+import observerUnsubscribe from "./observer-unsubscribe.js";
 import observerClosed from "./observer-closed.js";
 
 
@@ -36,7 +36,7 @@ export function runTests(C) {
         "SubscriptionObserver.prototype.next": observerNext,
         "SubscriptionObserver.prototype.error": observerError,
         "SubscriptionObserver.prototype.complete": observerComplete,
-        "SubscriptionObserver.prototype.cancel": observerCancel,
+        "SubscriptionObserver.prototype.unsubscribe": observerUnsubscribe,
         "SubscriptionObserver.prototype.closed": observerClosed,
 
     });

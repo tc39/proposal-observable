@@ -65,19 +65,19 @@ export default {
         ;
     },
 
-    "Returns a cancel function" (test, { Observable }) {
+    "Returns a subscription object" (test, { Observable }) {
 
         let called = 0;
-        let cancel = new Observable(observer => {
+        let subscription = new Observable(observer => {
             return _=> called++;
         }).subscribe({});
 
         test
-        ._("Subscribe returns a function")
-        .equals(typeof cancel, "function")
-        ._("Cancel returns undefined")
-        .equals(cancel(), undefined)
-        ._("Cancel calls the cleanup function")
+        ._("Subscribe returns an object")
+        .equals(typeof subscription, "object")
+        ._("Unsubscribe returns undefined")
+        .equals(subscription.unsubscribe(), undefined)
+        ._("Unsubscribe calls the cleanup function")
         .equals(called, 1)
         ;
     },
@@ -87,18 +87,18 @@ export default {
         let called = 0,
             returned = 0;
 
-        let unsubscribe = new Observable(sink => {
+        let subscription = new Observable(sink => {
             return _=> { called++ };
         }).subscribe({
             complete(v) { returned++ },
         });
 
-        unsubscribe();
+        subscription.unsubscribe();
 
         test._("The cleanup function is called when unsubscribing")
         .equals(called, 1);
 
-        unsubscribe();
+        subscription.unsubscribe();
 
         test._("The cleanup function is not called again when unsubscribe is called again")
         .equals(called, 1);

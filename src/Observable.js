@@ -111,7 +111,13 @@ class SubscriptionObserver {
             // Call the subscriber function
             let cleanup = subscriber.call(undefined, this);
 
-            // The return value must be undefined, null, or a function
+            // 
+            if (cleanup && typeof cleanup.unsubscribe === "function") {
+                let inner = cleanup;
+                cleanup = _=> { inner.unsubscribe() };
+            }
+
+            // The return value must be undefined, null, a subscription object, or a function
             if (cleanup != null && typeof cleanup !== "function")
                 throw new TypeError(cleanup + " is not a function");
 
@@ -130,7 +136,7 @@ class SubscriptionObserver {
             cleanupSubscription(this);
     }
 
-    cancel() {
+    unsubscribe() {
 
         if (subscriptionClosed(this))
             return;
@@ -163,7 +169,7 @@ class SubscriptionObserver {
         } catch (e) {
 
             // If the observer throws, then close the stream and rethrow the error
-            try { this.cancel() }
+            try { this.unsubscribe() }
             finally { throw e }
         }
     }
@@ -250,7 +256,11 @@ export class Observable {
 
         // Wrap the observer in order to maintain observation invariants
         observer = new SubscriptionObserver(observer, this._subscriber);
-        return _=> { observer.cancel() };
+
+        return {
+            _observer: observer,
+            unsubscribe() { return this._observer.unsubscribe() },
+        };
     }
 
     forEach(fn) {

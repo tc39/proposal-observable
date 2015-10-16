@@ -63,12 +63,12 @@ export default {
 
             let values = [];
 
-            let cancel = Observable.of(1, 2, 3, 4).subscribe({
+            let subscription = Observable.of(1, 2, 3, 4).subscribe({
 
                 next(v) {
 
                     values.push(v);
-                    cancel();
+                    subscription.unsubscribe();
                     Promise.resolve().then(_=> {
                         test._("Cancelling from next stops observation")
                         .equals(values, [1]);
@@ -85,11 +85,11 @@ export default {
 
             let values = [];
 
-            let cancel = Observable.of(1, 2, 3, 4).subscribe({
+            let subscription = Observable.of(1, 2, 3, 4).subscribe({
                 next(v) { values.push(v) }
             });
 
-            cancel();
+            subscription.unsubscribe();
 
             Promise.resolve().then(_=> {
                 test._("Cancelling before next is called stops observation")
