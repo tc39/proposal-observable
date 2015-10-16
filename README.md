@@ -47,19 +47,19 @@ function commandKeys(element) {
 When we want to consume the event stream, we subscribe with an **observer**.
 
 ```js
-let unsubscribe = commandKeys(inputElement).subscribe({
+let subscription = commandKeys(inputElement).subscribe({
     next(val) { console.log("Received key command: " + val) },
     error(err) { console.log("Received an error: " + err) },
     complete() { console.log("Stream complete") },
 });
 ```
 
-The function returned by **subscribe** will allow us to cancel the subscription at any time.
+The object returned by **subscribe** will allow us to cancel the subscription at any time.
 Upon cancelation, the Observable's cleanup function will be executed.
 
 ```js
 // After calling this function, no more events will be sent
-unsubscribe();
+subscription.unsubscribe();
 ```
 
 Alternatively, we can subscribe to an Observable with the **forEach** method, which accepts
@@ -109,7 +109,7 @@ interface Observable {
     constructor(subscriber : SubscriberFunction);
 
     // Subscribes to the sequence
-    subscribe(observer : Observer) : (void => void);
+    subscribe(observer : Observer) : Subscription;
 
     // Subscribes to the sequence with a callback, returning a promise
     forEach(onNext : any => any) : Promise;
@@ -130,6 +130,12 @@ interface Observable {
     // Subclassing support
     static get [Symbol.species]() : Constructor;
 
+}
+
+interface Subscription {
+
+    // Cancels the subscription
+    unsubscribe() : void;
 }
 
 function SubscriberFunction(observer: SubscriptionObserver) : (void => void);
@@ -240,7 +246,7 @@ whether the corresponding subscription has been closed.
 interface SubscriptionObserver {
 
     // Cancels the subscription
-    cancel();
+    unsubscribe();
 
     // Returns true if the subscription is closed
     get closed() : Boolean;
