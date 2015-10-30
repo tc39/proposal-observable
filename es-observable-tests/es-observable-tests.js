@@ -333,7 +333,7 @@ exports.asyncGen = asyncGenerator;
 })();
 
 var __M; (function(a) { var list = Array(a.length / 2); __M = function require(i) { var m = list[i], f, e; if (typeof m !== 'function') return m.exports; f = m; m = { exports: i ? {} : exports }; f(list[i] = m, e = m.exports); if (m.exports !== e && !('default' in m.exports)) m.exports['default'] = m.exports; return m.exports; }; for (var i = 0; i < a.length; i += 2) { var j = Math.abs(a[i]); list[j] = a[i + 1]; if (a[i] >= 0) __M(j); } })([
-19, function(module, exports) {
+21, function(module, exports) {
 
 var OP_toString = Object.prototype.toString,
     OP_hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -503,7 +503,7 @@ exports.Test = Test;
 
 
 },
-20, function(module, exports) {
+19, function(module, exports) {
 
 var ELEMENT_ID = "moon-unit";
 
@@ -616,7 +616,7 @@ exports.HtmlLogger = HtmlLogger;
 
 
 },
-21, function(module, exports) {
+20, function(module, exports) {
 
 var Style = {
 
@@ -721,8 +721,8 @@ exports.NodeLogger = NodeLogger;
 },
 18, function(module, exports) {
 
-var HtmlLogger = __M(20).HtmlLogger;
-var NodeLogger = __M(21).NodeLogger;
+var HtmlLogger = __M(19).HtmlLogger;
+var NodeLogger = __M(20).NodeLogger;
 
 var Logger = (typeof global === "object" && global.process) ?
     NodeLogger :
@@ -734,7 +734,7 @@ exports.Logger = Logger;
 },
 17, function(module, exports) {
 
-var Test = __M(19).Test;
+var Test = __M(21).Test;
 var Logger = __M(18).Logger;
 
 var TestRunner = _esdown.class(function(__) { var TestRunner;
@@ -977,6 +977,44 @@ exports["default"] = {
         ;
     },
 
+    "Observer start method": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
+
+        var startArg = null,
+            callOrder = [];
+
+        var subscription = new Observable(function(sink) {
+            callOrder.push("subscriber");
+        }).subscribe({
+            start: function(s) {
+                callOrder.push("start");
+                startArg = s;
+            }
+        });
+
+        test._("The observer's start method accepts the subscription object")
+        .equals(startArg, subscription)
+        ._("Start is called before the subscriber function")
+        .equals(callOrder, ["start", "subscriber"]);
+
+        callOrder = [];
+
+        subscription = new Observable(function(sink) {
+            callOrder.push("subscriber");
+        }).subscribe({
+            start: function(s) {
+                callOrder.push("start");
+                startArg = s;
+                s.unsubscribe();
+            }
+        });
+
+        test._("If the subscription is cancelled from the start method, the subscriber is not called")
+        .equals(callOrder, ["start"])
+        ._("If the subscription is cancelled from the start method, then subscription is still returned")
+        .equals(startArg, subscription);
+
+    },
+
     "Subscriber arguments": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
 
         var observer = null;
@@ -1004,9 +1042,11 @@ exports["default"] = {
         .not().throws(function(_) { return new Observable(function(sink) { return null; }).subscribe(sink); })
         ._("Functions can be returned")
         .not().throws(function(_) { return new Observable(function(sink) { return function() {}; }).subscribe(sink); })
-        ._("Objects cannot be returned")
+        ._("Subscriptions can be returned")
+        .not().throws(function(_) { return new Observable(function(sink) { return ({ unsubscribe: function() {} }).subscribe(sink); }); })
+        ._("Non callable, non-subscription objects cannot be returned")
         .throws(function(_) { return new Observable(function(sink) { return ({}); }).subscribe(sink); }, TypeError)
-        ._("Non-functions can be returned")
+        ._("Non-functions cannot be returned")
         .throws(function(_) { return new Observable(function(sink) { return 0; }).subscribe(sink); }, TypeError)
         .throws(function(_) { return new Observable(function(sink) { return false; }).subscribe(sink); }, TypeError)
         ;
@@ -1019,9 +1059,17 @@ exports["default"] = {
             return function(_) { return called++; };
         }).subscribe({});
 
+        var proto = Object.getPrototypeOf(subscription);
+
         test
         ._("Subscribe returns an object")
         .equals(typeof subscription, "object")
+        ._("Subscriptions have an unsubscribe method")
+        .equals(typeof subscription.unsubscribe, "function")
+        ._("Contructor property is Object")
+        .equals(subscription.constructor, Object)
+        ._("Unsubscribe is defined on the prototype object")
+        .equals(subscription.unsubscribe, proto.unsubscribe)
         ._("Unsubscribe returns undefined")
         .equals(subscription.unsubscribe(), undefined)
         ._("Unsubscribe calls the cleanup function")
@@ -1037,7 +1085,7 @@ exports["default"] = {
         var subscription = new Observable(function(sink) {
             return function(_) { called++ };
         }).subscribe({
-            complete: function(v) { returned++ },
+            complete: function() { returned++ },
         });
 
         subscription.unsubscribe();
@@ -1056,7 +1104,7 @@ exports["default"] = {
             sink.error(1);
             return function(_) { called++ };
         }).subscribe({
-            error: function(v) {},
+            error: function() {},
         });
 
         test._("The cleanup function is called when an error is sent to the sink")
@@ -1068,11 +1116,31 @@ exports["default"] = {
             sink.complete(1);
             return function(_) { called++ };
         }).subscribe({
-            complete: function(v) {},
+            next: function() {},
         });
 
         test._("The cleanup function is called when a complete is sent to the sink")
         .equals(called, 1);
+
+        var unsubscribeArgs = null;
+        called = 0;
+
+        subscription = new Observable(function(sink) {
+            return {
+                unsubscribe: function() { for (var args = [], __$0 = 0; __$0 < arguments.length; ++__$0) args.push(arguments[__$0]); 
+                    called = 1;
+                    unsubscribeArgs = args;
+                }
+            };
+        }).subscribe({
+            next: function() {},
+        });
+
+        subscription.unsubscribe(1);
+        test._("If a subscription is returned, then unsubscribe is called on cleanup")
+        .equals(called, 1)
+        ._("Arguments are not forwarded to the unsubscribe function")
+        .equals(unsubscribeArgs, []);
 
     },
 

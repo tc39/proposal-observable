@@ -30,6 +30,44 @@ export default {
         ;
     },
 
+    "Observer start method" (test, { Observable }) {
+
+        let startArg = null,
+            callOrder = [];
+
+        let subscription = new Observable(sink => {
+            callOrder.push("subscriber");
+        }).subscribe({
+            start(s) {
+                callOrder.push("start");
+                startArg = s;
+            }
+        });
+
+        test._("The observer's start method accepts the subscription object")
+        .equals(startArg, subscription)
+        ._("Start is called before the subscriber function")
+        .equals(callOrder, ["start", "subscriber"]);
+
+        callOrder = [];
+
+        subscription = new Observable(sink => {
+            callOrder.push("subscriber");
+        }).subscribe({
+            start(s) {
+                callOrder.push("start");
+                startArg = s;
+                s.unsubscribe();
+            }
+        });
+
+        test._("If the subscription is cancelled from the start method, the subscriber is not called")
+        .equals(callOrder, ["start"])
+        ._("If the subscription is cancelled from the start method, then subscription is still returned")
+        .equals(startArg, subscription);
+
+    },
+
     "Subscriber arguments" (test, { Observable }) {
 
         let observer = null;
@@ -57,9 +95,11 @@ export default {
         .not().throws(_=> new Observable(sink => null).subscribe(sink))
         ._("Functions can be returned")
         .not().throws(_=> new Observable(sink => function() {}).subscribe(sink))
-        ._("Objects cannot be returned")
+        ._("Subscriptions can be returned")
+        .not().throws(_=> new Observable(sink => ({ unsubscribe() {} }).subscribe(sink)))
+        ._("Non callable, non-subscription objects cannot be returned")
         .throws(_=> new Observable(sink => ({})).subscribe(sink), TypeError)
-        ._("Non-functions can be returned")
+        ._("Non-functions cannot be returned")
         .throws(_=> new Observable(sink => 0).subscribe(sink), TypeError)
         .throws(_=> new Observable(sink => false).subscribe(sink), TypeError)
         ;
@@ -72,9 +112,17 @@ export default {
             return _=> called++;
         }).subscribe({});
 
+        let proto = Object.getPrototypeOf(subscription);
+
         test
         ._("Subscribe returns an object")
         .equals(typeof subscription, "object")
+        ._("Subscriptions have an unsubscribe method")
+        .equals(typeof subscription.unsubscribe, "function")
+        ._("Contructor property is Object")
+        .equals(subscription.constructor, Object)
+        ._("Unsubscribe is defined on the prototype object")
+        .equals(subscription.unsubscribe, proto.unsubscribe)
         ._("Unsubscribe returns undefined")
         .equals(subscription.unsubscribe(), undefined)
         ._("Unsubscribe calls the cleanup function")
@@ -90,7 +138,7 @@ export default {
         let subscription = new Observable(sink => {
             return _=> { called++ };
         }).subscribe({
-            complete(v) { returned++ },
+            complete() { returned++ },
         });
 
         subscription.unsubscribe();
@@ -109,7 +157,7 @@ export default {
             sink.error(1);
             return _=> { called++ };
         }).subscribe({
-            error(v) {},
+            error() {},
         });
 
         test._("The cleanup function is called when an error is sent to the sink")
@@ -121,11 +169,31 @@ export default {
             sink.complete(1);
             return _=> { called++ };
         }).subscribe({
-            complete(v) {},
+            next() {},
         });
 
         test._("The cleanup function is called when a complete is sent to the sink")
         .equals(called, 1);
+
+        let unsubscribeArgs = null;
+        called = 0;
+
+        subscription = new Observable(sink => {
+            return {
+                unsubscribe(...args) {
+                    called = 1;
+                    unsubscribeArgs = args;
+                }
+            };
+        }).subscribe({
+            next() {},
+        });
+
+        subscription.unsubscribe(1);
+        test._("If a subscription is returned, then unsubscribe is called on cleanup")
+        .equals(called, 1)
+        ._("Arguments are not forwarded to the unsubscribe function")
+        .equals(unsubscribeArgs, []);
 
     },
 
