@@ -58,6 +58,15 @@ polyfillSymbol("observable");
 
 // === Abstract Operations ===
 
+function nonEnum(obj) {
+
+    Object.getOwnPropertyNames(obj).forEach(k => {
+        Object.defineProperty(obj, k, { enumerable: false });
+    });
+
+    return obj;
+}
+
 function getMethod(obj, key) {
 
     let value = obj[key];
@@ -93,59 +102,81 @@ function subscriptionClosed(observer) {
     return observer._observer === undefined;
 }
 
-class SubscriptionObserver {
+function closeSubscription(observer) {
 
-    constructor(observer, subscriber) {
+    if (subscriptionClosed(observer))
+        return;
 
-        // Assert: subscriber is callable
+    observer._observer = undefined;
+    cleanupSubscription(observer);
+}
 
-        // The observer must be an object
-        if (Object(observer) !== observer)
-            throw new TypeError("Observer must be an object");
+function cleanupFromSubscription(subscription) {
+    // TODO:  Should we get the method out and apply it here, instead of
+    // looking up the method at call time?
+    return _=> { subscription.unsubscribe() };
+}
 
-        this._observer = observer;
-        this._cleanup = undefined;
+function createSubscription(observer, subscriber) {
 
-        try {
+    // Assert: subscriber is callable
 
-            // Call the subscriber function
-            let cleanup = subscriber.call(undefined, this);
+    // The observer must be an object
+    if (Object(observer) !== observer)
+        throw new TypeError("Observer must be an object");
 
-            // 
-            if (cleanup && typeof cleanup.unsubscribe === "function") {
-                let inner = cleanup;
-                cleanup = _=> { inner.unsubscribe() };
-            }
+    // TODO: Should we check for a "next" method here?
 
-            // The return value must be undefined, null, a subscription object, or a function
-            if (cleanup != null && typeof cleanup !== "function")
+    let subscriptionObserver = new SubscriptionObserver(observer),
+        subscription = new Subscription(subscriptionObserver),
+        start = getMethod(observer, "start");
+
+    if (start)
+        start.call(observer, subscription);
+
+    if (subscriptionClosed(subscriptionObserver))
+        return subscription;
+
+    try {
+
+        // Call the subscriber function
+        let cleanup = subscriber.call(undefined, subscriptionObserver);
+
+        // The return value must be undefined, null, a subscription object, or a function
+        if (cleanup != null) {
+
+            if (typeof cleanup.unsubscribe === "function")
+                cleanup = cleanupFromSubscription(cleanup);
+            else if (typeof cleanup !== "function")
                 throw new TypeError(cleanup + " is not a function");
 
-            this._cleanup = cleanup;
-
-        } catch (e) {
-
-            // If an error occurs during startup, then attempt to send the error
-            // to the observer
-            this.error(e);
-            return;
+            subscriptionObserver._cleanup = cleanup;
         }
 
-        // If the stream is already finished, then perform cleanup
-        if (subscriptionClosed(this))
-            cleanupSubscription(this);
+    } catch (e) {
+
+        // If an error occurs during startup, then attempt to send the error
+        // to the observer
+        subscriptionObserver.error(e);
+        return subscription;
     }
 
-    unsubscribe() {
+    // If the stream is already finished, then perform cleanup
+    if (subscriptionClosed(subscriptionObserver))
+        cleanupSubscription(subscriptionObserver);
 
-        if (subscriptionClosed(this))
-            return;
+    return subscription;
+}
 
-        this._observer = undefined;
-        cleanupSubscription(this);
-    }
+function SubscriptionObserver(observer) {
 
-    get closed() { return subscriptionClosed(this) }
+    this._observer = observer;
+    this._cleanup = undefined;
+}
+
+SubscriptionObserver.prototype = nonEnum({
+
+    get closed() { return subscriptionClosed(this) },
 
     next(value) {
 
@@ -160,6 +191,7 @@ class SubscriptionObserver {
             let m = getMethod(observer, "next");
 
             // If the observer doesn't support "next", then return undefined
+            // TODO: Should this throw instead?
             if (!m)
                 return undefined;
 
@@ -169,10 +201,10 @@ class SubscriptionObserver {
         } catch (e) {
 
             // If the observer throws, then close the stream and rethrow the error
-            try { this.unsubscribe() }
+            try { closeSubscription(this) }
             finally { throw e }
         }
-    }
+    },
 
     error(value) {
 
@@ -202,7 +234,7 @@ class SubscriptionObserver {
         cleanupSubscription(this);
 
         return value;
-    }
+    },
 
     complete(value) {
 
@@ -229,15 +261,17 @@ class SubscriptionObserver {
         cleanupSubscription(this);
 
         return value;
-    }
+    },
 
+});
+
+function Subscription(observer) {
+    this._observer = observer;
 }
 
-// SubscriptionObserver instances should report Object as their constructor
-// (see ArrayIterator and MapIterator).  Ideally, the prototype should not
-// have an own constructor property, but for this polyfill we want to avoid
-// using the delete operator.
-SubscriptionObserver.prototype.constructor = Object;
+Subscription.prototype = nonEnum({
+    unsubscribe() { closeSubscription(this._observer) }
+});
 
 export class Observable {
 
@@ -254,13 +288,7 @@ export class Observable {
 
     subscribe(observer) {
 
-        // Wrap the observer in order to maintain observation invariants
-        observer = new SubscriptionObserver(observer, this._subscriber);
-
-        return {
-            _observer: observer,
-            unsubscribe() { return this._observer.unsubscribe() },
-        };
+        return createSubscription(observer, this._subscriber);
     }
 
     forEach(fn) {
@@ -311,6 +339,8 @@ export class Observable {
 
             return new C(observer => observable.subscribe(observer));
         }
+
+        // TODO: Should we check for a Symbol.iterator method here?
 
         return new C(observer => {
 

@@ -138,7 +138,7 @@ interface Subscription {
     unsubscribe() : void;
 }
 
-function SubscriberFunction(observer: SubscriptionObserver) : (void => void);
+function SubscriberFunction(observer: SubscriptionObserver) : (void => void)|Subscription;
 ```
 
 #### Observable.of ####
@@ -224,6 +224,9 @@ All methods are optional.
 
 ```js
 interface Observer {
+
+    // Called when the subscription is initialized
+    start(subscription);
 
     // Recieves the next value in the sequence
     next(value);
