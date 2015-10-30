@@ -248,9 +248,6 @@ whether the corresponding subscription has been closed.
 ```js
 interface SubscriptionObserver {
 
-    // Cancels the subscription
-    unsubscribe();
-
     // Returns true if the subscription is closed
     get closed() : Boolean;
 
