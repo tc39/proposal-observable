@@ -112,8 +112,6 @@ function closeSubscription(observer) {
 }
 
 function cleanupFromSubscription(subscription) {
-    // TODO:  Should we get the method out and apply it here, instead of
-    // looking up the method at call time?
     return _=> { subscription.unsubscribe() };
 }
 
@@ -124,8 +122,6 @@ function createSubscription(observer, subscriber) {
     // The observer must be an object
     if (Object(observer) !== observer)
         throw new TypeError("Observer must be an object");
-
-    // TODO: Should we check for a "next" method here?
 
     let subscriptionObserver = new SubscriptionObserver(observer),
         subscription = new Subscription(subscriptionObserver),
@@ -191,7 +187,6 @@ SubscriptionObserver.prototype = nonEnum({
             let m = getMethod(observer, "next");
 
             // If the observer doesn't support "next", then return undefined
-            // TODO: Should this throw instead?
             if (!m)
                 return undefined;
 
