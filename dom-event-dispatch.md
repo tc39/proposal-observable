@@ -74,7 +74,7 @@ class EventTarget {
             return;
 
         // Subscribe to the event stream
-        subscription = this.on(type, capture).subscribe({
+        let subscription = this.on(type, capture).subscribe({
             next(event) { handler.call(event.currentTarget, event) }
         });
 
