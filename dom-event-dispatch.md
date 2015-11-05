@@ -74,12 +74,12 @@ class EventTarget {
             return;
 
         // Subscribe to the event stream
-        let cancel = this.on(type, capture).subscribe({
+        subscription = this.on(type, capture).subscribe({
             next(event) { handler.call(event.currentTarget, event) }
         });
 
-        // Store the handler and cancellation function
-        this.@handlers.push({ type, handler, capture, cancel });
+        // Store the handler and subscription
+        this.@handlers.push({ type, handler, capture, subscription });
     }
 
     removeEventListener(type, handler, capture = false) {
@@ -91,7 +91,7 @@ class EventTarget {
             return;
 
         // Call the cancellation function and remove the handler
-        this.@handlers[index].cancel();
+        this.@handlers[index].subscription.unsubscribe();
         this.@handlers.splice(index, 1);
     }
 
