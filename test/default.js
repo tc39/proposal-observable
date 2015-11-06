@@ -3,8 +3,6 @@ import { TestRunner } from "moon-unit";
 import constructor from "./constructor.js";
 import subscribe from "./subscribe.js";
 import forEach from "./forEach.js";
-import map from "./map.js";
-import filter from "./filter.js";
 import observable from "./symbol-observable.js";
 import species from "./symbol-species.js";
 import ofTests from "./of.js";
@@ -24,8 +22,6 @@ export function runTests(C) {
 
         "Observable.prototype.subscribe": subscribe,
         "Observable.prototype.forEach": forEach,
-        "Observable.prototype.filter": filter,
-        "Observable.prototype.map": map,
         "Observable.prototype[Symbol.observable]": observable,
 
         "Observable.of": ofTests,

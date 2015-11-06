@@ -393,48 +393,4 @@ export class Observable {
         });
     }
 
-    map(fn) {
-
-        if (typeof fn !== "function")
-            throw new TypeError(fn + " is not a function");
-
-        let C = this.constructor[Symbol.species];
-
-        return new C(observer => this.subscribe({
-
-            next(value) {
-
-                try { value = fn(value) }
-                catch (e) { return observer.error(e) }
-
-                return observer.next(value);
-            },
-
-            error(value) { return observer.error(value) },
-            complete(value) { return observer.complete(value) },
-        }));
-    }
-
-    filter(fn) {
-
-        if (typeof fn !== "function")
-            throw new TypeError(fn + " is not a function");
-
-        let C = this.constructor[Symbol.species];
-
-        return new C(observer => this.subscribe({
-
-            next(value) {
-
-                try { if (!fn(value)) return undefined; }
-                catch (e) { return observer.error(e) }
-
-                return observer.next(value);
-            },
-
-            error(value) { return observer.error(value) },
-            complete(value) { return observer.complete(value) },
-        }));
-    }
-
 }

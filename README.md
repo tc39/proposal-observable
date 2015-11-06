@@ -114,10 +114,6 @@ interface Observable {
     // Subscribes to the sequence with a callback, returning a promise
     forEach(onNext : any => any) : Promise;
 
-    // Standard combinators
-    filter(callback : any => Boolean) : Observable;
-    map(callback : any => any) : Observable;
-
     // Returns itself
     [Symbol.observable]() : Observable;
 

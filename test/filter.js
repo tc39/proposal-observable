@@ -1,3 +1,9 @@
+/*
+
+Not currently part of the es-observable specification
+
+*/
+
 import { testMethodProperty, getSymbol } from "./helpers.js";
 
 export default {

@@ -333,7 +333,7 @@ exports.asyncGen = asyncGenerator;
 })();
 
 var __M; (function(a) { var list = Array(a.length / 2); __M = function require(i) { var m = list[i], f, e; if (typeof m !== 'function') return m.exports; f = m; m = { exports: i ? {} : exports }; f(list[i] = m, e = m.exports); if (m.exports !== e && !('default' in m.exports)) m.exports['default'] = m.exports; return m.exports; }; for (var i = 0; i < a.length; i += 2) { var j = Math.abs(a[i]); list[j] = a[i + 1]; if (a[i] >= 0) __M(j); } })([
-21, function(module, exports) {
+17, function(module, exports) {
 
 var OP_toString = Object.prototype.toString,
     OP_hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -503,7 +503,7 @@ exports.Test = Test;
 
 
 },
-19, function(module, exports) {
+18, function(module, exports) {
 
 var ELEMENT_ID = "moon-unit";
 
@@ -616,7 +616,7 @@ exports.HtmlLogger = HtmlLogger;
 
 
 },
-20, function(module, exports) {
+19, function(module, exports) {
 
 var Style = {
 
@@ -719,10 +719,10 @@ exports.NodeLogger = NodeLogger;
 
 
 },
-18, function(module, exports) {
+16, function(module, exports) {
 
-var HtmlLogger = __M(19).HtmlLogger;
-var NodeLogger = __M(20).NodeLogger;
+var HtmlLogger = __M(18).HtmlLogger;
+var NodeLogger = __M(19).NodeLogger;
 
 var Logger = (typeof global === "object" && global.process) ?
     NodeLogger :
@@ -732,10 +732,10 @@ exports.Logger = Logger;
 
 
 },
-17, function(module, exports) {
+15, function(module, exports) {
 
-var Test = __M(21).Test;
-var Logger = __M(18).Logger;
+var Test = __M(17).Test;
+var Logger = __M(16).Logger;
 
 var TestRunner = _esdown.class(function(__) { var TestRunner;
 
@@ -808,10 +808,10 @@ exports.TestRunner = TestRunner;
 
 
 },
-15, function(module, exports) {
+13, function(module, exports) {
 
-var TestRunner = __M(17).TestRunner;
-var Logger = __M(18).Logger;
+var TestRunner = __M(15).TestRunner;
+var Logger = __M(16).Logger;
 
 function runTests(tests) {
 
@@ -827,11 +827,11 @@ exports.TestRunner = TestRunner;
 },
 1, function(module, exports) {
 
-Object.keys(__M(15)).forEach(function(k) { exports[k] = __M(15)[k]; });
+Object.keys(__M(13)).forEach(function(k) { exports[k] = __M(13)[k]; });
 
 
 },
-16, function(module, exports) {
+14, function(module, exports) {
 
 function testLength(test, value, length) {
 
@@ -897,7 +897,7 @@ exports.getSymbol = getSymbol;
 },
 2, function(module, exports) {
 
-var testMethodProperty = __M(16).testMethodProperty;
+var testMethodProperty = __M(14).testMethodProperty;
 
 exports["default"] = {
 
@@ -945,7 +945,7 @@ exports["default"] = {
 },
 3, function(module, exports) {
 
-var testMethodProperty = __M(16).testMethodProperty;
+var testMethodProperty = __M(14).testMethodProperty;
 
 exports["default"] = {
 
@@ -1165,7 +1165,7 @@ exports["default"] = {
 },
 4, function(module, exports) {
 
-var testMethodProperty = __M(16).testMethodProperty;
+var testMethodProperty = __M(14).testMethodProperty;
 
 exports["default"] = {
 
@@ -1282,285 +1282,7 @@ exports["default"] = {
 },
 5, function(module, exports) {
 
-var testMethodProperty = __M(16).testMethodProperty, getSymbol = __M(16).getSymbol;
-
-exports["default"] = {
-
-    "Observable.prototype has a map property": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        testMethodProperty(test, Observable.prototype, "map", {
-            configurable: true,
-            writable: true,
-            length: 1,
-        });
-    },
-
-    "Allowed arguments": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        var observable = new Observable(function(_) { return null; });
-
-        test._("Argument must be a function")
-        .throws(function(_) { return observable.map(); }, TypeError)
-        .throws(function(_) { return observable.map(null); }, TypeError)
-        .throws(function(_) { return observable.map({}); }, TypeError)
-        ;
-    },
-
-    "Species is used to determine the constructor": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        var observable = new Observable(function(_) { return null; }),
-            token = {};
-
-        function species() {
-            this.token = token;
-        }
-
-        observable.constructor = function() {};
-        observable.constructor[getSymbol("species")] = species;
-
-        test._("Constructor species is used as the new constructor")
-        .equals(observable.map(function(_) {}).token, token);
-
-        observable.constructor[getSymbol("species")] = null;
-        test._("An error is thrown if instance does not have a constructor species")
-        .throws(function(_) { return observable.map(function(_) {}); }, TypeError);
-
-        observable.constructor = null;
-        test._("An error is thrown if the instance does not have a constructor")
-        .throws(function(_) { return observable.map(function(_) {}); }, TypeError);
-    },
-
-    "The callback is used to map next values": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        var values = [],
-            returns = [];
-
-        new Observable(function(observer) {
-            returns.push(observer.next(1));
-            returns.push(observer.next(2));
-            observer.complete();
-        }).map(function(x) { return x * 2; }).subscribe({
-            next: function(v) { values.push(v); return -v; }
-        });
-
-        test
-        ._("Mapped values are sent to the observer")
-        .equals(values, [2, 4])
-        ._("Return values from the observer are returned to the caller")
-        .equals(returns, [-2, -4])
-        ;
-    },
-
-    "Errors thrown from the callback are sent to the observer": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        var error = new Error(),
-            thrown = null,
-            returned = null,
-            token = {};
-
-        new Observable(function(observer) {
-            returned = observer.next(1);
-        }).map(function(x) { throw error }).subscribe({
-            error: function(e) { thrown = e; return token; }
-        });
-
-        test
-        ._("Exceptions from callback are sent to the observer")
-        .equals(thrown, error)
-        ._("The result of calling error is returned to the caller")
-        .equals(returned, token)
-        ;
-    },
-
-    "Errors are forwarded to the observer": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        var error = new Error(),
-            thrown = null,
-            returned = null,
-            token = {};
-
-        new Observable(function(observer) {
-            returned = observer.error(error);
-        }).map(function(x) { return x; }).subscribe({
-            error: function(e) { thrown = e; return token; }
-        });
-
-        test
-        ._("Error values are forwarded")
-        .equals(thrown, error)
-        ._("The return value of the error method is returned to the caller")
-        .equals(returned, token)
-        ;
-    },
-
-    "Complete is forwarded to the observer": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        var arg = {},
-            passed = null,
-            returned = null,
-            token = {};
-
-        new Observable(function(observer) {
-            returned = observer.complete(arg);
-        }).map(function(x) { return x; }).subscribe({
-            complete: function(v) { passed = v; return token; }
-        });
-
-        test
-        ._("Complete values are forwarded")
-        .equals(passed, arg)
-        ._("The return value of the complete method is returned to the caller")
-        .equals(returned, token)
-        ;
-    },
-
-};
-
-
-},
-6, function(module, exports) {
-
-var testMethodProperty = __M(16).testMethodProperty, getSymbol = __M(16).getSymbol;
-
-exports["default"] = {
-
-    "Observable.prototype has a filter property": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        testMethodProperty(test, Observable.prototype, "filter", {
-            configurable: true,
-            writable: true,
-            length: 1,
-        });
-    },
-
-    "Allowed arguments": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        var observable = new Observable(function(_) { return null; });
-
-        test._("Argument must be a function")
-        .throws(function(_) { return observable.filter(); }, TypeError)
-        .throws(function(_) { return observable.filter(null); }, TypeError)
-        .throws(function(_) { return observable.filter({}); }, TypeError)
-        ;
-    },
-
-    "Species is used to determine the constructor": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        var observable = new Observable(function(_) { return null; }),
-            token = {};
-
-        function species() {
-            this.token = token;
-        }
-
-        observable.constructor = function() {};
-        observable.constructor[getSymbol("species")] = species;
-
-        test._("Constructor species is used as the new constructor")
-        .equals(observable.filter(function(_) {}).token, token);
-
-        observable.constructor[getSymbol("species")] = null;
-        test._("An error is thrown if instance does not have a constructor species")
-        .throws(function(_) { return observable.filter(function(_) {}); }, TypeError);
-
-        observable.constructor = null;
-        test._("An error is thrown if the instance does not have a constructor")
-        .throws(function(_) { return observable.filter(function(_) {}); }, TypeError);
-    },
-
-    "The callback is used to filter next values": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        var values = [],
-            returns = [];
-
-        new Observable(function(observer) {
-            returns.push(observer.next(1));
-            returns.push(observer.next(2));
-            returns.push(observer.next(3));
-            returns.push(observer.next(4));
-            observer.complete();
-        }).filter(function(x) { return x % 2; }).subscribe({
-            next: function(v) { values.push(v); return -v; }
-        });
-
-        test
-        ._("Filtered values are sent to the observer")
-        .equals(values, [1, 3])
-        ._("Return values from the observer are returned to the caller")
-        .equals(returns, [-1, undefined, -3, undefined])
-        ;
-    },
-
-    "Errors thrown from the callback are sent to the observer": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        var error = new Error(),
-            thrown = null,
-            returned = null,
-            token = {};
-
-        new Observable(function(observer) {
-            returned = observer.next(1);
-        }).filter(function(x) { throw error }).subscribe({
-            error: function(e) { thrown = e; return token; }
-        });
-
-        test
-        ._("Exceptions from callback are sent to the observer")
-        .equals(thrown, error)
-        ._("The result of calling error is returned to the caller")
-        .equals(returned, token)
-        ;
-    },
-
-    "Errors are forwarded to the observer": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        var error = new Error(),
-            thrown = null,
-            returned = null,
-            token = {};
-
-        new Observable(function(observer) {
-            returned = observer.error(error);
-        }).filter(function(x) { return true; }).subscribe({
-            error: function(e) { thrown = e; return token; }
-        });
-
-        test
-        ._("Error values are forwarded")
-        .equals(thrown, error)
-        ._("The return value of the error method is returned to the caller")
-        .equals(returned, token)
-        ;
-    },
-
-    "Complete is forwarded to the observer": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        var arg = {},
-            passed = null,
-            returned = null,
-            token = {};
-
-        new Observable(function(observer) {
-            returned = observer.complete(arg);
-        }).filter(function(x) { return true; }).subscribe({
-            complete: function(v) { passed = v; return token; }
-        });
-
-        test
-        ._("Complete values are forwarded")
-        .equals(passed, arg)
-        ._("The return value of the complete method is returned to the caller")
-        .equals(returned, token)
-        ;
-    },
-
-};
-
-
-},
-7, function(module, exports) {
-
-var testMethodProperty = __M(16).testMethodProperty, getSymbol = __M(16).getSymbol;
+var testMethodProperty = __M(14).testMethodProperty, getSymbol = __M(14).getSymbol;
 
 exports["default"] = {
 
@@ -1585,9 +1307,9 @@ exports["default"] = {
 
 
 },
-8, function(module, exports) {
+6, function(module, exports) {
 
-var testMethodProperty = __M(16).testMethodProperty, getSymbol = __M(16).getSymbol;
+var testMethodProperty = __M(14).testMethodProperty, getSymbol = __M(14).getSymbol;
 
 exports["default"] = {
 
@@ -1611,9 +1333,9 @@ exports["default"] = {
 
 
 },
-9, function(module, exports) {
+7, function(module, exports) {
 
-var testMethodProperty = __M(16).testMethodProperty;
+var testMethodProperty = __M(14).testMethodProperty;
 
 exports["default"] = {
 
@@ -1718,9 +1440,9 @@ exports["default"] = {
 
 
 },
-10, function(module, exports) {
+8, function(module, exports) {
 
-var testMethodProperty = __M(16).testMethodProperty, hasSymbol = __M(16).hasSymbol, getSymbol = __M(16).getSymbol;
+var testMethodProperty = __M(14).testMethodProperty, hasSymbol = __M(14).hasSymbol, getSymbol = __M(14).getSymbol;
 
 exports["default"] = {
 
@@ -1947,9 +1669,9 @@ exports["default"] = {
 
 
 },
-11, function(module, exports) {
+9, function(module, exports) {
 
-var testMethodProperty = __M(16).testMethodProperty;
+var testMethodProperty = __M(14).testMethodProperty;
 
 exports["default"] = {
 
@@ -2092,9 +1814,9 @@ exports["default"] = {
 
 
 },
-12, function(module, exports) {
+10, function(module, exports) {
 
-var testMethodProperty = __M(16).testMethodProperty;
+var testMethodProperty = __M(14).testMethodProperty;
 
 exports["default"] = {
 
@@ -2270,9 +1992,9 @@ exports["default"] = {
 
 
 },
-13, function(module, exports) {
+11, function(module, exports) {
 
-var testMethodProperty = __M(16).testMethodProperty;
+var testMethodProperty = __M(14).testMethodProperty;
 
 exports["default"] = {
 
@@ -2446,9 +2168,9 @@ exports["default"] = {
 
 
 },
-14, function(module, exports) {
+12, function(module, exports) {
 
-var testMethodProperty = __M(16).testMethodProperty;
+var testMethodProperty = __M(14).testMethodProperty;
 
 exports["default"] = {
 
@@ -2516,17 +2238,15 @@ var TestRunner = __M(1).TestRunner;
 var constructor = __M(2)['default'];
 var subscribe = __M(3)['default'];
 var forEach = __M(4)['default'];
-var map = __M(5)['default'];
-var filter = __M(6)['default'];
-var observable = __M(7)['default'];
-var species = __M(8)['default'];
-var ofTests = __M(9)['default'];
-var fromTests = __M(10)['default'];
+var observable = __M(5)['default'];
+var species = __M(6)['default'];
+var ofTests = __M(7)['default'];
+var fromTests = __M(8)['default'];
 
-var observerNext = __M(11)['default'];
-var observerError = __M(12)['default'];
-var observerComplete = __M(13)['default'];
-var observerClosed = __M(14)['default'];
+var observerNext = __M(9)['default'];
+var observerError = __M(10)['default'];
+var observerComplete = __M(11)['default'];
+var observerClosed = __M(12)['default'];
 
 
 function runTests(C) {
@@ -2537,8 +2257,6 @@ function runTests(C) {
 
         "Observable.prototype.subscribe": subscribe,
         "Observable.prototype.forEach": forEach,
-        "Observable.prototype.filter": filter,
-        "Observable.prototype.map": map,
         "Observable.prototype[Symbol.observable]": observable,
 
         "Observable.of": ofTests,
