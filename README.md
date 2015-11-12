@@ -166,7 +166,7 @@ Observable.of("red", "green", "blue").subscribe({
 - Otherwise, the argument is assumed to be an iterable and the iteration values are
   delivered asynchronously in a future turn of the event loop.
 
-Converting from an object which supports `Symbol.observer` to an Observable:
+Converting from an object which supports `Symbol.observable` to an Observable:
 
 ```js
 Observable.from({
