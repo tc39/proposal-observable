@@ -80,42 +80,42 @@ function getMethod(obj, key) {
     return value;
 }
 
-function cleanupSubscription(observer) {
+function cleanupSubscription(subscription) {
 
     // Assert:  observer._observer is undefined
 
-    let cleanup = observer._cleanup;
+    let cleanup = subscription._cleanup;
 
     if (!cleanup)
         return;
 
     // Drop the reference to the cleanup function so that we won't call it
     // more than once
-    observer._cleanup = undefined;
+    subscription._cleanup = undefined;
 
     // Call the cleanup function
     cleanup();
 }
 
-function subscriptionClosed(observer) {
+function subscriptionClosed(subscription) {
 
-    return observer._observer === undefined;
+    return subscription._observer === undefined;
 }
 
-function closeSubscription(observer) {
+function closeSubscription(subscription) {
 
-    if (subscriptionClosed(observer))
+    if (subscriptionClosed(subscription))
         return;
 
-    observer._observer = undefined;
-    cleanupSubscription(observer);
+    subscription._observer = undefined;
+    cleanupSubscription(subscription);
 }
 
 function cleanupFromSubscription(subscription) {
     return _=> { subscription.unsubscribe() };
 }
 
-function createSubscription(observer, subscriber) {
+function Subscription(observer, subscriber) {
 
     // Assert: subscriber is callable
 
@@ -123,20 +123,23 @@ function createSubscription(observer, subscriber) {
     if (Object(observer) !== observer)
         throw new TypeError("Observer must be an object");
 
-    let subscriptionObserver = new SubscriptionObserver(observer),
-        subscription = new Subscription(subscriptionObserver),
-        start = getMethod(observer, "start");
+    this._cleanup = undefined;
+    this._observer = observer;
+
+    let start = getMethod(observer, "start");
 
     if (start)
-        start.call(observer, subscription);
+        start.call(observer, this);
 
-    if (subscriptionClosed(subscriptionObserver))
-        return subscription;
+    if (subscriptionClosed(this))
+        return;
+
+    observer = new SubscriptionObserver(this);
 
     try {
 
         // Call the subscriber function
-        let cleanup = subscriber.call(undefined, subscriptionObserver);
+        let cleanup = subscriber.call(undefined, observer);
 
         // The return value must be undefined, null, a subscription object, or a function
         if (cleanup != null) {
@@ -146,41 +149,41 @@ function createSubscription(observer, subscriber) {
             else if (typeof cleanup !== "function")
                 throw new TypeError(cleanup + " is not a function");
 
-            subscriptionObserver._cleanup = cleanup;
+            this._cleanup = cleanup;
         }
 
     } catch (e) {
 
         // If an error occurs during startup, then attempt to send the error
         // to the observer
-        subscriptionObserver.error(e);
-        return subscription;
+        observer.error(e);
+        return;
     }
 
     // If the stream is already finished, then perform cleanup
-    if (subscriptionClosed(subscriptionObserver))
-        cleanupSubscription(subscriptionObserver);
-
-    return subscription;
+    if (subscriptionClosed(this))
+        cleanupSubscription(this);
 }
 
-function SubscriptionObserver(observer) {
+Subscription.prototype = nonEnum({
+    unsubscribe() { closeSubscription(this) }
+});
 
-    this._observer = observer;
-    this._cleanup = undefined;
+function SubscriptionObserver(subscription) {
+    this._subscription = subscription;
 }
 
 SubscriptionObserver.prototype = nonEnum({
 
-    get closed() { return subscriptionClosed(this) },
-
     next(value) {
 
+        let subscription = this._subscription;
+
         // If the stream if closed, then return undefined
-        if (subscriptionClosed(this))
+        if (subscriptionClosed(subscription))
             return undefined;
 
-        let observer = this._observer;
+        let observer = subscription._observer;
 
         try {
 
@@ -196,19 +199,21 @@ SubscriptionObserver.prototype = nonEnum({
         } catch (e) {
 
             // If the observer throws, then close the stream and rethrow the error
-            try { closeSubscription(this) }
+            try { closeSubscription(subscription) }
             finally { throw e }
         }
     },
 
     error(value) {
 
+        let subscription = this._subscription;
+
         // If the stream is closed, throw the error to the caller
-        if (subscriptionClosed(this))
+        if (subscriptionClosed(subscription))
             throw value;
 
-        let observer = this._observer;
-        this._observer = undefined;
+        let observer = subscription._observer;
+        subscription._observer = undefined;
 
         try {
 
@@ -222,23 +227,24 @@ SubscriptionObserver.prototype = nonEnum({
 
         } catch (e) {
 
-            try { cleanupSubscription(this) }
+            try { cleanupSubscription(subscription) }
             finally { throw e }
         }
 
-        cleanupSubscription(this);
-
+        cleanupSubscription(subscription);
         return value;
     },
 
     complete(value) {
 
+        let subscription = this._subscription;
+
         // If the stream is closed, then return undefined
-        if (subscriptionClosed(this))
+        if (subscriptionClosed(subscription))
             return undefined;
 
-        let observer = this._observer;
-        this._observer = undefined;
+        let observer = subscription._observer;
+        subscription._observer = undefined;
 
         try {
 
@@ -249,23 +255,14 @@ SubscriptionObserver.prototype = nonEnum({
 
         } catch (e) {
 
-            try { cleanupSubscription(this) }
+            try { cleanupSubscription(subscription) }
             finally { throw e }
         }
 
-        cleanupSubscription(this);
-
+        cleanupSubscription(subscription);
         return value;
     },
 
-});
-
-function Subscription(observer) {
-    this._observer = observer;
-}
-
-Subscription.prototype = nonEnum({
-    unsubscribe() { closeSubscription(this._observer) }
 });
 
 export class Observable {
@@ -283,7 +280,7 @@ export class Observable {
 
     subscribe(observer) {
 
-        return createSubscription(observer, this._subscriber);
+        return new Subscription(observer, this._subscriber);
     }
 
     forEach(fn) {
@@ -339,9 +336,11 @@ export class Observable {
 
         return new C(observer => {
 
+            let closed = false;
+
             enqueueJob(_=> {
 
-                if (observer.closed)
+                if (closed)
                     return;
 
                 // Assume that the object is iterable.  If not, then the observer
@@ -352,7 +351,7 @@ export class Observable {
 
                         observer.next(item);
 
-                        if (observer.closed)
+                        if (closed)
                             return;
                     }
 
@@ -366,6 +365,8 @@ export class Observable {
 
                 observer.complete();
             });
+
+            return _=> { closed = true };
         });
     }
 
@@ -375,21 +376,27 @@ export class Observable {
 
         return new C(observer => {
 
+            let closed = false;
+
             enqueueJob(_=> {
 
-                if (observer.closed)
+                let subscription = observer._subscription;
+
+                if (subscriptionClosed(subscription))
                     return;
 
                 for (let i = 0; i < items.length; ++i) {
 
                     observer.next(items[i]);
 
-                    if (observer.closed)
+                    if (subscriptionClosed(subscription))
                         return;
                 }
 
                 observer.complete();
             });
+
+            return _=> { closed = true };
         });
     }
 
