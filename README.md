@@ -276,7 +276,7 @@ The **Observable** constructor performs the following steps:
 1. If **NewTarget** is undefined, throw a **TypeError** exception.
 1. If IsCallable(*subscriber*) is **false**, throw a **TypeError** exception.
 1. Let *observable* be OrdinaryCreateFromConstructor(**NewTarget**,
-   **"%ObservablePrototype%"**, «‍[[Subscriber]]» ).
+   **"%ObservablePrototype%"**, «‍[[Subscriber]]»).
 1. ReturnIfAbrupt(**observable**).
 1. Set *observable's* [[Subscriber]] internal slot to *subscriber*.
 1. Return *observable*.
@@ -295,6 +295,46 @@ following properties:
 **undefined**. Its get accessor function performs the following steps:
 
 1. Return the **this** value.
+
+#### Observable.of(...items) ###
+
+1. Let *C* be the **this** value.
+1. If IsConstructor(C) is **false**, let *C* be %Observable%.
+1. Let *subscriber* be a new built-in function object as defined in Observable.of Subscriber
+   Functions.
+1. Set the [[Items]] internal slot of *subscriber* to *items*.
+1. Return Construct(*C*, «‍*subscriber*»)
+
+#### Observable.of Subscriber Functions ####
+
+An **Observable.of** subscriber function is an anonymous built-in function that has a
+[[Items]] internal slot.
+
+When an **Observable.of** subscriber function is called with argument *observer*, the
+following steps are taken:
+
+1. Let *items* be the value of the [[Items]] internal slot of *F*.
+1. Perform EnqueueJob(**"PromiseJobs"**, ObservableOfJob, «‍*observer*, *items*»).
+
+#### ObservableOfJob(observer, items) ####
+
+The job ObservableOfJob with parameters *observer* and *items* performs the following steps:
+
+1. Let *items* be the value of the [[Items]] internal slot of *F*.
+1. Let *len* be the number of elements in *items*.
+1. Let *closed* be ToBoolean(Get(*observer*, **"closed"**)).
+1. ReturnIfAbrupt(*closed*).
+1. If *closed* is **true**, return **undefined**.
+1. Let *k* be 0.
+1. Repeat, while *k* < *len*,
+    1. Let *kValue* be *items[k]*.
+    1. Let *nextResult* be Invoke(*observer*, **"next"**, «‍*kValue*»).
+    1. ReturnIfAbrupt(*nextResult*).
+    1. Let *closed* be ToBoolean(Get(*observer*, **"closed"**)).
+    1. ReturnIfAbrupt(*closed*).
+    1. If *closed* is **true**, return **undefined**.
+    1. Increase k by 1.
+1. Return Invoke(*observer*, **"complete"**, «‍»).
 
 #### Observable.prototype ####
 
@@ -573,6 +613,18 @@ intrinsic object.  The %SubscriptionObserverPrototype% object is an ordinary obj
 1. Let *cleanupResult* be CleanupSubscription(*O*).
 1. ReturnIfAbrupt(*cleanupResult*).
 1. Return Completion(*result*).
+
+#### get %SubscriptionObserverPrototype%.closed ####
+
+%SubscriptionObserverPrototype%.closed is an accessor property whose set accessor function
+is undefined. Its get accessor function performs the following steps:
+
+1. Let *O* be the **this** value.
+1. If Type(*O*) is not Object, throw a **TypeError** exception.
+1. If *O* does not have all of the internal slots of a Subscription Observer instance,
+   throw a **TypeError** exception.
+1. Let *subscription* be the value of the [[Subscription]] internal slot of *O*.
+1. Return SubscriptionClosed(*subscription*).
 
 #### %SubscriptionObserverPrototype%.complete(value) ####
 

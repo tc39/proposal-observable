@@ -175,6 +175,11 @@ function SubscriptionObserver(subscription) {
 
 SubscriptionObserver.prototype = nonEnum({
 
+    get closed() {
+
+        return subscriptionClosed(this._subscription);
+    },
+
     next(value) {
 
         let subscription = this._subscription;
