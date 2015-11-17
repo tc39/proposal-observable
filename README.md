@@ -343,7 +343,7 @@ performs the following steps:
 1. Set the [[Subscription]] internal slot of *cancelFunction* to *subscriberResult*.
 1. Return *cancelFunction*.
 
-#### Subscription Cancel Functions ####
+#### Subscription Cleanup Functions ####
 
 A subscription cleanup function is an anonymous built-in function that has a
 [[Subscription]] internal slot.
@@ -356,6 +356,63 @@ When a subscription cleanup function *F* is called the following steps are taken
 
 The **length** property of a subscription cleanup function is **0**.
 
+#### Observable.prototype.forEach(callbackFn) ####
+
+The **forEach** function subscribes to the observable and calls *callbackFn* once
+for each element in the sequence.  It returns a Promise for the completion value
+of the sequence.
+
+*callbackFn* is called with one argument: the value of the next element in the sequence.
+
+The **forEach** function performs the following steps:
+
+1. Let *O* be the **this** value.
+1. If Type(*O*) is not Object, throw a **TypeError** exception.
+1. Let *promiseCapability* be NewPromiseCapability(%Promise%).
+1. ReturnIfAbrupt(*promiseCapability*).
+1. If IsCallable(*callbackFn*) is **false**,
+    1. Let *r* be a new **TypeError** exception.
+    1. Let *rejectResult* be Call(*promiseCapability*.[[Reject]], *r*).
+    1. Return *promiseCapability*.[[Promise]].
+1. Let *observer* be ObjectCreate(%ObjectPrototype%).
+1. Let *next* be a new built-in function object as defined in Observable.prototype.forEach
+   Next Functions.
+1. Set the [[CallbackFn]] internal slot of *next* to *callbackFn*.
+1. Set the [[Reject]] internal slot of *next* to *promiseCapability*.[[Reject]].
+1. Perform CreateDataProperty(*observer*, **"next"**, *next*).
+1. Perform CreateDataProperty(*observer*, **"error"**, *promiseCapability*.[[Reject]]).
+1. Perform CreateDataProperty(*observer*, **"complete"**, *promiseCapability*.[[Resolve]]).
+1. Let *subscribeResult* be Invoke(*O*, **"subscribe"**, «‍*observer*»).
+1. IfAbruptRejectPromise(*subscribeResult*, *promiseCapability*).
+1. Return *promiseCapability*.[[Promise]].
+
+#### Observable.prototype.forEach Next Functions ####
+
+An Observable.prototype.forEach next function is an anonymous built-in function that
+is used to process each element of an observable sequence when *forEach* is invoked.
+Each Observable.prototype.forEach next function has [[CallbackFn]] and [[Reject]]
+internal slots.
+
+When an Observable.prototype.forEach next function *F* is called with argument *x*,
+the following steps are taken:
+
+1. Let *callbackFn* be the value of the [[CallbackFn]] internal slot of *F*.
+1. Let *promiseReject* be the value of the [[Reject]] internal slot of *F*.
+1. Let *result* be Call(*callbackFn*, **undefined**, «‍*x*»).
+1. If *result* is an abrupt completion,
+    1. Let *rejectResult* be Call(*promiseReject*, **undefined**, «*result*.[[value]]»).
+    1. ReturnIfAbrupt(*rejectResult*).
+    1. Return **undefined**.
+1. Return Completion(*result*).
+
+#### Observable.prototype[@@observable]() ###
+
+The following steps are taken:
+
+1. Return the **this** value.
+
+The value of the **name** property of this function is **"[Symbol.observable]"**.
+
 #### Subscription Objects ####
 
 A Subscription is an object which represents a channel through which an Observable
@@ -367,8 +424,7 @@ The abstract operation CreateSubscription with argument *observer* is used to
 create a Subscription object.  It performs the following steps:
 
 1. Assert: Type(*observer*) is Object.
-1. Let *subscription* be ObjectCreate(%SubscriptionPrototype%,
-   «‍[[Observer]], [[Cleanup]]»).
+1. Let *subscription* be ObjectCreate(%SubscriptionPrototype%, «‍[[Observer]], [[Cleanup]]»).
 1. Set *subscription's* [[Observer]] internal slot to *observer*.
 1. Set *subscription's* [[Cleanup]] internal slot to **undefined**.
 1. Return *subscription*.
