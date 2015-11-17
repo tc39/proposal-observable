@@ -281,12 +281,33 @@ The **Observable** constructor performs the following steps:
 1. Set *observable's* [[Subscriber]] internal slot to *subscriber*.
 1. Return *observable*.
 
+#### Properties of the Observable Constructor ####
+
+The value of the [[Prototype]] internal slot of the **Observable** constructor is the
+intrinsic object %FunctionPrototype%.
+
+Besides the **length** property (whose value is 1), the Observable constructor has the
+following properties:
+
 #### get Observable[@@species] ###
 
 **Observable[@@species]** is an accessor property whose set accessor function is
 **undefined**. Its get accessor function performs the following steps:
 
 1. Return the **this** value.
+
+#### Observable.prototype ####
+
+The initial value of **Observable.prototype** is the intrinsic object %ObservablePrototype%.
+
+This property has the attributes { [[Writable]]: **false**, [[Enumerable]]: **false**,
+[[Configurable]]: **false** }.
+
+#### Properties of the Promise Prototype Object ####
+
+The **Observable** prototype object is the intrinsic object %ObservablePrototype%. The value
+of the [[Prototype]] internal slot of the **Observable** prototype object is the intrinsic object
+%ObjectPrototype%. The **Observable** prototype object is an ordinary object.
 
 #### Observable.prototype.subscribe(observer) ####
 
@@ -404,6 +425,10 @@ the following steps are taken:
     1. ReturnIfAbrupt(*rejectResult*).
     1. Return **undefined**.
 1. Return Completion(*result*).
+
+#### Observable.prototype.constructor ####
+
+The initial value of **Observable.prototype.constructor** is the intrinsic object %Observable%.
 
 #### Observable.prototype[@@observable]\() ###
 

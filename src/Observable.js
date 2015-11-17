@@ -380,16 +380,14 @@ export class Observable {
 
             enqueueJob(_=> {
 
-                let subscription = observer._subscription;
-
-                if (subscriptionClosed(subscription))
+                if (closed)
                     return;
 
                 for (let i = 0; i < items.length; ++i) {
 
                     observer.next(items[i]);
 
-                    if (subscriptionClosed(subscription))
+                    if (closed)
                         return;
                 }
 
