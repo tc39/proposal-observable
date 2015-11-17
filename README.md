@@ -405,7 +405,7 @@ the following steps are taken:
     1. Return **undefined**.
 1. Return Completion(*result*).
 
-#### Observable.prototype[@@observable]() ###
+#### Observable.prototype[@@observable]\() ###
 
 The following steps are taken:
 
