@@ -1,0 +1,153 @@
+<emu-clause id="observable-@@species">
+    <h1>get Observable [ @@species ]</h1>
+
+    <p>`Observable[@@species]` is an accessor property whose set accessor function is `undefined`. Its get accessor function performs the following steps:</p>
+
+    <emu-alg>
+        1. Return the `this` value.
+    </emu-alg>
+</emu-clause>
+
+
+<emu-clause id="observable-prototype">
+    <h1>Observable.prototype</h1>
+
+    <p>The initial value of `Observable.prototype` is the intrinsic object %ObservablePrototype%.</p>
+
+    <p>This property has the attributes { [[Writable]]: `false`, [[Enumerable]]: `false`, [[Configurable]]: `false` }.</p>
+</emu-clause>
+
+<emu-clause id="observable-from">
+    <h1>Observable.from ( x )</h1>
+
+    <p>When the `from` method is called, the following steps are taken:</p>
+
+    <emu-alg>
+        1. Let _C_ be the `this` value.
+        1. If IsConstructor(C) is `false`, let _C_ be %Observable%.
+        1. Let _observableMethod_ be GetMethod(_x_, `@@observable`).
+        1. ReturnIfAbrupt(_observableMethod_).
+        1. If _observableMethod_ is not `undefined`,
+            1. Let _observable_ be Call(_observableMethod_, _x_, «‍»).
+            1. ReturnIfAbrupt(_observable_).
+            1. If Type(_observable_) is not Object, throw a `TypeError` exception.
+            1. Let _constructor_ be Get(_observable_, `"constructor"`).
+            1. ReturnIfAbrupt(_constructor_).
+            1. If SameValue(_constructor_, _C_) is `true`, return _observable_.
+            1. Let _subscriber_ be a new built-in function object as defined in Observable.from Wrapping Functions.
+            1. Set the [[Observable]] internal slot of _subscriber_ to _observable_.
+        1. Else,
+            1. Let _subscriber_ be a new built-in function object as defined in Observable.from Iteration Functions.
+            1. Set the [[Items]] internal slot of _subscriber_ to _x_.
+        1. Return Construct(_C_, «‍_subscriber_»).
+    </emu-alg>
+
+    <emu-clause id="observable-from-wrapping-functions">
+        <h1>Observable.from Wrapping Functions</h1>
+
+        <p>An Observable.from wrapping function is an anonymous bulit-in function that has an [[Observable]] internal slot.</p>
+
+        <p>When an Observable.from wrapping function is called with argument _observer_, the following steps are taken:</p>
+
+        <emu-alg>
+            1. Let _observable_ be the value of the [[Observable]] internal slot of _F_.
+            1. Return Invoke(_observable_, `"subscribe"`, «‍_observer_»).
+        </emu-alg>
+
+        <p>The `length` property of an Observable.from wrapping function is `1`.</p>
+    </emu-clause>
+
+    <emu-clause id="observable-from-iteration-functions">
+        <h1>Observable.from Iteration Functions</h1>
+
+        <p>An Observable.from iteration function is an anonymous built-in function that has an [[Items]] internal slot.</p>
+
+        <p>When an Observable.from iteration function is called with argument _observer_, the following steps are taken:</p>
+
+        <emu-alg>
+            1. Let _items_ be the value of the [[Items]] internal slot of _F_.
+            1. Perform EnqueueJob(`"PromiseJobs"`, ObservableFromJob, «‍_observer_, _items_»).
+        </emu-alg>
+
+        <p>The `length` property of an Observable.from iteration function is `1`.</p>
+    </emu-clause>
+
+    <emu-clause id="observable-from-job">
+        <h1>ObservableFromJob ( observer, items )</h1>
+        <emu-alg>
+            1. Let _closed_ be ToBoolean(Get(_observer_, `"closed"`)).
+            1. IfAbruptNotifyError(_closed_, _observer_).
+            1. If _closed_ is `true`, return `undefined`.
+            1. Let _iterator_ be GetIterator(_observer_).
+            1. IfAbruptNotifyError(_iterator_, _observer_).
+            1. Repeat
+                1. Let _next_ be IteratorStep(_iterator_).
+                1. IfAbruptNotifyError(_next_, _observer_).
+                1. If _next_ is `false`,
+                    1. Let _result_ be Invoke(_observer_, `"complete"`, «‍»).
+                    1. ReturnIfAbrupt(_result_).
+                    1. Return `undefined`.
+                1. Let _nextValue_ be IteratorValue(_next_).
+                1. IfAbruptNotifyError(_nextValue_, _observer_).
+                1. Let _result_ be Invoke(_observer_, `"next"`, «‍_nextValue_»).
+                1. ReturnIfAbrupt(_result_).
+                1. Let _closed_ be ToBoolean(Get(_observer_, `"closed"`)).
+                1. IfAbruptNotifyError(_closed_, _observer_).
+                1. If _closed_ is `true`, return `undefined`.
+        </emu-alg>
+    </emu-clause>
+
+</emu-clause>
+
+<emu-clause id="observable-of">
+    <h1>Observable.of ( ...items )</h1>
+
+    <emu-alg>
+        1. Let _C_ be the `this` value.
+        1. If IsConstructor(C) is `false`, let _C_ be %Observable%.
+        1. Let _subscriber_ be a new built-in function object as defined in Observable.of Subscriber Functions.
+        1. Set the [[Items]] internal slot of _subscriber_ to _items_.
+        1. Return Construct(_C_, «‍_subscriber_»).
+    </emu-alg>
+
+    <emu-clause id="observable-of-subscriber-functions">
+        <h1>Observable.of Subscriber Functions</h1>
+
+        <p>An Observable.of subscriber function is an anonymous built-in function that has a [[Items]] internal slot.</p>
+
+        <p>When an Observable.of subscriber function is called with argument _observer_, the following steps are taken:</p>
+
+        <emu-alg>
+            1. Let _items_ be the value of the [[Items]] internal slot of _F_.
+            1. Perform EnqueueJob(`"PromiseJobs"`, ObservableOfJob, «‍_observer_, _items_»).
+        </emu-alg>
+
+        <p>The `length` property of an Observable.of subscriber function is `1`.</p>
+    </emu-clause>
+
+    <emu-clause id="observable-of-job">
+        <h1>ObservableOfJob ( observer, items )</h1>
+
+        <p>The job ObservableOfJob with parameters _observer_ and _items_ performs the following steps:</p>
+
+        <emu-alg>
+            1. Let _closed_ be ToBoolean(Get(_observer_, `"closed"`)).
+            1. IfAbruptNotifyError(_closed_, _observer_).
+            1. If _closed_ is `true`, return `undefined`.
+            1. Let _len_ be the number of elements in _items_.
+            1. Let _k_ be 0.
+            1. Repeat, while _k_ < _len_,
+                1. Let _kValue_ be _items[k]_.
+                1. Let _nextResult_ be Invoke(_observer_, `"next"`, «‍_kValue_»).
+                1. ReturnIfAbrupt(_nextResult_).
+                1. Let _closed_ be ToBoolean(Get(_observer_, `"closed"`)).
+                1. IfAbruptNotifyError(_closed_, _observer_).
+                1. If _closed_ is `true`, return `undefined`.
+                1. Increase k by 1.
+            1. Let _result_ be Invoke(_observer_, `"complete"`, «‍»).
+            1. ReturnIfAbrupt(_result_).
+            1. Return `undefined`.
+        </emu-alg>
+    </emu-clause>
+
+</emu-clause>
