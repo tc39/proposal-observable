@@ -296,6 +296,87 @@ following properties:
 
 1. Return the **this** value.
 
+#### Observable.from(x) ####
+
+1. Let *C* be the **this** value.
+1. If IsConstructor(C) is **false**, let *C* be %Observable%.
+1. Let *observableMethod* be GetMethod(*x*, **@@observable**).
+1. ReturnIfAbrupt(*observableMethod*).
+1. If *observableMethod* is not **undefined**,
+    1. Let *observable* be Call(*observableMethod*, *x*, «‍»).
+    1. ReturnIfAbrupt(*observable*).
+    1. If Type(*observable*) is not Object, throw a **TypeError** exception.
+    1. Let *constructor* be Get(*observable*, **"constructor"**).
+    1. ReturnIfAbrupt(*constructor*).
+    1. If SameValue(*constructor*, *C*) is **true**, return *observable*.
+    1. Let *subscriber* be a new built-in function object as defined in Observable.from
+       Wrapping Functions.
+    1. Set the [[Observable]] internal slot of *subscriber* to *observable*.
+1. Else,
+    1. Let *subscriber* be a new built-in function object as defined in Observable.from
+       Iteration Functions.
+    1. Set the [[Items]] internal slot of *subscriber* to *x*.
+1. Return Construct(*C*, «‍*subscriber*»)
+
+#### Observable.from Wrapping Functions ####
+
+An **Observable.from wrapping function** is an anonymous bulit-in function that has
+an [[Observable]] internal slot.
+
+When an **Observable.from wrapping function** is called with argument *observer*, the
+following steps are taken:
+
+1. Let *observable* be the value of the [[Observable]] internal slot of *F*.
+1. Return Invoke(*observable*, **"subscribe"**, «‍*observer*»).
+
+#### Observable.from Iteration Functions ####
+
+An **Observable.from iteration function** is an anonymous built-in function that has
+an [[Items]] internal slot.
+
+When an **Observable.from iteration function** is called with argument *observer*, the
+following steps are taken:
+
+1. Let *items* be the value of the [[Items]] internal slot of *F*.
+1. Perform EnqueueJob(**"PromiseJobs"**, ObservableFromJob, «‍*observer*, *items*»).
+
+#### IfAbruptNotifyError(value, observer) ####
+
+IfAbruptNotifyError is a short hand for a sequence of algorithm steps that use an Observer
+to send error notifications. An algorithm step of the form:
+
+1. IfAbruptNotifyError(*value*, *observer*).
+
+means the same thing as:
+
+1. If *value* is an abrupt completion,
+    1. Let *errorResult* be Invoke(*observer*, **"error"**, «value.[[value]]»).
+    1. ReturnIfAbrupt(*errorResult*).
+    1. Return **undefined**.
+1. Else if *value* is a Completion Record, let *value* be *value*.[[value]].
+
+#### ObservableFromJob(observer, items) ####
+
+1. Let *closed* be ToBoolean(Get(*observer*, **"closed"**)).
+1. IfAbruptNotifyError(*closed*).
+1. If *closed* is **true**, return **undefined**.
+1. Let *iterator* be GetIterator(*observer*).
+1. ReturnIfAbrupt(*iterator*).
+1. Repeat
+    1. Let *next* be IteratorStep(*iterator*).
+    1. IfAbruptNotifyError(*next*).
+    1. If *next* is **false**,
+        1. Let *result* be Invoke(*observer*, **"complete"**, «‍»).
+        1. ReturnIfAbrupt(*result*).
+        1. Return **undefined**.
+    1. Let *nextValue* be IteratorValue(*next*).
+    1. IfAbruptNotifyError(*nextValue*).
+    1. Let *result* be Invoke(*observer*, **"next"**, «‍*nextValue*»).
+    1. ReturnIfAbrupt(*result*).
+    1. Let *closed* be ToBoolean(Get(*observer*, **"closed"**)).
+    1. IfAbruptNotifyError(*closed*).
+    1. If *closed* is **true**, return **undefined**.
+
 #### Observable.of(...items) ###
 
 1. Let *C* be the **this** value.
@@ -303,7 +384,7 @@ following properties:
 1. Let *subscriber* be a new built-in function object as defined in Observable.of Subscriber
    Functions.
 1. Set the [[Items]] internal slot of *subscriber* to *items*.
-1. Return Construct(*C*, «‍*subscriber*»)
+1. Return Construct(*C*, «‍*subscriber*»).
 
 #### Observable.of Subscriber Functions ####
 
@@ -320,21 +401,22 @@ following steps are taken:
 
 The job ObservableOfJob with parameters *observer* and *items* performs the following steps:
 
-1. Let *items* be the value of the [[Items]] internal slot of *F*.
-1. Let *len* be the number of elements in *items*.
 1. Let *closed* be ToBoolean(Get(*observer*, **"closed"**)).
-1. ReturnIfAbrupt(*closed*).
+1. IfAbruptNotifyError(*closed*).
 1. If *closed* is **true**, return **undefined**.
+1. Let *len* be the number of elements in *items*.
 1. Let *k* be 0.
 1. Repeat, while *k* < *len*,
     1. Let *kValue* be *items[k]*.
     1. Let *nextResult* be Invoke(*observer*, **"next"**, «‍*kValue*»).
     1. ReturnIfAbrupt(*nextResult*).
     1. Let *closed* be ToBoolean(Get(*observer*, **"closed"**)).
-    1. ReturnIfAbrupt(*closed*).
+    1. IfAbruptNotifyError(*closed*).
     1. If *closed* is **true**, return **undefined**.
     1. Increase k by 1.
-1. Return Invoke(*observer*, **"complete"**, «‍»).
+1. Let *result* be Invoke(*observer*, **"complete"**, «‍»).
+1. ReturnIfAbrupt(*result*).
+1. Return **undefined**.
 
 #### Observable.prototype ####
 

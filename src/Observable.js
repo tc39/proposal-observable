@@ -341,11 +341,9 @@ export class Observable {
 
         return new C(observer => {
 
-            let closed = false;
-
             enqueueJob(_=> {
 
-                if (closed)
+                if (observer.closed)
                     return;
 
                 // Assume that the object is iterable.  If not, then the observer
@@ -356,7 +354,7 @@ export class Observable {
 
                         observer.next(item);
 
-                        if (closed)
+                        if (observer.closed)
                             return;
                     }
 
@@ -370,8 +368,6 @@ export class Observable {
 
                 observer.complete();
             });
-
-            return _=> { closed = true };
         });
     }
 
@@ -381,25 +377,21 @@ export class Observable {
 
         return new C(observer => {
 
-            let closed = false;
-
             enqueueJob(_=> {
 
-                if (closed)
+                if (observer.closed)
                     return;
 
                 for (let i = 0; i < items.length; ++i) {
 
                     observer.next(items[i]);
 
-                    if (closed)
+                    if (observer.closed)
                         return;
                 }
 
                 observer.complete();
             });
-
-            return _=> { closed = true };
         });
     }
 
