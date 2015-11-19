@@ -262,7 +262,7 @@
 <emu-clause id="subscription-observer-objects">
     <h1><span class="secnum">5</span>Subscription Observer Objects<span class="utils"><span class="anchor"><a href="#subscription-observer-objects">#</a></span></span></h1>
 
-    <p>A Subscription Observer is an object which wraps the <var>observer</var> argument supplied to the  <var>subscribe</var> method of Observable objects.  Subscription Observer objects are passed as the single parameter to an observable's <var>subscriber</var> function.  They enforce the following guarantees:</p>
+    <p>A Subscription Observer is an object which wraps the <var>observer</var> argument supplied to the  <code>subscribe</code> method of Observable objects.  Subscription Observer objects are passed as the single parameter to an observable's <var>subscriber</var> function.  They enforce the following guarantees:</p>
 
     <ul>
         <li>If the observer's <code>error</code> method is called, the observer will not be invoked again and the observable's cleanup function will be called.</li>
@@ -279,7 +279,7 @@
     <emu-clause id="create-subscription-observer">
         <h1><span class="secnum">5.1.1</span>CreateSubscriptionObserver ( subscription ) Abstract Operation<span class="utils"><span class="anchor"><a href="#create-subscription-observer">#</a></span></span></h1>
 
-        <p>The abstract operation CreateSubscriptionObserver with argument <var>observer</var> is used to create a normalized observer which can be supplied to an observable's <code>subscriber</code> function.  It performs the following steps:</p>
+        <p>The abstract operation CreateSubscriptionObserver with argument <var>observer</var> is used to create a normalized observer which can be supplied to an observable's subscriber function.  It performs the following steps:</p>
 
         <emu-alg><ol><li>Assert: <a href="http://www.ecma-international.org/ecma-262/6.0/index.html#sec-ecmascript-data-types-and-values">Type</a>(<var>observer</var>) is Object.</li><li>Let <var>subscriptionObserver</var> be <a href="http://www.ecma-international.org/ecma-262/6.0/index.html#sec-objectcreate">ObjectCreate</a>(%SubscriptionObserverPrototype%, «‍[[Subscription]]»).</li><li>Set <var>subscriptionObserver's</var> [[Subscription]] internal slot to <var>subscription</var>.</li><li>Return <var>subscriptionObserver</var>.
         </li></ol></emu-alg>
