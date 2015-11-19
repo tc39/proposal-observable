@@ -6,6 +6,26 @@
     <p>This property has the attributes { [[Writable]]: `false`, [[Enumerable]]: `false`, [[Configurable]]: `false` }.</p>
 </emu-clause>
 
+<emu-clause id="if-abrupt-notify-error">
+    <h1>IfAbruptNotifyError ( value, observer )</h1>
+
+    <p>IfAbruptNotifyError is a short hand for a sequence of algorithm steps that use an Observer to send error notifications. An algorithm step of the form:</p>
+
+    <emu-alg>
+        1. IfAbruptNotifyError(_value_, _observer_).
+    </emu-alg>
+
+    <p>means the same thing as:</p>
+
+    <emu-alg>
+        1. If _value_ is an abrupt completion,
+            1. Let _errorResult_ be Invoke(_observer_, `"error"`, «value.[[value]]»).
+            1. ReturnIfAbrupt(_errorResult_).
+            1. Return `undefined`.
+        1. Else if _value_ is a Completion Record, let _value_ be _value_.[[value]].
+    </emu-alg>
+</emu-clause>
+
 <emu-clause id="observable-from">
     <h1>Observable.from ( x )</h1>
 
