@@ -31,8 +31,7 @@ contributors: Kevin Smith
         <emu-alg>
             1. If `NewTarget` is undefined, throw a `TypeError` exception.
             1. If IsCallable(_subscriber_) is `false`, throw a `TypeError` exception.
-            1. Let _observable_ be OrdinaryCreateFromConstructor(`NewTarget`,
-               %ObservablePrototype%, «‍[[Subscriber]]»).
+            1. Let _observable_ be OrdinaryCreateFromConstructor(`NewTarget`, %ObservablePrototype%, «‍[[Subscriber]]»).
             1. ReturnIfAbrupt(`observable`).
             1. Set _observable's_ [[Subscriber]] internal slot to _subscriber_.
             1. Return _observable_.
@@ -70,7 +69,7 @@ contributors: Kevin Smith
 <emu-clause id="subscription-observer-objects">
     <h1>Subscription Observer Objects</h1>
 
-    <p>A Subscription Observer is an object which wraps the _observer_ argument supplied to the  _subscribe_ method of Observable objects.  Subscription Observer objects are passed as the single parameter to an observable's _subscriber_ function.  They enforce the following guarantees:</p>
+    <p>A Subscription Observer is an object which wraps the _observer_ argument supplied to the  `subscribe` method of Observable objects.  Subscription Observer objects are passed as the single parameter to an observable's _subscriber_ function.  They enforce the following guarantees:</p>
 
     <ul>
         <li>If the observer's `error` method is called, the observer will not be invoked again and the observable's cleanup function will be called.</li>

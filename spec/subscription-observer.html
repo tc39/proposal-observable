@@ -4,12 +4,11 @@
     <emu-clause id="create-subscription-observer">
         <h1>CreateSubscriptionObserver ( subscription ) Abstract Operation</h1>
 
-        <p>The abstract operation CreateSubscriptionObserver with argument _observer_ is used to create a normalized observer which can be supplied to an observable's _subscriber_ function.  It performs the following steps:</p>
+        <p>The abstract operation CreateSubscriptionObserver with argument _observer_ is used to create a normalized observer which can be supplied to an observable's subscriber function.  It performs the following steps:</p>
 
         <emu-alg>
             1. Assert: Type(_observer_) is Object.
-            1. Let _subscriptionObserver_ be ObjectCreate(%SubscriptionObserverPrototype%,
-               «‍[[Subscription]]»).
+            1. Let _subscriptionObserver_ be ObjectCreate(%SubscriptionObserverPrototype%, «‍[[Subscription]]»).
             1. Set _subscriptionObserver's_ [[Subscription]] internal slot to _subscription_.
             1. Return _subscriptionObserver_.
         </emu-alg>
@@ -29,8 +28,7 @@
         <emu-alg>
             1. Let _O_ be the `this` value.
             1. If Type(_O_) is not Object, throw a `TypeError` exception.
-            1. If _O_ does not have all of the internal slots of a Subscription Observer instance,
-               throw a `TypeError` exception.
+            1. If _O_ does not have all of the internal slots of a Subscription Observer instance, throw a `TypeError` exception.
             1. Let _subscription_ be the value of the [[Subscription]] internal slot of _O_.
             1. Return SubscriptionClosed(_subscription_).
         </emu-alg>
@@ -41,8 +39,7 @@
         <emu-alg>
             1. Let _O_ be the `this` value.
             1. If Type(_O_) is not Object, throw a `TypeError` exception.
-            1. If _O_ does not have all of the internal slots of a Subscription Observer instance,
-               throw a `TypeError` exception.
+            1. If _O_ does not have all of the internal slots of a Subscription Observer instance, throw a `TypeError` exception.
             1. Let _subscription_ be the value of the [[Subscription]] internal slot of _O_.
             1. If SubscriptionClosed(_subscription_) is `true`, return `undefined`.
             1. Let _observer_ be the value of the [[Observer]] internal slot of _subscription_.
@@ -64,19 +61,16 @@
         <emu-alg>
             1. Let _O_ be the `this` value.
             1. If Type(_O_) is not Object, throw a `TypeError` exception.
-            1. If _O_ does not have all of the internal slots of a Subscription Observer instance,
-               throw a `TypeError` exception.
+            1. If _O_ does not have all of the internal slots of a Subscription Observer instance, throw a `TypeError` exception.
             1. Let _subscription_ be the value of the [[Subscription]] internal slot of _O_.
-            1. If SubscriptionClosed(_subscription_) is `true`, return Completion{[[type]]: `throw`,
-               [[value]]: _exception_, [[target]]: `empty`}.
+            1. If SubscriptionClosed(_subscription_) is `true`, return Completion{[[type]]: `throw`, [[value]]: _exception_, [[target]]: `empty`}.
             1. Let _observer_ be the value of the [[Observer]] internal slot of _subscription_.
             1. Assert: Type(_observer_) is Object.
             1. Set the value of the [[Observer]] internal slot of _subscription_ to `undefined`.
             1. Let _result_ be GetMethod(_observer_, `"error"`).
             1. If _result_.[[type]] is `normal`,
                 1. Let _errorMethod_ be _result_.[[value]].
-                1. If _errorMethod_ is `undefined`, let _result_ be Completion{[[type]]: `throw`,
-                   [[value]]: _exception_, [[target]]: `empty`}.
+                1. If _errorMethod_ is `undefined`, let _result_ be Completion{[[type]]: `throw`, [[value]]: _exception_, [[target]]: `empty`}.
                 1. Else, let _result_ be Call(_errorMethod_, _observer_, «‍_value_»).
             1. Let _cleanupResult_ be CleanupSubscription(_O_).
             1. ReturnIfAbrupt(_cleanupResult_).
@@ -89,8 +83,7 @@
         <emu-alg>
             1. Let _O_ be the `this` value.
             1. If Type(_O_) is not Object, throw a `TypeError` exception.
-            1. If _O_ does not have all of the internal slots of a Subscription Observer instance,
-               throw a `TypeError` exception.
+            1. If _O_ does not have all of the internal slots of a Subscription Observer instance, throw a `TypeError` exception.
             1. Let _subscription_ be the value of the [[Subscription]] internal slot of _O_.
             1. If SubscriptionClosed(_subscription_) is `true`, return `undefined`.
             1. Let _observer_ be the value of the [[Observer]] internal slot of _subscription_.

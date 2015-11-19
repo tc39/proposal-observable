@@ -8,8 +8,7 @@
     <emu-alg>
         1. Let _O_ be the `this` value.
         1. If Type(_O_) is not Object, throw a `TypeError` exception.
-        1. If _O_ does not have an [[Subscriber]] internal slot, throw a `TypeError`
-           exception.
+        1. If _O_ does not have an [[Subscriber]] internal slot, throw a `TypeError` exception.
         1. If Type(_observer_) is not Object, throw a `TypeError` exception.
         1. Let _subscription_ be CreateSubscription(_observer_).
         1. ReturnIfAbrupt(_subscription_).
@@ -25,8 +24,7 @@
         1. Assert: IsCallable(_subscriber_) is `true`.
         1. Let _subscriberResult_ be ExecuteSubscriber(_subscriber_, _subscriptionObserver_).
         1. If _subscriberResult_ is an abrupt completion,
-            1. Let _errorResult_ be Invoke(_subscriptionObserver_, `"error""`,
-               «‍_subscriberResult_.[[value]]»).
+            1. Let _errorResult_ be Invoke(_subscriptionObserver_, `"error""`, «‍_subscriberResult_.[[value]]»).
             1. ReturnIfAbrupt(_errorResult_).
         1. Else, set the [[Cleanup]] internal slot of _observer_ to _subscriberResult_.[[value]].
         1. If SubscriptionClosed(_subscription_) is `true`,
@@ -127,7 +125,7 @@
 
 <emu-clause id="observable-prototype-constructor">
     <h1>Observable.prototype.constructor</h1>
-
+    
     <p>The initial value of `Observable.prototype.constructor` is the intrinsic object %Observable%.</p>
 </emu-clause>
 

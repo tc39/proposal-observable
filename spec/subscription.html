@@ -70,8 +70,7 @@
         <emu-alg>
             1. Let _subscription_ be the `this` value.
             1. If Type(_subscription_) is not Object, throw a `TypeError` exception.
-            1. If _subscription_ does not have all of the internal slots of a Subscription instance,
-               throw a `TypeError` exception.
+            1. If _subscription_ does not have all of the internal slots of a Subscription instance, throw a `TypeError` exception.
             1. If SubscriptionClosed(_subscription_) is `true`, return `undefined`.
             1. Set the value of the [[Observer]] internal slot of _subscription_ to `undefined`.
             1. Return CleanupSubscription(_subscription_).
