@@ -20,20 +20,6 @@
 
     <p>All Subscription Observer objects inherit properties from the %SubscriptionObserverPrototype% intrinsic object.  The %SubscriptionObserverPrototype% object is an ordinary object and its [[Prototype]] internal slot is the %ObjectPrototype% intrinsic object. In addition, %SubscriptionObserverPrototype% has the following properties:</p>
 
-    <emu-clause id="subscription-prototype-closed">
-        <h1>get %SubscriptionObserverPrototype%.closed</h1>
-
-        <p>%SubscriptionObserverPrototype%.closed is an accessor property whose set accessor function is undefined. Its get accessor function performs the following steps:</p>
-
-        <emu-alg>
-            1. Let _O_ be the `this` value.
-            1. If Type(_O_) is not Object, throw a `TypeError` exception.
-            1. If _O_ does not have all of the internal slots of a Subscription Observer instance, throw a `TypeError` exception.
-            1. Let _subscription_ be the value of the [[Subscription]] internal slot of _O_.
-            1. Return SubscriptionClosed(_subscription_).
-        </emu-alg>
-    </emu-clause>
-
     <emu-clause id="subscription-observer-prototype-next">
         <h1>%SubscriptionObserverPrototype%.next ( value )</h1>
         <emu-alg>

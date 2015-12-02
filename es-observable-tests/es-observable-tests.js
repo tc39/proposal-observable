@@ -343,7 +343,7 @@ exports.asyncIter = asyncIterator;
 })();
 
 var __M; (function(a) { var list = Array(a.length / 2); __M = function(i) { var m = list[i], f, e, ee; if (typeof m !== 'function') return m.exports; f = m; m = { exports: i ? {} : exports }; f(list[i] = m, e = m.exports); ee = m.exports; if (ee && ee !== e && !('default' in ee)) ee['default'] = ee; return ee; }; for (var i = 0; i < a.length; i += 2) { var j = Math.abs(a[i]); list[j] = a[i + 1]; if (a[i] >= 0) __M(j); } })([
-17, function(module, exports) {
+16, function(module, exports) {
 
 var OP_toString = Object.prototype.toString,
     OP_hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -513,7 +513,7 @@ exports.Test = Test;
 
 
 },
-18, function(module, exports) {
+17, function(module, exports) {
 
 var ELEMENT_ID = "moon-unit";
 
@@ -626,7 +626,7 @@ exports.HtmlLogger = HtmlLogger;
 
 
 },
-19, function(module, exports) {
+18, function(module, exports) {
 
 var Style = {
 
@@ -729,10 +729,10 @@ exports.NodeLogger = NodeLogger;
 
 
 },
-16, function(module, exports) {
+15, function(module, exports) {
 
-var HtmlLogger = __M(18).HtmlLogger;
-var NodeLogger = __M(19).NodeLogger;
+var HtmlLogger = __M(17).HtmlLogger;
+var NodeLogger = __M(18).NodeLogger;
 
 var Logger = (typeof global === "object" && global.process) ?
     NodeLogger :
@@ -742,10 +742,10 @@ exports.Logger = Logger;
 
 
 },
-15, function(module, exports) {
+14, function(module, exports) {
 
-var Test = __M(17).Test;
-var Logger = __M(16).Logger;
+var Test = __M(16).Test;
+var Logger = __M(15).Logger;
 
 var TestRunner = _esdown.class(function(__) { var TestRunner;
 
@@ -820,8 +820,8 @@ exports.TestRunner = TestRunner;
 },
 13, function(module, exports) {
 
-var TestRunner = __M(15).TestRunner;
-var Logger = __M(16).Logger;
+var TestRunner = __M(14).TestRunner;
+var Logger = __M(15).Logger;
 
 function runTests(tests) {
 
@@ -841,7 +841,7 @@ Object.keys(__M(13)).forEach(function(k) { exports[k] = __M(13)[k]; });
 
 
 },
-14, function(module, exports) {
+12, function(module, exports) {
 
 function testLength(test, value, length) {
 
@@ -907,7 +907,7 @@ exports.getSymbol = getSymbol;
 },
 2, function(module, exports) {
 
-var testMethodProperty = __M(14).testMethodProperty;
+var testMethodProperty = __M(12).testMethodProperty;
 
 exports["default"] = {
 
@@ -955,7 +955,7 @@ exports["default"] = {
 },
 3, function(module, exports) {
 
-var testMethodProperty = __M(14).testMethodProperty;
+var testMethodProperty = __M(12).testMethodProperty;
 
 exports["default"] = {
 
@@ -1175,7 +1175,7 @@ exports["default"] = {
 },
 4, function(module, exports) {
 
-var testMethodProperty = __M(14).testMethodProperty;
+var testMethodProperty = __M(12).testMethodProperty;
 
 exports["default"] = {
 
@@ -1316,7 +1316,7 @@ exports["default"] = {
 },
 5, function(module, exports) {
 
-var testMethodProperty = __M(14).testMethodProperty, getSymbol = __M(14).getSymbol;
+var testMethodProperty = __M(12).testMethodProperty, getSymbol = __M(12).getSymbol;
 
 exports["default"] = {
 
@@ -1343,7 +1343,7 @@ exports["default"] = {
 },
 6, function(module, exports) {
 
-var testMethodProperty = __M(14).testMethodProperty, getSymbol = __M(14).getSymbol;
+var testMethodProperty = __M(12).testMethodProperty, getSymbol = __M(12).getSymbol;
 
 exports["default"] = {
 
@@ -1369,7 +1369,9 @@ exports["default"] = {
 },
 7, function(module, exports) {
 
-var testMethodProperty = __M(14).testMethodProperty;
+var testMethodProperty = __M(12).testMethodProperty;
+
+// TODO: Verify that Observable.from subscriber returns a cleanup function
 
 exports["default"] = {
 
@@ -1476,7 +1478,9 @@ exports["default"] = {
 },
 8, function(module, exports) {
 
-var testMethodProperty = __M(14).testMethodProperty, hasSymbol = __M(14).hasSymbol, getSymbol = __M(14).getSymbol;
+var testMethodProperty = __M(12).testMethodProperty, hasSymbol = __M(12).hasSymbol, getSymbol = __M(12).getSymbol;
+
+// TODO: Verify that Observable.from subscriber returns a cleanup function
 
 exports["default"] = {
 
@@ -1705,7 +1709,7 @@ exports["default"] = {
 },
 9, function(module, exports) {
 
-var testMethodProperty = __M(14).testMethodProperty;
+var testMethodProperty = __M(12).testMethodProperty;
 
 exports["default"] = {
 
@@ -1850,7 +1854,7 @@ exports["default"] = {
 },
 10, function(module, exports) {
 
-var testMethodProperty = __M(14).testMethodProperty;
+var testMethodProperty = __M(12).testMethodProperty;
 
 exports["default"] = {
 
@@ -2028,7 +2032,7 @@ exports["default"] = {
 },
 11, function(module, exports) {
 
-var testMethodProperty = __M(14).testMethodProperty;
+var testMethodProperty = __M(12).testMethodProperty;
 
 exports["default"] = {
 
@@ -2202,69 +2206,6 @@ exports["default"] = {
 
 
 },
-12, function(module, exports) {
-
-var testMethodProperty = __M(14).testMethodProperty;
-
-exports["default"] = {
-
-    "SubscriptionObserver.prototype has a closed property": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        var observer;
-        new Observable(function(x) { observer = x }).subscribe({});
-
-        testMethodProperty(test, Object.getPrototypeOf(observer), "closed", {
-            get: true,
-            configurable: true,
-        });
-    },
-
-    "Closed property is false when subscription is active": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        var observer;
-        new Observable(function(x) {
-
-            observer = x;
-
-            test._("Closed is false during subscription")
-            .equals(observer.closed, false);
-
-            observer.next();
-
-            test._("Closed is false after sending next")
-            .equals(observer.closed, false);
-
-        }).subscribe({});
-
-        test._("Closed is false after subscription")
-        .equals(observer.closed, false);
-    },
-
-    "Closed property is true when subscription is closed": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        var sink = { error: function() {} };
-
-        new Observable(function(observer) {
-
-            observer.complete();
-            test._("Closed is true after calling complete")
-            .equals(observer.closed, true);
-
-        }).subscribe(sink);
-
-        new Observable(function(observer) {
-
-            observer.error(null);
-            test._("Closed is true after calling error")
-            .equals(observer.closed, true);
-
-        }).subscribe(sink);
-    },
-
-};
-
-
-},
 0, function(module, exports) {
 
 var TestRunner = __M(1).TestRunner;
@@ -2280,7 +2221,6 @@ var fromTests = __M(8)['default'];
 var observerNext = __M(9)['default'];
 var observerError = __M(10)['default'];
 var observerComplete = __M(11)['default'];
-var observerClosed = __M(12)['default'];
 
 
 function runTests(C) {
@@ -2300,7 +2240,6 @@ function runTests(C) {
         "SubscriptionObserver.prototype.next": observerNext,
         "SubscriptionObserver.prototype.error": observerError,
         "SubscriptionObserver.prototype.complete": observerComplete,
-        "SubscriptionObserver.prototype.closed": observerClosed,
 
     });
 }

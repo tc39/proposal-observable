@@ -1,5 +1,7 @@
 import { testMethodProperty, hasSymbol, getSymbol } from "./helpers.js";
 
+// TODO: Verify that Observable.from subscriber returns a cleanup function
+
 export default {
 
     "Observable has a from property" (test, { Observable }) {

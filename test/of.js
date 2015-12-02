@@ -1,5 +1,7 @@
 import { testMethodProperty } from "./helpers.js";
 
+// TODO: Verify that Observable.from subscriber returns a cleanup function
+
 export default {
 
     "Observable has an of property" (test, { Observable }) {

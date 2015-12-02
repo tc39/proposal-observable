@@ -11,7 +11,6 @@ import fromTests from "./from.js";
 import observerNext from "./observer-next.js";
 import observerError from "./observer-error.js";
 import observerComplete from "./observer-complete.js";
-import observerClosed from "./observer-closed.js";
 
 
 export function runTests(C) {
@@ -31,7 +30,6 @@ export function runTests(C) {
         "SubscriptionObserver.prototype.next": observerNext,
         "SubscriptionObserver.prototype.error": observerError,
         "SubscriptionObserver.prototype.complete": observerComplete,
-        "SubscriptionObserver.prototype.closed": observerClosed,
 
     });
 }

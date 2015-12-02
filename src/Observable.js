@@ -175,11 +175,6 @@ function SubscriptionObserver(subscription) {
 
 SubscriptionObserver.prototype = nonEnum({
 
-    get closed() {
-
-        return subscriptionClosed(this._subscription);
-    },
-
     next(value) {
 
         let subscription = this._subscription;
@@ -343,9 +338,11 @@ export class Observable {
 
         return new C(observer => {
 
+            let done = false;
+
             enqueueJob(_=> {
 
-                if (observer.closed)
+                if (done)
                     return;
 
                 // Assume that the object is iterable.  If not, then the observer
@@ -356,20 +353,23 @@ export class Observable {
 
                         observer.next(item);
 
-                        if (observer.closed)
+                        if (done)
                             return;
                     }
 
                 } catch (e) {
 
-                    // If observer.next throws an error, then the subscription will
-                    // be closed and the error method will simply rethrow
+                    if (done)
+                        throw e;
+
                     observer.error(e);
                     return;
                 }
 
                 observer.complete();
             });
+
+            return _=> { done = true };
         });
     }
 
@@ -378,6 +378,8 @@ export class Observable {
         let C = typeof this === "function" ? this : Observable;
 
         return new C(observer => {
+
+            let done = false;
 
             enqueueJob(_=> {
 
@@ -388,12 +390,14 @@ export class Observable {
 
                     observer.next(items[i]);
 
-                    if (observer.closed)
+                    if (done)
                         return;
                 }
 
                 observer.complete();
             });
+
+            return _=> { done = true };
         });
     }
 
