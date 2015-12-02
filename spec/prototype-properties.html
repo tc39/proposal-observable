@@ -86,7 +86,6 @@
     <emu-alg>
         1. Let _O_ be the `this` value.
         1. If Type(_O_) is not Object, throw a `TypeError` exception.
-        1. If _thisArg_ was supplied, let _T_ be _thisArg_; else let _T_ be `undefined`.
         1. Let _promiseCapability_ be NewPromiseCapability(%Promise%).
         1. ReturnIfAbrupt(_promiseCapability_).
         1. If IsCallable(_callbackFn_) is `false`,
