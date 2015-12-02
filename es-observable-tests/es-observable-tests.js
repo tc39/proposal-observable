@@ -818,7 +818,7 @@ exports.TestRunner = TestRunner;
 
 
 },
-13, function(module, exports) {
+12, function(module, exports) {
 
 var TestRunner = __M(14).TestRunner;
 var Logger = __M(15).Logger;
@@ -837,11 +837,11 @@ exports.TestRunner = TestRunner;
 },
 1, function(module, exports) {
 
-Object.keys(__M(13)).forEach(function(k) { exports[k] = __M(13)[k]; });
+Object.keys(__M(12)).forEach(function(k) { exports[k] = __M(12)[k]; });
 
 
 },
-12, function(module, exports) {
+13, function(module, exports) {
 
 function testLength(test, value, length) {
 
@@ -907,7 +907,7 @@ exports.getSymbol = getSymbol;
 },
 2, function(module, exports) {
 
-var testMethodProperty = __M(12).testMethodProperty;
+var testMethodProperty = __M(13).testMethodProperty;
 
 exports["default"] = {
 
@@ -955,7 +955,7 @@ exports["default"] = {
 },
 3, function(module, exports) {
 
-var testMethodProperty = __M(12).testMethodProperty;
+var testMethodProperty = __M(13).testMethodProperty;
 
 exports["default"] = {
 
@@ -985,44 +985,6 @@ exports["default"] = {
         .not().throws(function(_) { return x.subscribe(Object(1)); })
         .not().throws(function(_) { return x.subscribe(function() {}); })
         ;
-    },
-
-    "Observer start method": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        var startArg = null,
-            callOrder = [];
-
-        var subscription = new Observable(function(sink) {
-            callOrder.push("subscriber");
-        }).subscribe({
-            start: function(s) {
-                callOrder.push("start");
-                startArg = s;
-            }
-        });
-
-        test._("The observer's start method accepts the subscription object")
-        .equals(startArg, subscription)
-        ._("Start is called before the subscriber function")
-        .equals(callOrder, ["start", "subscriber"]);
-
-        callOrder = [];
-
-        subscription = new Observable(function(sink) {
-            callOrder.push("subscriber");
-        }).subscribe({
-            start: function(s) {
-                callOrder.push("start");
-                startArg = s;
-                s.unsubscribe();
-            }
-        });
-
-        test._("If the subscription is cancelled from the start method, the subscriber is not called")
-        .equals(callOrder, ["start"])
-        ._("If the subscription is cancelled from the start method, then subscription is still returned")
-        .equals(startArg, subscription);
-
     },
 
     "Subscriber arguments": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
@@ -1175,7 +1137,7 @@ exports["default"] = {
 },
 4, function(module, exports) {
 
-var testMethodProperty = __M(12).testMethodProperty;
+var testMethodProperty = __M(13).testMethodProperty;
 
 exports["default"] = {
 
@@ -1316,7 +1278,7 @@ exports["default"] = {
 },
 5, function(module, exports) {
 
-var testMethodProperty = __M(12).testMethodProperty, getSymbol = __M(12).getSymbol;
+var testMethodProperty = __M(13).testMethodProperty, getSymbol = __M(13).getSymbol;
 
 exports["default"] = {
 
@@ -1343,7 +1305,7 @@ exports["default"] = {
 },
 6, function(module, exports) {
 
-var testMethodProperty = __M(12).testMethodProperty, getSymbol = __M(12).getSymbol;
+var testMethodProperty = __M(13).testMethodProperty, getSymbol = __M(13).getSymbol;
 
 exports["default"] = {
 
@@ -1369,7 +1331,7 @@ exports["default"] = {
 },
 7, function(module, exports) {
 
-var testMethodProperty = __M(12).testMethodProperty;
+var testMethodProperty = __M(13).testMethodProperty;
 
 // TODO: Verify that Observable.from subscriber returns a cleanup function
 
@@ -1478,7 +1440,7 @@ exports["default"] = {
 },
 8, function(module, exports) {
 
-var testMethodProperty = __M(12).testMethodProperty, hasSymbol = __M(12).hasSymbol, getSymbol = __M(12).getSymbol;
+var testMethodProperty = __M(13).testMethodProperty, hasSymbol = __M(13).hasSymbol, getSymbol = __M(13).getSymbol;
 
 // TODO: Verify that Observable.from subscriber returns a cleanup function
 
@@ -1709,7 +1671,7 @@ exports["default"] = {
 },
 9, function(module, exports) {
 
-var testMethodProperty = __M(12).testMethodProperty;
+var testMethodProperty = __M(13).testMethodProperty;
 
 exports["default"] = {
 
@@ -1854,7 +1816,7 @@ exports["default"] = {
 },
 10, function(module, exports) {
 
-var testMethodProperty = __M(12).testMethodProperty;
+var testMethodProperty = __M(13).testMethodProperty;
 
 exports["default"] = {
 
@@ -2032,7 +1994,7 @@ exports["default"] = {
 },
 11, function(module, exports) {
 
-var testMethodProperty = __M(12).testMethodProperty;
+var testMethodProperty = __M(13).testMethodProperty;
 
 exports["default"] = {
 

@@ -30,44 +30,6 @@ export default {
         ;
     },
 
-    "Observer start method" (test, { Observable }) {
-
-        let startArg = null,
-            callOrder = [];
-
-        let subscription = new Observable(sink => {
-            callOrder.push("subscriber");
-        }).subscribe({
-            start(s) {
-                callOrder.push("start");
-                startArg = s;
-            }
-        });
-
-        test._("The observer's start method accepts the subscription object")
-        .equals(startArg, subscription)
-        ._("Start is called before the subscriber function")
-        .equals(callOrder, ["start", "subscriber"]);
-
-        callOrder = [];
-
-        subscription = new Observable(sink => {
-            callOrder.push("subscriber");
-        }).subscribe({
-            start(s) {
-                callOrder.push("start");
-                startArg = s;
-                s.unsubscribe();
-            }
-        });
-
-        test._("If the subscription is cancelled from the start method, the subscriber is not called")
-        .equals(callOrder, ["start"])
-        ._("If the subscription is cancelled from the start method, then subscription is still returned")
-        .equals(startArg, subscription);
-
-    },
-
     "Subscriber arguments" (test, { Observable }) {
 
         let observer = null;
