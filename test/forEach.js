@@ -75,7 +75,7 @@ export default {
 
     "The callback is called with the next value" (test, { Observable }) {
 
-        let values = [];
+        let values = [], thisArg;
 
         return new Observable(observer => {
 
@@ -84,15 +84,39 @@ export default {
             observer.next(3);
             observer.complete();
 
-        }).forEach(x => {
+        }).forEach(function(x) {
 
+            thisArg = this;
             values.push(x);
 
         }).then(_=> {
 
-            test._("The callback receives each next value")
-            .equals(values, [1, 2, 3]);
+            test
+            ._("The callback receives each next value")
+            .equals(values, [1, 2, 3])
+            ._("The callback receives undefined as the this value if a thisArg is not supplied")
+            .equals(thisArg, undefined);
 
+        });
+    },
+
+    "If a thisArg parameter is supplied, it is passed as the this value to the callback" (test, { Observable }) {
+
+        let obj = {}, thisArg;
+
+        return new Observable(observer => {
+
+            observer.next(1);
+            observer.complete();
+
+        }).forEach(function(x) {
+
+            thisArg = this;
+
+        }, obj).then(_=> {
+
+            test._("The callback receives the thisArg")
+            .equals(thisArg, obj);
         });
     },
 

@@ -290,6 +290,8 @@ export class Observable {
 
     forEach(fn) {
 
+        let thisArg = arguments[1];
+
         return new Promise((resolve, reject) => {
 
             if (typeof fn !== "function")
@@ -299,7 +301,7 @@ export class Observable {
 
                 next(value) {
 
-                    try { return fn(value) }
+                    try { return fn.call(thisArg, value) }
                     catch (e) { reject(e) }
                 },
 

@@ -73,9 +73,11 @@
 </emu-clause>
 
 <emu-clause id="observable-prototype-foreach">
-    <h1>Observable.prototype.forEach ( callbackFn )</h1>
+    <h1>Observable.prototype.forEach ( callbackFn [, thisArg] )</h1>
 
     <p>The `forEach` function subscribes to the observable and calls _callbackFn_ for each element in the sequence.  It returns a Promise for the completion value of the sequence.</p>
+
+    <p>If a _thisArg_ parameter is provided, it will be used as the `this` value for each invocation of _callbackfn_. If it is not provided, `undefined` is used instead.</p>
 
     <p>_callbackFn_ is called with one argument: the value of the next element in the sequence.</p>
 
@@ -84,6 +86,7 @@
     <emu-alg>
         1. Let _O_ be the `this` value.
         1. If Type(_O_) is not Object, throw a `TypeError` exception.
+        1. If _thisArg_ was supplied, let _T_ be _thisArg_; else let _T_ be `undefined`.
         1. Let _promiseCapability_ be NewPromiseCapability(%Promise%).
         1. ReturnIfAbrupt(_promiseCapability_).
         1. If IsCallable(_callbackFn_) is `false`,
@@ -93,6 +96,8 @@
         1. Let _observer_ be ObjectCreate(%ObjectPrototype%).
         1. Let _next_ be a new built-in function object as defined in Observable.prototype.forEach Next Functions.
         1. Set the [[CallbackFn]] internal slot of _next_ to _callbackFn_.
+        1. If _thisArg_ was supplied, set the [[ThisArg]] internal slot of _next_ to _thisArg_.
+        1. Else, set the [[ThisArg]] internal slot of _next_ to `undefined`.
         1. Set the [[Reject]] internal slot of _next_ to _promiseCapability_.[[Reject]].
         1. Perform CreateDataProperty(_observer_, `"next"`, _next_).
         1. Perform CreateDataProperty(_observer_, `"error"`, _promiseCapability_.[[Reject]]).
@@ -102,17 +107,20 @@
         1. Return _promiseCapability_.[[Promise]].
     </emu-alg>
 
+    <p>The `length` property of the `forEach` method is `1`.</p>
+
     <emu-clause id="observable-prototype-foreach-next-functions">
         <h1>Observable.prototype.forEach Next Functions</h1>
 
-        <p>An Observable.prototype.forEach next function is an anonymous built-in function that is used to process each element of an observable sequence when _forEach_ is invoked. Each Observable.prototype.forEach next function has [[CallbackFn]] and [[Reject]] internal slots.</p>
+        <p>An Observable.prototype.forEach next function is an anonymous built-in function that is used to process each element of an observable sequence when _forEach_ is invoked. Each Observable.prototype.forEach next function has [[CallbackFn]], [[ThisArg]], and [[Reject]] internal slots.</p>
 
         <p>When an Observable.prototype.forEach next function _F_ is called with argument _x_, the following steps are taken:</p>
 
         <emu-alg>
             1. Let _callbackFn_ be the value of the [[CallbackFn]] internal slot of _F_.
+            1. Let _thisArg_ be the value of the [[ThisArg]] internal slot of _F_.
             1. Let _promiseReject_ be the value of the [[Reject]] internal slot of _F_.
-            1. Let _result_ be Call(_callbackFn_, `undefined`, «‍_x_»).
+            1. Let _result_ be Call(_callbackFn_, _thisArg_, «‍_x_»).
             1. If _result_ is an abrupt completion,
                 1. Let _rejectResult_ be Call(_promiseReject_, `undefined`, «_result_.[[value]]»).
                 1. ReturnIfAbrupt(_rejectResult_).
@@ -125,7 +133,7 @@
 
 <emu-clause id="observable-prototype-constructor">
     <h1>Observable.prototype.constructor</h1>
-    
+
     <p>The initial value of `Observable.prototype.constructor` is the intrinsic object %Observable%.</p>
 </emu-clause>
 
