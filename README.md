@@ -238,14 +238,10 @@ interface Observer {
 #### SubscriptionObserver ####
 
 A SubscriptionObserver is a normalized Observer which wraps the observer supplied to
-**subscribe**.  It also provides a **closed** property which may be used to determine
-whether the corresponding subscription has been closed.
+**subscribe**.
 
 ```js
 interface SubscriptionObserver {
-
-    // Returns true if the subscription is closed
-    get closed() : Boolean;
 
     // Sends the next value in the sequence
     next(value);
