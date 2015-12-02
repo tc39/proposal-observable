@@ -64,24 +64,46 @@
         <p>The `length` property of an Observable.from iteration function is `1`.</p>
     </emu-clause>
 
+    <emu-clause id="observable-subscriber-closed-functions">
+        <h1>Subscriber Closed Functions</h1>
+
+        <p>A subscriber closed function is an anonymous built-in function that has a [[SubscriptionClosed]] internal slot.</p>
+
+        <p>When a subscriber closed function is called the following steps are taken:</p>
+
+        <emu-alg>
+            1. Set the value of the [[SubscriptionClosed]] internal slot of _F_ to `true`.
+            1. Return `undefined`.
+        </emu-alg>
+
+        <p>The `length` property of a subscriber closed function is `0`.</p>
+    </emu-clause>
+
     <emu-clause id="observable-from-job">
         <h1>ObservableFromJob ( observer, items, cleanupFunction )</h1>
         <emu-alg>
-            1. If the value of the [[SubscriptionClosed]] internal slot of _cleanupFunction_ is `true`, NextJob `undefined`.
+            1. If the value of the [[SubscriptionClosed]] internal slot of _cleanupFunction_ is `true`,
+                1. NextJob `undefined`.
             1. Let _iterator_ be GetIterator(_observer_).
-            1. If _iterator_ is an abrupt completion, NextJob Invoke(_observer_, `"error"`, «‍_iterator_.[[value]]»).
+            1. If _iterator_ is an abrupt completion,
+                1. NextJob Invoke(_observer_, `"error"`, «‍_iterator_.[[value]]»).
             1. Let _iterator_ be _iterator.[[value]].
             1. Repeat
                 1. Let _next_ be IteratorStep(_iterator_).
-                1. If _next_ is an abrupt completion, NextJob Invoke(_observer_, `"error"`, «‍_next_.[[value]]»).
+                1. If _next_ is an abrupt completion,
+                    1. NextJob Invoke(_observer_, `"error"`, «‍_next_.[[value]]»).
                 1. Let _next_ be _next_.[[value]].
-                1. If _next_ is `false`, NextJob Invoke(_observer_, `"complete"`, «‍»).
+                1. If _next_ is `false`,
+                    1. NextJob Invoke(_observer_, `"complete"`, «‍»).
                 1. Let _nextValue_ be IteratorValue(_next_).
-                1. If _nextValue_ is an abrupt completion, NextJob Invoke(_observer_, `"error"`, «‍_nextValue_.[[value]]»).
+                1. If _nextValue_ is an abrupt completion,
+                    1. NextJob Invoke(_observer_, `"error"`, «‍_nextValue_.[[value]]»).
                 1. Let _nextValue_ be _nextValue_.[[value]].
                 1. Let _result_ be Invoke(_observer_, `"next"`, «‍_nextValue_»).
-                1. If _result_ in an abrupt completion, NextJob IteratorClose(_iterator_, _result_).
-                1. If the value of the [[SubscriptionClosed]] internal slot of _cleanupFunction_ is `true`, NextJob `undefined`.
+                1. If _result_ in an abrupt completion,
+                    1. NextJob IteratorClose(_iterator_, _result_).
+                1. If the value of the [[SubscriptionClosed]] internal slot of _cleanupFunction_ is `true`,
+                    1. NextJob `undefined`.
         </emu-alg>
     </emu-clause>
 
@@ -116,36 +138,23 @@
         <p>The `length` property of an Observable.of subscriber function is `1`.</p>
     </emu-clause>
 
-    <emu-clause id="">
-        <h1>Subscriber Closed Functions</h1>
-
-        <p>A subscriber closed function is an anonymous built-in function that has a [[SubscriptionClosed]] internal slot.</p>
-
-        <p>When a subscriber closed function is called the following steps are taken:</p>
-
-        <emu-alg>
-            1. Set the value of the [[SubscriptionClosed]] internal slot of _F_ to `true`.
-            1. Return `undefined`.
-        </emu-alg>
-
-        <p>The `length` property of a subscriber closed function is `0`.</p>
-    </emu-clause>
-
     <emu-clause id="observable-of-job">
         <h1>ObservableOfJob ( observer, items, cleanupFunction )</h1>
 
         <emu-alg>
-            1. If the value of the [[SubscriptionClosed]] internal slot of _cleanupFunction_ is `true`, NextJob `undefined`.
+            1. If the value of the [[SubscriptionClosed]] internal slot of _cleanupFunction_ is `true`,
+                1. NextJob `undefined`.
             1. Let _len_ be the number of elements in _items_.
             1. Let _k_ be 0.
             1. Repeat, while _k_ < _len_,
                 1. Let _kValue_ be _items[k]_.
                 1. Let _nextResult_ be Invoke(_observer_, `"next"`, «‍_kValue_»).
-                1. If _nextResult_ is an abrupt completion, NextJob _nextResult_.
-                1. If the value of the [[SubscriptionClosed]] internal slot of _cleanupFunction_ is `true`, NextJob `undefined`.
+                1. If _nextResult_ is an abrupt completion,
+                    1. NextJob _nextResult_.
+                1. If the value of the [[SubscriptionClosed]] internal slot of _cleanupFunction_ is `true`,
+                    1. NextJob `undefined`.
                 1. Increase k by 1.
-            1. Let _result_ be Invoke(_observer_, `"complete"`, «‍»).
-            1. NextJob Completion(_result_).
+            1. NextJob Invoke(_observer_, `"complete"`, «‍»).
         </emu-alg>
     </emu-clause>
 
