@@ -44,6 +44,9 @@ function commandKeys(element) {
 }
 ```
 
+*Note: The "filter" and "map" methods are not included in this proposal.  They may
+be added in a future version of this specification.*
+
 When we want to consume the event stream, we subscribe with an **observer**.
 
 ```js
@@ -78,6 +81,14 @@ Observable.of(1, 2, 3, 4, 5)
     .forEach(n => console.log(n))
     .then(_ => console.log("All done!"));
 ```
+
+### Motivation ###
+
+The Observable type represents one of the fundamental protocols for processing asynchronous
+streams of data.  It is particularly effective at modeling streams of data which originate
+from the environment and are pushed into the application, such as user interface events. By
+offering Observable as a component of the ECMAScript standard library, we allow platforms
+and applications to share a common push-based stream protocol.
 
 ### Implementations ###
 
