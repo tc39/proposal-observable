@@ -92,6 +92,7 @@ and applications to share a common push-based stream protocol.
 
 ### Implementations ###
 
+- [RxJS 5](https://github.com/ReactiveX/RxJS)
 - [zen-observable](https://github.com/zenparsing/zen-observable)
 
 ### Running Tests ###
