@@ -277,24 +277,40 @@ export class Observable {
 
     forEach(fn) {
 
-        let thisArg = arguments[1];
-
         return new Promise((resolve, reject) => {
 
             if (typeof fn !== "function")
                 throw new TypeError(fn + " is not a function");
 
-            this.subscribe({
+            let hasError = false;
+
+            let subscription = this.subscribe({
 
                 next(value) {
 
-                    try { return fn.call(thisArg, value) }
-                    catch (e) { reject(e) }
+                    if (hasError)
+                        return;
+
+                    try {
+
+                        return fn(value);
+
+                    } catch (e) {
+
+                        hasError = true;
+                        reject(e);
+
+                        if (subscription)
+                            subscription.unsubscribe();
+                    }
                 },
 
                 error: reject,
                 complete: resolve,
             });
+
+            if (hasError)
+                subscription.unsubscribe();
         });
     }
 

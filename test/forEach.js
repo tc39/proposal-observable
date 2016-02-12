@@ -94,29 +94,9 @@ export default {
             test
             ._("The callback receives each next value")
             .equals(values, [1, 2, 3])
-            ._("The callback receives undefined as the this value if a thisArg is not supplied")
+            ._("The callback receives undefined as the this value")
             .equals(thisArg, undefined);
 
-        });
-    },
-
-    "If a thisArg parameter is supplied, it is passed as the this value to the callback" (test, { Observable }) {
-
-        let obj = {}, thisArg;
-
-        return new Observable(observer => {
-
-            observer.next(1);
-            observer.complete();
-
-        }).forEach(function(x) {
-
-            thisArg = this;
-
-        }, obj).then(_=> {
-
-            test._("The callback receives the thisArg")
-            .equals(thisArg, obj);
         });
     },
 
@@ -131,6 +111,23 @@ export default {
                 test._("The promise is rejected with the thrown value")
                 .equals(value, error);
             });
+    },
+
+    "If the callback throws an error, the callback function is not called again" (test, { Observable }) {
+
+        let callCount = 0;
+
+        return new Observable(observer => {
+            observer.next(1);
+            observer.next(2);
+            observer.next(3);
+        }).forEach(x => {
+            callCount++;
+            throw new Error();
+        }).catch(x => {
+            test._("The callback is not called again after throwing an error")
+            .equals(callCount, 1);
+        });
     },
 
 };

@@ -1,6 +1,6 @@
 /*=esdown=*/(function(fn, name) { if (typeof exports !== 'undefined') fn(exports, module); else if (typeof self !== 'undefined') fn(name === '*' ? self : (name ? self[name] = {} : {})); })(function(exports, module) { 'use strict'; var _esdown = {}; (function() { var exports = _esdown;
 
-var VERSION = "1.0.4";
+var VERSION = "1.0.9";
 
 var GLOBAL = (function() {
 
@@ -155,7 +155,7 @@ function asyncGenerator(iter) {
         });
     }
 
-    function fulfill(type, value) {
+    function settle(type, value) {
 
         switch (type) {
 
@@ -178,21 +178,6 @@ function asyncGenerator(iter) {
         else back = null;
     }
 
-    function awaitValue(result) {
-
-        var value = result.value;
-
-        if (typeof value === "object" && "_esdown_await" in value) {
-
-            if (result.done)
-                throw new Error("Invalid async generator return");
-
-            return value._esdown_await;
-        }
-
-        return null;
-    }
-
     function resume(type, value) {
 
         // HACK: If the generator does not support the "return" method, then
@@ -206,29 +191,30 @@ function asyncGenerator(iter) {
 
         try {
 
-            var result$1 = iter[type](value),
-                awaited$0 = awaitValue(result$1);
+            var result$1 = iter[type](value);
+            value = result$1.value;
 
-            if (awaited$0) {
+            if (value && typeof value === "object" && "_esdown_await" in value) {
 
-                Promise.resolve(awaited$0).then(
+                if (result$1.done)
+                    throw new Error("Invalid async generator return");
+
+                Promise.resolve(value._esdown_await).then(
                     function(x) { return resume("next", x); },
                     function(x) { return resume("throw", x); });
 
             } else {
 
-                Promise.resolve(result$1.value).then(
-                    function(x) { return fulfill(result$1.done ? "return" : "normal", x); },
-                    function(x) { return fulfill("throw", x); });
+                settle(result$1.done ? "return" : "normal", result$1.value);
             }
 
         } catch (x) {
 
             // HACK: Return-as-throw
             if (x && x.__return === true)
-                return fulfill("return", x.value);
+                return settle("return", x.value);
 
-            fulfill("throw", x);
+            settle("throw", x);
         }
     }
 }
@@ -324,11 +310,7 @@ function arrayd(obj) {
 
 
 
-exports.makeClass = makeClass;
 exports.computed = computed;
-exports.asyncFunction = asyncFunction;
-exports.asyncIterator = asyncIterator;
-exports.asyncGenerator = asyncGenerator;
 exports.spread = spread;
 exports.objd = objd;
 exports.arrayd = arrayd;
@@ -1233,29 +1215,9 @@ exports["default"] = {
             test
             ._("The callback receives each next value")
             .equals(values, [1, 2, 3])
-            ._("The callback receives undefined as the this value if a thisArg is not supplied")
+            ._("The callback receives undefined as the this value")
             .equals(thisArg, undefined);
 
-        });
-    },
-
-    "If a thisArg parameter is supplied, it is passed as the this value to the callback": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        var obj = {}, thisArg;
-
-        return new Observable(function(observer) {
-
-            observer.next(1);
-            observer.complete();
-
-        }).forEach(function(x) {
-
-            thisArg = this;
-
-        }, obj).then(function(_) {
-
-            test._("The callback receives the thisArg")
-            .equals(thisArg, obj);
         });
     },
 
@@ -1270,6 +1232,23 @@ exports["default"] = {
                 test._("The promise is rejected with the thrown value")
                 .equals(value, error);
             });
+    },
+
+    "If the callback throws an error, the callback function is not called again": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
+
+        var callCount = 0;
+
+        return new Observable(function(observer) {
+            observer.next(1);
+            observer.next(2);
+            observer.next(3);
+        }).forEach(function(x) {
+            callCount++;
+            throw new Error();
+        }).catch(function(x) {
+            test._("The callback is not called again after throwing an error")
+            .equals(callCount, 1);
+        });
     },
 
 };
