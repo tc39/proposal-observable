@@ -92,6 +92,7 @@ and applications to share a common push-based stream protocol.
 
 ### Implementations ###
 
+- [RxJS 5](https://github.com/ReactiveX/RxJS)
 - [zen-observable](https://github.com/zenparsing/zen-observable)
 
 ### Running Tests ###
@@ -224,7 +225,7 @@ Observable.from(["mercury", "venus", "earth"]).subscribe({
 
 #### Observer ####
 
-An Observer is used to recieve data from an Observable, and is supplied as an
+An Observer is used to receive data from an Observable, and is supplied as an
 argument to **subscribe**.
 
 All methods are optional.
@@ -232,10 +233,10 @@ All methods are optional.
 ```js
 interface Observer {
 
-    // Recieves the next value in the sequence
+    // Receives the next value in the sequence
     next(value);
 
-    // Recieves the sequence error
+    // Receives the sequence error
     error(errorValue);
 
     // Receives the sequence completion value
