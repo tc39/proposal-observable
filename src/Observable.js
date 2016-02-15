@@ -282,14 +282,11 @@ export class Observable {
             if (typeof fn !== "function")
                 throw new TypeError(fn + " is not a function");
 
-            let hasError = false;
+            let subscription;
 
-            let subscription = this.subscribe({
+            subscription = this.subscribe({
 
                 next(value) {
-
-                    if (hasError)
-                        return;
 
                     try {
 
@@ -297,20 +294,14 @@ export class Observable {
 
                     } catch (e) {
 
-                        hasError = true;
                         reject(e);
-
-                        if (subscription)
-                            subscription.unsubscribe();
+                        subscription.unsubscribe();
                     }
                 },
 
                 error: reject,
                 complete: resolve,
             });
-
-            if (hasError)
-                subscription.unsubscribe();
         });
     }
 
@@ -391,7 +382,7 @@ export class Observable {
 
             enqueueJob(_=> {
 
-                if (observer.closed)
+                if (done)
                     return;
 
                 for (let i = 0; i < items.length; ++i) {
