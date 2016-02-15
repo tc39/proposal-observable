@@ -1,6 +1,6 @@
 {
     "name": "es-observable-tests",
-    "version": "0.2.7",
+    "version": "0.2.8",
     "description": "Unit tests for es-observable",
     "repository": {
         "type": "git",

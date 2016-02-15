@@ -20,15 +20,13 @@ export default {
 
         new Observable(observer => {
 
-            observer.next(token, 1, 2);
+            observer.next(token);
 
         }).subscribe({
 
             next(value, ...args) {
                 test._("Input value is forwarded to the observer")
-                .equals(value, token)
-                ._("Additional arguments are not forwarded")
-                .equals(args.length, 0);
+                .equals(value, token);
             }
 
         });
