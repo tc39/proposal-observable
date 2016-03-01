@@ -105,7 +105,6 @@
       1. Let _callbackFn_ be the value of the [[CallbackFn]] internal slot of _F_.
       1. Let _result_ be Call(_callbackFn_, `undefined`, «‍ _x_ »).
       1. If _result_ is an abrupt completion, then
-        1. Set the value of _F_'s [[DidThrow]] internal slot to *true*.
         1. Let _promiseReject_ be the value of the [[Reject]] internal slot of _F_.
         1. Let _rejectResult_ be ! Call(_promiseReject_, `undefined`, « _result_.[[value]] »).
         1. Let _subscription_ be _F_'s [[Subscription]] internal slot.
