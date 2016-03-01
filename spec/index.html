@@ -13,72 +13,71 @@ contributors: Kevin Smith
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/solarized_light.min.css">
 
 <emu-clause id="observable-constructor">
-    <h1>The Observable Constructor</h1>
+  <h1>The Observable Constructor</h1>
 
-    <p>The Observable constructor is the %Observable% intrinsic object and the initial value of the Observable property of the global object. When called as a constructor it creates and initializes a new Observable object. Observable is not intended to be called as a function and will throw an exception when called in that manner.</p>
+  <p>The Observable constructor is the %Observable% intrinsic object and the initial value of the Observable property of the global object. When called as a constructor it creates and initializes a new Observable object. Observable is not intended to be called as a function and will throw an exception when called in that manner.</p>
 
-    <p>The Observable constructor is designed to be subclassable. It may be used as the value in an extends clause of a class definition. Subclass constructors that intend to inherit the specified Observable behaviour must include a super call to the Observable constructor to create and initialize the subclass instance with the internal state necessary to support the Observable and Observable.prototype built-in methods.</p>
+  <p>The Observable constructor is designed to be subclassable. It may be used as the value in an extends clause of a class definition. Subclass constructors that intend to inherit the specified Observable behaviour must include a super call to the Observable constructor to create and initialize the subclass instance with the internal state necessary to support the Observable and Observable.prototype built-in methods.</p>
 
-    <emu-clause id="observable">
-        <h1>Observable ( subscriber )</h1>
+  <emu-clause id="observable">
+    <h1>Observable ( _subscriber_ )</h1>
 
-        <p>The `Observable` constructor initializes a new Observable object.  It is not intended to be called as a function and will throw an exception when called in that manner.</p>
+    <p>The `Observable` constructor initializes a new Observable object.  It is not intended to be called as a function and will throw an exception when called in that manner.</p>
 
-        <p>The _subscriber_ argument must be a function object.  It is called each time the `subscribe` method of the Observable object is invoked.  The _subscriber_ function is called with a wrapped observer object and may optionally return a function which will cancel the subscription.</p>
+    <p>The _subscriber_ argument must be a function object.  It is called each time the `subscribe` method of the Observable object is invoked.  The _subscriber_ function is called with a wrapped observer object and may optionally return a function which will cancel the subscription.</p>
 
-        <p>The `Observable` constructor performs the following steps:</p>
+    <p>The `Observable` constructor performs the following steps:</p>
 
-        <emu-alg>
-            1. If `NewTarget` is undefined, throw a `TypeError` exception.
-            1. If IsCallable(_subscriber_) is `false`, throw a `TypeError` exception.
-            1. Let _observable_ be OrdinaryCreateFromConstructor(`NewTarget`, %ObservablePrototype%, «‍[[Subscriber]]»).
-            1. ReturnIfAbrupt(`observable`).
-            1. Set _observable's_ [[Subscriber]] internal slot to _subscriber_.
-            1. Return _observable_.
-        </emu-alg>
-    </emu-clause>
+    <emu-alg>
+      1. If NewTarget is *undefined*, throw a *TypeError* exception.
+      1. If IsCallable(_subscriber_) is *false*, throw a *TypeError* exception.
+      1. Let _observable_ be ? OrdinaryCreateFromConstructor(NewTarget, %ObservablePrototype%, «‍ [[Subscriber]] »).
+      1. Set _observable's_ [[Subscriber]] internal slot to _subscriber_.
+      1. Return _observable_.
+    </emu-alg>
+  </emu-clause>
 
 </emu-clause>
 
 <emu-clause id="observable-properties">
-    <h1>Properties of the Observable Constructor</h1>
+  <h1>Properties of the Observable Constructor</h1>
 
-    <p>The value of the [[Prototype]] internal slot of the `Observable` constructor is the intrinsic object %FunctionPrototype%.</p>
+  <p>The value of the [[Prototype]] internal slot of the `Observable` constructor is the intrinsic object %FunctionPrototype%.</p>
 
-    <p>Besides the `length` property (whose value is 1), the `Observable` constructor has the following properties:</p>
+  <p>Besides the `length` property (whose value is 1), the `Observable` constructor has the following properties:</p>
 
-    <emu-import href="./constructor-properties.html"></emu-import>
+  <emu-import href="./constructor-properties.html"></emu-import>
 </emu-clause>
 
 <emu-clause id="observable-prototype-properties">
-    <h1>Properties of the Observable Prototype Object</h1>
+  <h1>Properties of the Observable Prototype Object</h1>
 
-    <p>The `Observable` prototype object is the intrinsic object %ObservablePrototype%. The value of the [[Prototype]] internal slot of the `Observable` prototype object is the intrinsic object %ObjectPrototype%. The `Observable` prototype object is an ordinary object.</p>
+  <p>The `Observable` prototype object is the intrinsic object %ObservablePrototype%. The value of the [[Prototype]] internal slot of the `Observable` prototype object is the intrinsic object %ObjectPrototype%. The `Observable` prototype object is an ordinary object.</p>
 
-    <emu-import href="./prototype-properties.html"></emu-import>
+  <emu-import href="./prototype-properties.html"></emu-import>
 </emu-clause>
 
 <emu-clause id="subscription-objects">
-    <h1>Subscription Objects</h1>
+  <h1>Subscription Objects</h1>
 
-    <p>A Subscription is an object which represents a channel through which an Observable may send data to an Observer.</p>
+  <p>A Subscription is an object which represents a channel through which an Observable may send data to an Observer.</p>
 
-    <emu-import href="./subscription.html"></emu-import>
+  <emu-import href="./subscription.html"></emu-import>
 </emu-clause>
 
 <emu-clause id="subscription-observer-objects">
-    <h1>Subscription Observer Objects</h1>
+  <h1>Subscription Observer Objects</h1>
 
-    <p>A Subscription Observer is an object which wraps the _observer_ argument supplied to the  `subscribe` method of Observable objects.  Subscription Observer objects are passed as the single parameter to an observable's _subscriber_ function.  They enforce the following guarantees:</p>
+  <p>A Subscription Observer is an object which wraps the _observer_ argument supplied to the  `subscribe` method of Observable objects.  Subscription Observer objects are passed as the single parameter to an observable's _subscriber_ function.  They enforce the following guarantees:</p>
 
-    <ul>
-        <li>If the observer's `error` method is called, the observer will not be invoked again and the observable's cleanup function will be called.</li>
-        <li>If the observer's `complete` method is called, the observer will not be invoked again and the observable's cleanup function will be called.</li>
-        <li>If the observer throws an exception, the observable's cleanup function will be called.</li>
-        <li>When the subscription is canceled, the observer will not be invoked again.</li>
-    </ul>
+  <ul>
+    <li>If the observer's `error` method is called, the observer will not be invoked again and the observable's cleanup function will be called.</li>
+    <li>If the observer's `complete` method is called, the observer will not be invoked again and the observable's cleanup function will be called.</li>
+    <li>If the observer throws an exception, the observable's cleanup function will be called.</li>
+    <li>When the subscription is canceled, the observer will not be invoked again.</li>
+  </ul>
 
-    <p>In addition, Subscription Observer objects provide default behaviors when the observer does not implement `next`, `error` or `complete`.</p>
+  <p>In addition, Subscription Observer objects provide default behaviors when the observer does not implement `next`, `error` or `complete`.</p>
 
-    <emu-import href="./subscription-observer.html"></emu-import>
+  <emu-import href="./subscription-observer.html"></emu-import>
 </emu-clause>

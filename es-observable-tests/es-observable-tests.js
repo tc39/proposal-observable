@@ -1,6 +1,6 @@
 /*=esdown=*/(function(fn, name) { if (typeof exports !== 'undefined') fn(exports, module); else if (typeof self !== 'undefined') fn(name === '*' ? self : (name ? self[name] = {} : {})); })(function(exports, module) { 'use strict'; var _esdown = {}; (function() { var exports = _esdown;
 
-var VERSION = "1.0.9";
+var VERSION = "1.1.2";
 
 var GLOBAL = (function() {
 
@@ -325,7 +325,7 @@ exports.asyncIter = asyncIterator;
 })();
 
 var __M; (function(a) { var list = Array(a.length / 2); __M = function(i) { var m = list[i], f, e, ee; if (typeof m !== 'function') return m.exports; f = m; m = { exports: i ? {} : exports }; f(list[i] = m, e = m.exports); ee = m.exports; if (ee && ee !== e && !('default' in ee)) ee['default'] = ee; return ee; }; for (var i = 0; i < a.length; i += 2) { var j = Math.abs(a[i]); list[j] = a[i + 1]; if (a[i] >= 0) __M(j); } })([
-18, function(module, exports) {
+16, function(module, exports) {
 
 var OP_toString = Object.prototype.toString,
     OP_hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -495,7 +495,7 @@ exports.Test = Test;
 
 
 },
-16, function(module, exports) {
+17, function(module, exports) {
 
 var ELEMENT_ID = "moon-unit";
 
@@ -608,7 +608,7 @@ exports.HtmlLogger = HtmlLogger;
 
 
 },
-17, function(module, exports) {
+18, function(module, exports) {
 
 var Style = {
 
@@ -713,8 +713,8 @@ exports.NodeLogger = NodeLogger;
 },
 15, function(module, exports) {
 
-var HtmlLogger = __M(16).HtmlLogger;
-var NodeLogger = __M(17).NodeLogger;
+var HtmlLogger = __M(17).HtmlLogger;
+var NodeLogger = __M(18).NodeLogger;
 
 var Logger = (typeof global === "object" && global.process) ?
     NodeLogger :
@@ -726,7 +726,7 @@ exports.Logger = Logger;
 },
 14, function(module, exports) {
 
-var Test = __M(18).Test;
+var Test = __M(16).Test;
 var Logger = __M(15).Logger;
 
 var TestRunner = _esdown.class(function(__) { var TestRunner;
