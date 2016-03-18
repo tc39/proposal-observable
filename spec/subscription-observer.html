@@ -34,7 +34,7 @@
       1. If _result_ is not an abrupt completion, then
         1. Let _nextMethod_ be _result_.[[value]].
         1. If _nextMethod_ is *undefined*, let _result_ be NormalCompletion(*undefined*).
-        1. Else, let _result_ be Call(_nextMethod_, _observer_, « ‍_value_ »).
+        1. Else, let _result_ be Call(_nextMethod_, _observer_, « ‍_value_, _subscription_ »).
       1. If _result_ is an abrupt completion, then
         1. Perform ? CloseSubscription(_subscription_).
       1. Return Completion(_result_).
