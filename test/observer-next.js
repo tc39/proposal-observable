@@ -24,12 +24,36 @@ export default {
 
         }).subscribe({
 
-            next(value, ...args) {
+            next(value) {
                 test._("Input value is forwarded to the observer")
                 .equals(value, token);
             }
-
         });
+    },
+
+    "Subscription argument" (test, { Observable }) {
+
+        let values = [], subscriptionArg;
+
+        let subscription = new Observable(observer => {
+
+            observer.next(1);
+            observer.next(2);
+
+        }).subscribe({
+
+            next(value, sub) {
+                subscriptionArg = sub;
+                values.push(value);
+                sub.unsubscribe();
+            }
+        });
+
+        test
+        ._("Subscription object is provided as second argument to next")
+        .assert(subscription === subscriptionArg)
+        ._("Next is not called after subscription is cancelled")
+        .equals(values, [1]);
     },
 
     "Return value" (test, { Observable }) {

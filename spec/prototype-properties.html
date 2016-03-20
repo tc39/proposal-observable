@@ -82,13 +82,11 @@
     1. Let _next_ be a new built-in function object as defined in Observable.prototype.forEach Next Functions.
     1. Set the [[CallbackFn]] internal slot of _next_ to _callbackFn_.
     1. Set the [[Reject]] internal slot of _next_ to _promiseCapability_.[[Reject]].
-    1. Set the [[Subscription]] internal slot of _next_ to *undefined*.
     1. Perform CreateDataProperty(_observer_, `"next"`, _next_).
     1. Perform CreateDataProperty(_observer_, `"error"`, _promiseCapability_.[[Reject]]).
     1. Perform CreateDataProperty(_observer_, `"complete"`, _promiseCapability_.[[Resolve]]).
     1. Let _subscription_ be Invoke(_O_, `"subscribe"`, «‍ _observer_ »).
     1. IfAbruptRejectPromise(_subscription_, _promiseCapability_).
-    1. Set the [[Subscription]] internal slot of _next_ to _subscription_.
     1. Return _promiseCapability_.[[Promise]].
   </emu-alg>
 
@@ -97,9 +95,9 @@
   <emu-clause id="observable-prototype-foreach-next-functions">
     <h1>Observable.prototype.forEach Next Functions</h1>
 
-    <p>An Observable.prototype.forEach next function is an anonymous built-in function that is used to process each element of an observable sequence when _forEach_ is invoked. Each Observable.prototype.forEach next function has [[CallbackFn]], [[Reject]] and [[Subscription]] internal slots.</p>
+    <p>An Observable.prototype.forEach next function is an anonymous built-in function that is used to process each element of an observable sequence when _forEach_ is invoked. Each Observable.prototype.forEach next function has [[CallbackFn]] and [[Reject]] internal slots.</p>
 
-    <p>When an Observable.prototype.forEach next function _F_ is called with argument _x_, the following steps are taken:</p>
+    <p>When an Observable.prototype.forEach next function _F_ is called with arguments _x_ and _subscription_, the following steps are taken:</p>
 
     <emu-alg>
       1. Let _callbackFn_ be the value of the [[CallbackFn]] internal slot of _F_.
@@ -107,7 +105,6 @@
       1. If _result_ is an abrupt completion, then
         1. Let _promiseReject_ be the value of the [[Reject]] internal slot of _F_.
         1. Let _rejectResult_ be ! Call(_promiseReject_, `undefined`, « _result_.[[value]] »).
-        1. Let _subscription_ be _F_'s [[Subscription]] internal slot.
         1. Perform ? Invoke(_subscription_, `"unsubscribe"`, «‍ »).
         1. Return *undefined*.
       1. Return Completion(_result_).

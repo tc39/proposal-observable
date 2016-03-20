@@ -186,7 +186,7 @@ SubscriptionObserver.prototype = nonEnum({
                 return undefined;
 
             // Send the next value to the sink
-            return m.call(observer, value);
+            return m.call(observer, value, subscription);
 
         } catch (e) {
 
@@ -282,11 +282,9 @@ export class Observable {
             if (typeof fn !== "function")
                 throw new TypeError(fn + " is not a function");
 
-            let subscription;
+            this.subscribe({
 
-            subscription = this.subscribe({
-
-                next(value) {
+                next(value, subscription) {
 
                     try {
 
