@@ -1,6 +1,6 @@
-/*=esdown=*/(function(fn, name) { if (typeof exports !== 'undefined') fn(exports, module); else if (typeof self !== 'undefined') fn(name === '*' ? self : (name ? self[name] = {} : {})); })(function(exports, module) { 'use strict'; var _esdown = {}; (function() { var exports = _esdown;
+(function(fn, name) { if (typeof exports !== 'undefined') fn(exports, module); else if (typeof self !== 'undefined') fn(name === '*' ? self : (name ? self[name] = {} : {})); })(function(exports, module) { 'use strict'; var _esdown = {}; (function() { var exports = _esdown;
 
-var VERSION = "1.1.2";
+var VERSION = "1.1.8";
 
 var GLOBAL = (function() {
 
@@ -325,7 +325,7 @@ exports.asyncIter = asyncIterator;
 })();
 
 var __M; (function(a) { var list = Array(a.length / 2); __M = function(i) { var m = list[i], f, e, ee; if (typeof m !== 'function') return m.exports; f = m; m = { exports: i ? {} : exports }; f(list[i] = m, e = m.exports); ee = m.exports; if (ee && ee !== e && !('default' in ee)) ee['default'] = ee; return ee; }; for (var i = 0; i < a.length; i += 2) { var j = Math.abs(a[i]); list[j] = a[i + 1]; if (a[i] >= 0) __M(j); } })([
-16, function(module, exports) {
+18, function(module, exports) {
 
 var OP_toString = Object.prototype.toString,
     OP_hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -495,7 +495,7 @@ exports.Test = Test;
 
 
 },
-17, function(module, exports) {
+16, function(module, exports) {
 
 var ELEMENT_ID = "moon-unit";
 
@@ -608,7 +608,7 @@ exports.HtmlLogger = HtmlLogger;
 
 
 },
-18, function(module, exports) {
+17, function(module, exports) {
 
 var Style = {
 
@@ -713,8 +713,8 @@ exports.NodeLogger = NodeLogger;
 },
 15, function(module, exports) {
 
-var HtmlLogger = __M(17).HtmlLogger;
-var NodeLogger = __M(18).NodeLogger;
+var HtmlLogger = __M(16).HtmlLogger;
+var NodeLogger = __M(17).NodeLogger;
 
 var Logger = (typeof global === "object" && global.process) ?
     NodeLogger :
@@ -726,7 +726,7 @@ exports.Logger = Logger;
 },
 14, function(module, exports) {
 
-var Test = __M(16).Test;
+var Test = __M(18).Test;
 var Logger = __M(15).Logger;
 
 var TestRunner = _esdown.class(function(__) { var TestRunner;
@@ -1676,12 +1676,36 @@ exports["default"] = {
 
         }).subscribe({
 
-            next: function(value) { for (var args = [], __$0 = 1; __$0 < arguments.length; ++__$0) args.push(arguments[__$0]); 
+            next: function(value) {
                 test._("Input value is forwarded to the observer")
                 .equals(value, token);
             }
-
         });
+    },
+
+    "Subscription argument": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
+
+        var values = [], subscriptionArg;
+
+        var subscription = new Observable(function(observer) {
+
+            observer.next(1);
+            observer.next(2);
+
+        }).subscribe({
+
+            next: function(value, sub) {
+                subscriptionArg = sub;
+                values.push(value);
+                sub.unsubscribe();
+            }
+        });
+
+        test
+        ._("Subscription object is provided as second argument to next")
+        .assert(subscription === subscriptionArg)
+        ._("Next is not called after subscription is cancelled")
+        .equals(values, [1]);
     },
 
     "Return value": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
