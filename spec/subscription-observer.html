@@ -27,6 +27,8 @@
       1. If Type(_O_) is not Object, throw a *TypeError* exception.
       1. If _O_ does not have all of the internal slots of a Subscription Observer instance, throw a *TypeError* exception.
       1. Let _subscription_ be the value of the [[Subscription]] internal slot of _O_.
+      1. Let _initialized_ be the value of _subscriptions_'s [[Initialized]] internal slot.
+      1. If _initialized_ is *false*, throw a *TypeError* exception.
       1. If SubscriptionClosed(_subscription_) is *true*, return *undefined*.
       1. Let _observer_ be the value of the [[Observer]] internal slot of _subscription_.
       1. Assert: Type(_observer_) is Object.
@@ -48,6 +50,8 @@
       1. If Type(_O_) is not Object, throw a *TypeError* exception.
       1. If _O_ does not have all of the internal slots of a Subscription Observer instance, throw a *TypeError* exception.
       1. Let _subscription_ be the value of the [[Subscription]] internal slot of _O_.
+      1. Let _initialized_ be the value of _subscriptions_'s [[Initialized]] internal slot.
+      1. If _initialized_ is *false*, throw a *TypeError* exception.
       1. If SubscriptionClosed(_subscription_) is *true*, return Completion{[[type]]: ~throw~, [[value]]: _exception_, [[target]]: ~empty~}.
       1. Let _observer_ be the value of the [[Observer]] internal slot of _subscription_.
       1. Assert: Type(_observer_) is Object.
@@ -69,6 +73,8 @@
       1. If Type(_O_) is not Object, throw a *TypeError* exception.
       1. If _O_ does not have all of the internal slots of a Subscription Observer instance, throw a *TypeError* exception.
       1. Let _subscription_ be the value of the [[Subscription]] internal slot of _O_.
+      1. Let _initialized_ be the value of _subscriptions_'s [[Initialized]] internal slot.
+      1. If _initialized_ is *false*, throw a *TypeError* exception.
       1. If SubscriptionClosed(_subscription_) is *true*, return *undefined*.
       1. Let _observer_ be the value of the [[Observer]] internal slot of _subscription_.
       1. Assert: Type(_observer_) is Object.

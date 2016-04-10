@@ -12,15 +12,11 @@
     1. If Type(_observer_) is not Object, throw a *TypeError* exception.
     1. Let _subscription_ be ? CreateSubscription(_observer_).
     1. Let _subscriptionObserver_ be ? CreateSubscriptionObserver(_subscription_).
-    1. Let _subscriber_ be the value of _O's_ [[Subscriber]] internal slot.
+    1. Let _subscriber_ be the value of _O_'s [[Subscriber]] internal slot.
     1. Assert: IsCallable(_subscriber_) is *true*.
-    1. Let _subscriberResult_ be ExecuteSubscriber(_subscriber_, _subscriptionObserver_).
-    1. If _subscriberResult_ is an abrupt completion, then
-      1. Perform ? Invoke(_subscriptionObserver_, `"error"`, « ‍_subscriberResult_.[[value]] »).
-    1. Else,
-      1. Set the [[Cleanup]] internal slot of _observer_ to _subscriberResult_.[[value]].
-    1. If SubscriptionClosed(_subscription_) is *true*, then
-      1. Perform ? CleanupSubscription(_subscription_).
+    1. Let _subscriberResult_ be ? ExecuteSubscriber(_subscriber_, _subscriptionObserver_).
+    1. Set _subscription_'s [[Cleanup]] internal slot to _subscriberResult_.
+    1. Set _subscription_'s [[Initialized]] internal slot to *true*.
     1. Return _subscription_.
   </emu-alg>
 
