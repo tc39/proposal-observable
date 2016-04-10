@@ -1,4 +1,4 @@
-import { testMethodProperty } from "./helpers.js";
+import { testMethodProperty, job } from "./helpers.js";
 
 export default {
 
@@ -14,40 +14,55 @@ export default {
         });
     },
 
+    "Initialization" (test, { Observable }) {
+
+        test._("Throws an error if subscription initialization is not complete")
+        .throws(_=> {
+            new Observable(observer => { observer.complete(1) }).subscribe({});
+        });
+    },
+
     "Input value" (test, { Observable }) {
 
-        let token = {};
+        return new Promise(resolve => {
 
-        new Observable(observer => {
+            let token = {};
 
-            observer.complete(token, 1, 2);
+            new Observable(observer => job(_=> observer.complete(token, 1, 2))).subscribe({
 
-        }).subscribe({
+                complete(value, ...args) {
 
-            complete(value, ...args) {
-                test._("Input value is forwarded to the observer")
-                .equals(value, token)
-                ._("Additional arguments are not forwarded")
-                .equals(args.length, 0);
-            }
+                    resolve();
 
+                    test._("Input value is forwarded to the observer")
+                    .equals(value, token)
+                    ._("Additional arguments are not forwarded")
+                    .equals(args.length, 0);
+                }
+
+            });
         });
     },
 
     "Return value" (test, { Observable }) {
 
-        let token = {};
+        return new Promise(resolve => {
 
-        new Observable(observer => {
+            let token = {};
 
-            test._("Returns the value returned from the observer")
-            .equals(observer.complete(), token);
+            new Observable(observer => job(_=> {
 
-            test._("Returns undefined when closed")
-            .equals(observer.complete(), undefined);
+                test._("Returns the value returned from the observer")
+                .equals(observer.complete(), token);
 
-        }).subscribe({
-            complete() { return token }
+                test._("Returns undefined when closed")
+                .equals(observer.complete(), undefined);
+
+                resolve();
+
+            })).subscribe({
+                complete() { return token }
+            });
         });
     },
 

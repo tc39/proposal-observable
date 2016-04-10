@@ -1,4 +1,4 @@
-import { testMethodProperty } from "./helpers.js";
+import { testMethodProperty, job } from "./helpers.js";
 
 export default {
 
@@ -14,40 +14,55 @@ export default {
         });
     },
 
+    "Initialization" (test, { Observable }) {
+
+        test._("Throws an error if subscription initialization is not complete")
+        .throws(_=> {
+            new Observable(observer => { observer.error(1) }).subscribe({});
+        });
+    },
+
     "Input value" (test, { Observable }) {
 
-        let token = {};
+        return new Promise(resolve => {
 
-        new Observable(observer => {
+            let token = {};
 
-            observer.error(token, 1, 2);
+            new Observable(observer => job(_=> observer.error(token, 1, 2))).subscribe({
 
-        }).subscribe({
+                error(value, ...args) {
 
-            error(value, ...args) {
-                test._("Input value is forwarded to the observer")
-                .equals(value, token)
-                ._("Additional arguments are not forwarded")
-                .equals(args.length, 0);
-            }
+                    test._("Input value is forwarded to the observer")
+                    .equals(value, token)
+                    ._("Additional arguments are not forwarded")
+                    .equals(args.length, 0);
 
+                    resolve();
+                }
+
+            });
         });
     },
 
     "Return value" (test, { Observable }) {
 
-        let token = {};
+        return new Promise(resolve => {
 
-        new Observable(observer => {
+            let token = {};
 
-            test._("Returns the value returned from the observer")
-            .equals(observer.error(), token);
+            new Observable(observer => job(_=> {
 
-            test._("Throws the input when closed")
-            .throws(_=> { observer.error(token) }, token);
+                resolve();
 
-        }).subscribe({
-            error() { return token }
+                test._("Returns the value returned from the observer")
+                .equals(observer.error(), token);
+
+                test._("Throws the input when closed")
+                .throws(_=> { observer.error(token) }, token);
+
+            })).subscribe({
+                error() { return token }
+            });
         });
     },
 

@@ -1,4 +1,4 @@
-import { testMethodProperty } from "./helpers.js";
+import { testMethodProperty, job } from "./helpers.js";
 
 export default {
 
@@ -14,40 +14,56 @@ export default {
         });
     },
 
+    "Initialization" (test, { Observable }) {
+
+        test._("Throws an error if subscription initialization is not complete")
+        .throws(_=> {
+            new Observable(observer => { observer.next(1) }).subscribe({});
+        });
+    },
+
     "Input value" (test, { Observable }) {
 
-        let token = {};
+        return new Promise(resolve => {
 
-        new Observable(observer => {
+            let token = {};
 
-            observer.next(token);
+            new Observable(observer => job(_=> observer.next(token, 1, 2))).subscribe({
 
-        }).subscribe({
+                next(value, ...args) {
 
-            next(value, ...args) {
-                test._("Input value is forwarded to the observer")
-                .equals(value, token);
-            }
+                    test._("Input value is forwarded to the observer")
+                    .equals(value, token)
+                    ._("No other values are sent to the observer")
+                    .equals(args.length, 0);
 
+                    resolve();
+                }
+            });
         });
     },
 
     "Return value" (test, { Observable }) {
 
-        let token = {};
+        return new Promise(resolve => {
 
-        new Observable(observer => {
+            let token = {};
 
-            test._("Returns the value returned from the observer")
-            .equals(observer.next(), token);
+            new Observable(observer => job(_=> {
 
-            observer.complete();
+                resolve();
 
-            test._("Returns undefined when closed")
-            .equals(observer.next(), undefined);
+                test._("Returns the value returned from the observer")
+                .equals(observer.next(), token);
 
-        }).subscribe({
-            next() { return token }
+                observer.complete();
+
+                test._("Returns undefined when closed")
+                .equals(observer.next(), undefined);
+
+            })).subscribe({
+                next() { return token }
+            });
         });
     },
 

@@ -1,4 +1,4 @@
-import { testMethodProperty } from "./helpers.js";
+import { testMethodProperty, job } from "./helpers.js";
 
 export default {
 
@@ -113,30 +113,6 @@ export default {
         test._("The cleanup function is not called again when unsubscribe is called again")
         .equals(called, 1);
 
-        called = 0;
-
-        new Observable(sink => {
-            sink.error(1);
-            return _=> { called++ };
-        }).subscribe({
-            error() {},
-        });
-
-        test._("The cleanup function is called when an error is sent to the sink")
-        .equals(called, 1);
-
-        called = 0;
-
-        new Observable(sink => {
-            sink.complete(1);
-            return _=> { called++ };
-        }).subscribe({
-            next() {},
-        });
-
-        test._("The cleanup function is called when a complete is sent to the sink")
-        .equals(called, 1);
-
         let unsubscribeArgs = null;
         called = 0;
 
@@ -156,7 +132,48 @@ export default {
         .equals(called, 1)
         ._("Arguments are not forwarded to the unsubscribe function")
         .equals(unsubscribeArgs, []);
+    },
 
+    "Cleanup function and errors" (test, { Observable }) {
+
+        let called = 0;
+
+        return new Promise((resolve, reject) => {
+
+            new Observable(sink => {
+                job(_=> sink.error(1));
+                return _=> { called++ };
+            }).subscribe({
+                error: resolve,
+                complete: reject,
+            });
+
+        }).then(_=> {
+
+            test._("The cleanup function is called when an error is sent to the sink")
+            .equals(called, 1);
+        });
+    },
+
+    "Cleanup function and complete" (test, { Observable }) {
+
+        let called = 0;
+
+        return new Promise((resolve, reject) => {
+
+            new Observable(sink => {
+                job(_=> sink.complete(1));
+                return _=> { called++ };
+            }).subscribe({
+                error: reject,
+                complete: resolve
+            });
+
+        }).then(_=> {
+
+            test._("The cleanup function is called when a complete is sent to the sink")
+            .equals(called, 1);
+        });
     },
 
     "Exceptions thrown from the subscriber" (test, { Observable }) {
@@ -164,14 +181,11 @@ export default {
         let error = new Error(),
             observable = new Observable(_=> { throw error });
 
-        test._("Subscribe throws if the observer does not handle errors")
+        test._("Subscribe throws if the subscriber function throws")
         .throws(_=> observable.subscribe({}), error);
 
-        let thrown = null;
-        observable.subscribe({ error(e) { thrown = e } });
-
-        test._("Subscribe sends an error to the observer")
-        .equals(thrown, error);
+        test._("Subscribe does not send the error to the observer")
+        .throws(_=> observable.subscribe({ error(e) {} }));
     },
 
 };

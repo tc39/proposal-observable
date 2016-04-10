@@ -7,6 +7,11 @@ function testLength(test, value, length) {
     .equals(value.length, length);
 }
 
+export function job(fn) {
+
+    setTimeout(fn, 0);
+}
+
 export function testMethodProperty(test, object, key, options) {
 
     let desc = Object.getOwnPropertyDescriptor(object, key);

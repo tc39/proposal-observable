@@ -1,4 +1,4 @@
-import { testMethodProperty } from "./helpers.js";
+import { testMethodProperty, job } from "./helpers.js";
 
 export default {
 
@@ -51,7 +51,7 @@ export default {
 
         let error = new Error();
 
-        return new Observable(observer => { observer.error(error) })
+        return new Observable(observer => job(_=> observer.error(error)))
             .forEach(_=> null)
             .then(_=> null, e => e)
             .then(value => {
@@ -64,7 +64,7 @@ export default {
 
         let token = {};
 
-        return new Observable(observer => { observer.complete(token) })
+        return new Observable(observer => job(_=> observer.complete(token)))
             .forEach(_=> null)
             .then(x => x, e => null)
             .then(value => {
@@ -77,14 +77,14 @@ export default {
 
         let values = [], thisArg;
 
-        return new Observable(observer => {
+        return new Observable(observer => job(_=> {
 
             observer.next(1);
             observer.next(2);
             observer.next(3);
             observer.complete();
 
-        }).forEach(function(x) {
+        })).forEach(function(x) {
 
             thisArg = this;
             values.push(x);
@@ -104,7 +104,7 @@ export default {
 
         let error = new Error();
 
-        return new Observable(observer => { observer.next(1) })
+        return new Observable(observer => job(_=> observer.next(1)))
             .forEach(_=> { throw error })
             .then(_=> null, e => e)
             .then(value => {
@@ -117,11 +117,11 @@ export default {
 
         let callCount = 0;
 
-        return new Observable(observer => {
+        return new Observable(observer => job(_=> {
             observer.next(1);
             observer.next(2);
             observer.next(3);
-        }).forEach(x => {
+        })).forEach(x => {
             callCount++;
             throw new Error();
         }).catch(x => {
