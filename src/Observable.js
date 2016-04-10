@@ -125,36 +125,23 @@ function Subscription(observer, subscriber) {
 
     this._cleanup = undefined;
     this._observer = observer;
+    this._initialized = false;
 
-    observer = new SubscriptionObserver(this);
+    // Call the subscriber function
+    let cleanup = subscriber.call(undefined, new SubscriptionObserver(this));
 
-    try {
+    // The return value must be undefined, null, a subscription object, or a function
+    if (cleanup != null) {
 
-        // Call the subscriber function
-        let cleanup = subscriber.call(undefined, observer);
+        if (typeof cleanup.unsubscribe === "function")
+            cleanup = cleanupFromSubscription(cleanup);
+        else if (typeof cleanup !== "function")
+            throw new TypeError(cleanup + " is not a function");
 
-        // The return value must be undefined, null, a subscription object, or a function
-        if (cleanup != null) {
-
-            if (typeof cleanup.unsubscribe === "function")
-                cleanup = cleanupFromSubscription(cleanup);
-            else if (typeof cleanup !== "function")
-                throw new TypeError(cleanup + " is not a function");
-
-            this._cleanup = cleanup;
-        }
-
-    } catch (e) {
-
-        // If an error occurs during startup, then attempt to send the error
-        // to the observer
-        observer.error(e);
-        return;
+        this._cleanup = cleanup;
     }
 
-    // If the stream is already finished, then perform cleanup
-    if (subscriptionClosed(this))
-        cleanupSubscription(this);
+    this._initialized = true;
 }
 
 Subscription.prototype = nonEnum({
@@ -170,6 +157,9 @@ SubscriptionObserver.prototype = nonEnum({
     next(value) {
 
         let subscription = this._subscription;
+
+        if (!subscription._initialized)
+            throw new Error("Subscription not initialized");
 
         // If the stream if closed, then return undefined
         if (subscriptionClosed(subscription))
@@ -199,6 +189,9 @@ SubscriptionObserver.prototype = nonEnum({
     error(value) {
 
         let subscription = this._subscription;
+
+        if (!subscription._initialized)
+            throw new Error("Subscription not initialized");
 
         // If the stream is closed, throw the error to the caller
         if (subscriptionClosed(subscription))
@@ -230,6 +223,9 @@ SubscriptionObserver.prototype = nonEnum({
     complete(value) {
 
         let subscription = this._subscription;
+
+        if (!subscription._initialized)
+            throw new Error("Subscription not initialized");
 
         // If the stream is closed, then return undefined
         if (subscriptionClosed(subscription))
@@ -282,9 +278,7 @@ export class Observable {
             if (typeof fn !== "function")
                 throw new TypeError(fn + " is not a function");
 
-            let subscription;
-
-            subscription = this.subscribe({
+            let subscription = this.subscribe({
 
                 next(value) {
 
