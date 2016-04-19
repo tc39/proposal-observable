@@ -147,7 +147,8 @@ function Subscription(observer, subscriber) {
     } catch (e) {
 
         // If an error occurs during startup, then attempt to send the error
-        // to the observer
+        // to the observer.  If the subscription is already closed, then the
+        // error will be rethrown.
         observer.error(e);
         return;
     }
@@ -282,26 +283,76 @@ export class Observable {
             if (typeof fn !== "function")
                 throw new TypeError(fn + " is not a function");
 
-            let subscription;
+            let state = "executing",
+                queue = [];
 
-            subscription = this.subscribe({
+            function send(type, value) {
 
-                next(value) {
+                switch (type) {
 
-                    try {
+                    case "error":
+                        state = "completed";
+                        reject(value);
+                        return;
 
-                        return fn(value);
+                    case "complete":
+                        state = "completed";
+                        resolve(value);
+                        return;
+                }
 
-                    } catch (e) {
+                try {
 
-                        reject(e);
-                        subscription.unsubscribe();
-                    }
-                },
+                    state = "executing";
+                    fn(value);
 
-                error: reject,
-                complete: resolve,
+                    if (queue.length === 0)
+                        state = "ready";
+
+                } catch (err) {
+
+                    state = "completed";
+                    subscription.unsubscribe();
+                    reject(err);
+                }
+            }
+
+            function enqueue(type, value) {
+
+                if (state === "completed")
+                    return;
+
+                if (state === "ready")
+                    return send(type, value);
+
+                // Assert: state === "executing"
+                if (queue.length === 0)
+                    Promise.resolve().then(flush);
+
+                queue.push({ type, value });
+            }
+
+            function flush() {
+
+                let list = queue;
+                queue = [];
+
+                for (let entry of list) {
+
+                    send(entry.type, entry.value);
+
+                    if (state === "completed")
+                        return;
+                }
+            }
+
+            let subscription = this.subscribe({
+                next(x) { enqueue("next", x) },
+                error(x) { enqueue("error", x) },
+                complete(x) { enqueue("complete", x) },
             });
+
+            state = "ready";
         });
     }
 
@@ -333,42 +384,22 @@ export class Observable {
             return new C(observer => observable.subscribe(observer));
         }
 
-        // TODO: Should we check for a Symbol.iterator method here?
-
         return new C(observer => {
 
-            let done = false;
+            // Assume that the object is iterable.  If not, then the observer
+            // will receive an error.
+            try {
 
-            enqueueJob(_=> {
+                for (let item of x)
+                    observer.next(item);
 
-                if (done)
-                    return;
+            } catch (e) {
 
-                // Assume that the object is iterable.  If not, then the observer
-                // will receive an error.
-                try {
+                observer.error(e);
+                return;
+            }
 
-                    for (let item of x) {
-
-                        observer.next(item);
-
-                        if (done)
-                            return;
-                    }
-
-                } catch (e) {
-
-                    if (done)
-                        throw e;
-
-                    observer.error(e);
-                    return;
-                }
-
-                observer.complete();
-            });
-
-            return _=> { done = true };
+            observer.complete();
         });
     }
 
@@ -378,25 +409,10 @@ export class Observable {
 
         return new C(observer => {
 
-            let done = false;
+            for (let i = 0; i < items.length; ++i)
+                observer.next(items[i]);
 
-            enqueueJob(_=> {
-
-                if (done)
-                    return;
-
-                for (let i = 0; i < items.length; ++i) {
-
-                    observer.next(items[i]);
-
-                    if (done)
-                        return;
-                }
-
-                observer.complete();
-            });
-
-            return _=> { done = true };
+            observer.complete();
         });
     }
 

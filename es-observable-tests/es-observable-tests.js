@@ -1,6 +1,6 @@
-/*=esdown=*/(function(fn, name) { if (typeof exports !== 'undefined') fn(exports, module); else if (typeof self !== 'undefined') fn(name === '*' ? self : (name ? self[name] = {} : {})); })(function(exports, module) { 'use strict'; var _esdown = {}; (function() { var exports = _esdown;
+(function(fn, name) { if (typeof exports !== 'undefined') fn(exports, module); else if (typeof self !== 'undefined') fn(name === '*' ? self : (name ? self[name] = {} : {})); })(function(exports, module) { var _esdown = {}; (function() { var exports = _esdown;
 
-var VERSION = "1.1.2";
+var VERSION = "1.1.16";
 
 var GLOBAL = (function() {
 
@@ -324,10 +324,10 @@ exports.asyncIter = asyncIterator;
 
 })();
 
-var __M; (function(a) { var list = Array(a.length / 2); __M = function(i) { var m = list[i], f, e, ee; if (typeof m !== 'function') return m.exports; f = m; m = { exports: i ? {} : exports }; f(list[i] = m, e = m.exports); ee = m.exports; if (ee && ee !== e && !('default' in ee)) ee['default'] = ee; return ee; }; for (var i = 0; i < a.length; i += 2) { var j = Math.abs(a[i]); list[j] = a[i + 1]; if (a[i] >= 0) __M(j); } })([
+var __M; (function(a) { var list = Array(a.length / 2); __M = function(i, es) { var m = list[i], f, e; if (typeof m === 'function') { f = m; m = { exports: i ? {} : exports }; f(list[i] = m, m.exports); e = m.exports; m.es = Object(e) !== e || e.constructor === Object ? e : Object.create(e, { 'default': { value: e } }); } return es ? m.es : m.exports; }; for (var i = 0; i < a.length; i += 2) { var j = Math.abs(a[i]); list[j] = a[i + 1]; if (a[i] >= 0) __M(j); } })([
 16, function(module, exports) {
 
-var OP_toString = Object.prototype.toString,
+'use strict'; var OP_toString = Object.prototype.toString,
     OP_hasOwnProperty = Object.prototype.hasOwnProperty;
 
 // Returns the internal class of an object
@@ -372,14 +372,23 @@ function equal(a, b) {
 	if (!isObject(a) || !isObject(b))
 		return a === b;
 
-	// Prototypes must be identical.  getPrototypeOf may throw on
-	// ES3 engines that don't provide access to the prototype.
+    var proto;
+
 	try {
 
-	    if (Object.getPrototypeOf(a) !== Object.getPrototypeOf(b))
+        // Prototypes must be identical.  getPrototypeOf may throw on
+    	// ES3 engines that don't provide access to the prototype.
+        proto = Object.getPrototypeOf(a);
+
+	    if (Object.getPrototypeOf(b) !== proto)
 		    return false;
 
 	} catch (err) {}
+
+    // If the value is not a "plain" object or "plain" array, then
+    // they are not "equal"
+    if (proto && proto !== Object.prototype && proto !== Array.prototype)
+        return false;
 
 	var aKeys = Object.keys(a),
 		bKeys = Object.keys(b);
@@ -447,6 +456,15 @@ var Test = _esdown.class(function(__) { var Test;
 		});
 	},
 
+    is: function(actual, expected) {
+
+        return this._assert(sameValue(actual, expected), {
+            actual: actual,
+            expected: expected,
+            method: "is"
+        });
+    },
+
 	throws: function(fn, error) {
 
 		var threw = false,
@@ -497,7 +515,7 @@ exports.Test = Test;
 },
 17, function(module, exports) {
 
-var ELEMENT_ID = "moon-unit";
+'use strict'; var ELEMENT_ID = "moon-unit";
 
 function findTarget() {
 
@@ -610,7 +628,7 @@ exports.HtmlLogger = HtmlLogger;
 },
 18, function(module, exports) {
 
-var Style = {
+'use strict'; var Style = {
 
     green: function(msg) { return "\x1B[32m" + (msg) + "\x1B[39m" },
     red: function(msg) { return "\x1B[31m" + (msg) + "\x1B[39m" },
@@ -713,8 +731,8 @@ exports.NodeLogger = NodeLogger;
 },
 15, function(module, exports) {
 
-var HtmlLogger = __M(17).HtmlLogger;
-var NodeLogger = __M(18).NodeLogger;
+'use strict'; var HtmlLogger = __M(17, 1).HtmlLogger;
+var NodeLogger = __M(18, 1).NodeLogger;
 
 var Logger = (typeof global === "object" && global.process) ?
     NodeLogger :
@@ -726,8 +744,8 @@ exports.Logger = Logger;
 },
 14, function(module, exports) {
 
-var Test = __M(16).Test;
-var Logger = __M(15).Logger;
+'use strict'; var Test = __M(16, 1).Test;
+var Logger = __M(15, 1).Logger;
 
 var TestRunner = _esdown.class(function(__) { var TestRunner;
 
@@ -802,8 +820,8 @@ exports.TestRunner = TestRunner;
 },
 12, function(module, exports) {
 
-var TestRunner = __M(14).TestRunner;
-var Logger = __M(15).Logger;
+'use strict'; var TestRunner = __M(14, 1).TestRunner;
+var Logger = __M(15, 1).Logger;
 
 function runTests(tests) {
 
@@ -819,13 +837,13 @@ exports.TestRunner = TestRunner;
 },
 1, function(module, exports) {
 
-Object.keys(__M(12)).forEach(function(k) { exports[k] = __M(12)[k]; });
+'use strict'; Object.keys(__M(12, 1)).forEach(function(k) { exports[k] = __M(12, 1)[k]; });
 
 
 },
 13, function(module, exports) {
 
-function testLength(test, value, length) {
+'use strict'; function testLength(test, value, length) {
 
     if (typeof value !== "function" || typeof length !== "number")
         return;
@@ -889,7 +907,7 @@ exports.getSymbol = getSymbol;
 },
 2, function(module, exports) {
 
-var testMethodProperty = __M(13).testMethodProperty;
+'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -937,7 +955,7 @@ exports["default"] = {
 },
 3, function(module, exports) {
 
-var testMethodProperty = __M(13).testMethodProperty;
+'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -1119,7 +1137,7 @@ exports["default"] = {
 },
 4, function(module, exports) {
 
-var testMethodProperty = __M(13).testMethodProperty;
+'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -1239,17 +1257,98 @@ exports["default"] = {
         var callCount = 0;
 
         return new Observable(function(observer) {
+
             observer.next(1);
             observer.next(2);
             observer.next(3);
+
         }).forEach(function(x) {
+
             callCount++;
             throw new Error();
+
         }).catch(function(x) {
+
             test._("The callback is not called again after throwing an error")
             .equals(callCount, 1);
         });
     },
+
+    "The callback is called in the next turn when next is called synchronously": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
+
+        var list = [];
+
+        return new Observable(function(observer) {
+
+            Promise.resolve().then(function(_) { return list.push(3); });
+            list.push(1);
+            observer.next();
+            Promise.resolve().then(function(_) { return list.push(5); });
+            list.push(2);
+            observer.complete();
+
+        }).forEach(function(x) {
+
+            list.push(4);
+
+        }).then(function(_) {
+
+            test._("The callback is called in the next turn")
+            .equals(list, [1, 2, 3, 4, 5]);
+        });
+    },
+
+    "The callback is called immediately if initialization is complete": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
+
+        var list = [];
+
+        return new Observable(function(observer) {
+
+            setTimeout(function(_) {
+                Promise.resolve().then(function(_) { return list.push(4); });
+                list.push(1);
+                observer.next();
+                list.push(3);
+                observer.complete();
+            }, 0);
+
+        }).forEach(function(x) {
+
+            list.push(2);
+
+        }).then(function(_) {
+
+            test._("The callback is called immediately")
+            .equals(list, [1, 2, 3, 4]);
+        });
+    },
+
+    "The next value is queued if the callback is executing": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
+
+        var list = [], next;
+
+        return new Observable(function(observer) {
+
+            next = observer.next.bind(observer);
+
+            setTimeout(function(_) {
+                observer.next();
+                observer.complete();
+            }, 0);
+
+        }).forEach(function(x) {
+
+            list.push(1);
+            Promise.resolve().then(function(_) { return list.push(3); });
+            next();
+            list.push(2);
+
+        }).then(function(_) {
+
+            test._("The next value is delivered in a future turn")
+            .equals(list, [1, 2, 3, 1, 2, 3]);
+        });
+    }
 
 };
 
@@ -1257,7 +1356,7 @@ exports["default"] = {
 },
 5, function(module, exports) {
 
-var testMethodProperty = __M(13).testMethodProperty, getSymbol = __M(13).getSymbol;
+'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty, getSymbol = __M(13, 1).getSymbol;
 
 exports["default"] = {
 
@@ -1284,7 +1383,7 @@ exports["default"] = {
 },
 6, function(module, exports) {
 
-var testMethodProperty = __M(13).testMethodProperty, getSymbol = __M(13).getSymbol;
+'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty, getSymbol = __M(13, 1).getSymbol;
 
 exports["default"] = {
 
@@ -1310,7 +1409,7 @@ exports["default"] = {
 },
 7, function(module, exports) {
 
-var testMethodProperty = __M(13).testMethodProperty;
+'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty;
 
 // TODO: Verify that Observable.from subscriber returns a cleanup function
 
@@ -1344,72 +1443,19 @@ exports["default"] = {
 
     "Arguments are delivered to next": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
 
-        return new Promise(function(resolve) {
+        var values = [],
+            turns = 0;
 
-            var values = [],
-                turns = 0;
+        Observable.of(1, 2, 3, 4).subscribe({
 
-            Observable.of(1, 2, 3, 4).subscribe({
+            next: function(v) {
+                values.push(v);
+            },
 
-                next: function(v) {
-                    values.push(v);
-                    Promise.resolve().then(function(_) { return turns++; });
-                },
-
-                complete: function() {
-                    test._("All items are delivered and complete is called")
-                    .equals(values, [1, 2, 3, 4]);
-                    test._("Items are delivered in a single future turn")
-                    .equals(turns, 1);
-
-                    resolve();
-                },
-            });
-
-            turns++;
-
-        });
-    },
-
-    "Responds to cancellation from next": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        return new Promise(function(resolve) {
-
-            var values = [];
-
-            var subscription = Observable.of(1, 2, 3, 4).subscribe({
-
-                next: function(v) {
-
-                    values.push(v);
-                    subscription.unsubscribe();
-                    Promise.resolve().then(function(_) {
-                        test._("Cancelling from next stops observation")
-                        .equals(values, [1]);
-                        resolve();
-                    });
-                }
-            });
-        });
-    },
-
-    "Responds to cancellation before next is called": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        return new Promise(function(resolve) {
-
-            var values = [];
-
-            var subscription = Observable.of(1, 2, 3, 4).subscribe({
-                next: function(v) { values.push(v) }
-            });
-
-            subscription.unsubscribe();
-
-            Promise.resolve().then(function(_) {
-                test._("Cancelling before next is called stops observation")
-                .equals(values, []);
-                resolve();
-            });
+            complete: function() {
+                test._("All items are delivered and complete is called")
+                .equals(values, [1, 2, 3, 4]);
+            },
         });
     },
 
@@ -1419,7 +1465,7 @@ exports["default"] = {
 },
 8, function(module, exports) {
 
-var testMethodProperty = __M(13).testMethodProperty, hasSymbol = __M(13).hasSymbol, getSymbol = __M(13).getSymbol;
+'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty, hasSymbol = __M(13, 1).hasSymbol, getSymbol = __M(13, 1).getSymbol;
 
 // TODO: Verify that Observable.from subscriber returns a cleanup function
 
@@ -1552,76 +1598,23 @@ exports["default"] = {
 
     "Iterables: values are delivered to next": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
 
-        return new Promise(function(resolve) {
+        var values = [],
+            turns = 0,
+            iterable = [1, 2, 3, 4];
 
-            var values = [],
-                turns = 0,
-                iterable = [1, 2, 3, 4];
+        if (hasSymbol("iterator"))
+            iterable = iterable[Symbol.iterator]();
 
-            if (hasSymbol("iterator"))
-                iterable = iterable[Symbol.iterator]();
+        Observable.from(iterable).subscribe({
 
-            Observable.from(iterable).subscribe({
+            next: function(v) {
+                values.push(v);
+            },
 
-                next: function(v) {
-                    values.push(v);
-                    Promise.resolve().then(function(_) { return turns++; });
-                },
-
-                complete: function() {
-                    test._("All items are delivered and complete is called")
-                    .equals(values, [1, 2, 3, 4]);
-                    test._("Items are delivered in a single future turn")
-                    .equals(turns, 1);
-
-                    resolve();
-                },
-            });
-
-            turns++;
-
-        });
-    },
-
-    "Iterables: responds to cancellation from next": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        return new Promise(function(resolve) {
-
-            var values = [];
-
-            var subscription = Observable.from([1, 2, 3, 4]).subscribe({
-
-                next: function(v) {
-
-                    values.push(v);
-                    subscription.unsubscribe();
-                    Promise.resolve().then(function(_) {
-                        test._("Cancelling from next stops observation")
-                        .equals(values, [1]);
-                        resolve();
-                    });
-                }
-            });
-        });
-    },
-
-    "Iterables: responds to cancellation before next is called": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        return new Promise(function(resolve) {
-
-            var values = [];
-
-            var subscription = Observable.from([1, 2, 3, 4]).subscribe({
-                next: function(v) { values.push(v) }
-            });
-
-            subscription.unsubscribe();
-
-            Promise.resolve().then(function(_) {
-                test._("Cancelling before next is called stops observation")
-                .equals(values, []);
-                resolve();
-            });
+            complete: function() {
+                test._("All items are delivered and complete is called")
+                .equals(values, [1, 2, 3, 4]);
+            },
         });
     },
 
@@ -1630,17 +1623,8 @@ exports["default"] = {
         var error = null;
         Observable.from({}).subscribe({ error: function(e) { error = e } });
 
-        return new Promise(function(resolve) {
-
-            setTimeout(function(_) {
-
-                test._("If argument is not iterable, then error method is called")
-                .assert(error instanceof Error);
-
-                resolve();
-
-            }, 10);
-        });
+        test._("If argument is not iterable, then error method is called")
+        .assert(error instanceof Error);
 
     },
 
@@ -1650,7 +1634,7 @@ exports["default"] = {
 },
 9, function(module, exports) {
 
-var testMethodProperty = __M(13).testMethodProperty;
+'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -1793,7 +1777,7 @@ exports["default"] = {
 },
 10, function(module, exports) {
 
-var testMethodProperty = __M(13).testMethodProperty;
+'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -1971,7 +1955,7 @@ exports["default"] = {
 },
 11, function(module, exports) {
 
-var testMethodProperty = __M(13).testMethodProperty;
+'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -2147,19 +2131,19 @@ exports["default"] = {
 },
 0, function(module, exports) {
 
-var TestRunner = __M(1).TestRunner;
+'use strict'; var TestRunner = __M(1, 1).TestRunner;
 
-var constructor = __M(2)['default'];
-var subscribe = __M(3)['default'];
-var forEach = __M(4)['default'];
-var observable = __M(5)['default'];
-var species = __M(6)['default'];
-var ofTests = __M(7)['default'];
-var fromTests = __M(8)['default'];
+var constructor = __M(2, 1)['default'];
+var subscribe = __M(3, 1)['default'];
+var forEach = __M(4, 1)['default'];
+var observable = __M(5, 1)['default'];
+var species = __M(6, 1)['default'];
+var ofTests = __M(7, 1)['default'];
+var fromTests = __M(8, 1)['default'];
 
-var observerNext = __M(9)['default'];
-var observerError = __M(10)['default'];
-var observerComplete = __M(11)['default'];
+var observerNext = __M(9, 1)['default'];
+var observerError = __M(10, 1)['default'];
+var observerComplete = __M(11, 1)['default'];
 
 
 function runTests(C) {

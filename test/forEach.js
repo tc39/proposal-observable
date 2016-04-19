@@ -118,16 +118,97 @@ export default {
         let callCount = 0;
 
         return new Observable(observer => {
+
             observer.next(1);
             observer.next(2);
             observer.next(3);
+
         }).forEach(x => {
+
             callCount++;
             throw new Error();
+
         }).catch(x => {
+
             test._("The callback is not called again after throwing an error")
             .equals(callCount, 1);
         });
     },
+
+    "The callback is called in the next turn when next is called synchronously" (test, { Observable }) {
+
+        let list = [];
+
+        return new Observable(observer => {
+
+            Promise.resolve().then(_=> list.push(3));
+            list.push(1);
+            observer.next();
+            Promise.resolve().then(_=> list.push(5));
+            list.push(2);
+            observer.complete();
+
+        }).forEach(x => {
+
+            list.push(4);
+
+        }).then(_=> {
+
+            test._("The callback is called in the next turn")
+            .equals(list, [1, 2, 3, 4, 5]);
+        });
+    },
+
+    "The callback is called immediately if initialization is complete" (test, { Observable }) {
+
+        let list = [];
+
+        return new Observable(observer => {
+
+            setTimeout(_=> {
+                Promise.resolve().then(_=> list.push(4));
+                list.push(1);
+                observer.next();
+                list.push(3);
+                observer.complete();
+            }, 0);
+
+        }).forEach(x => {
+
+            list.push(2);
+
+        }).then(_=> {
+
+            test._("The callback is called immediately")
+            .equals(list, [1, 2, 3, 4]);
+        });
+    },
+
+    "The next value is queued if the callback is executing" (test, { Observable }) {
+
+        let list = [], next;
+
+        return new Observable(observer => {
+
+            next = observer.next.bind(observer);
+
+            setTimeout(_=> {
+                observer.next();
+                observer.complete();
+            }, 0);
+
+        }).forEach(x => {
+
+            list.push(1);
+            Promise.resolve().then(_=> list.push(3));
+            next();
+            list.push(2);
+
+        }).then(_=> {
+
+            test._("The next value is delivered in a future turn")
+            .equals(list, [1, 2, 3, 1, 2, 3]);
+        });
+    }
 
 };
