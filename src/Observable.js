@@ -159,7 +159,8 @@ function Subscription(observer, subscriber) {
 }
 
 Subscription.prototype = nonEnum({
-    unsubscribe() { closeSubscription(this) }
+    get closed() { return subscriptionClosed(this) },
+    unsubscribe() { closeSubscription(this) },
 });
 
 function SubscriptionObserver(subscription) {
@@ -167,6 +168,11 @@ function SubscriptionObserver(subscription) {
 }
 
 SubscriptionObserver.prototype = nonEnum({
+
+    get closed() {
+
+        return subscriptionClosed(this._subscription);
+    },
 
     next(value) {
 
@@ -383,6 +389,8 @@ export class Observable {
 
             return new C(observer => observable.subscribe(observer));
         }
+
+        // TODO: Should we throw here if object does not have Symbol.iterator?
 
         return new C(observer => {
 

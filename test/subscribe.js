@@ -76,19 +76,32 @@ export default {
 
         let proto = Object.getPrototypeOf(subscription);
 
+        testMethodProperty(test, proto, "unsubscribe", {
+            configurable: true,
+            writable: true,
+            length: 0,
+        });
+
+        testMethodProperty(test, proto, "closed", {
+            get: true,
+            configurable: true,
+            writable: true,
+            length: 0,
+        });
+
         test
         ._("Subscribe returns an object")
         .equals(typeof subscription, "object")
-        ._("Subscriptions have an unsubscribe method")
-        .equals(typeof subscription.unsubscribe, "function")
         ._("Contructor property is Object")
         .equals(subscription.constructor, Object)
-        ._("Unsubscribe is defined on the prototype object")
-        .equals(subscription.unsubscribe, proto.unsubscribe)
+        ._("closed property returns false before unsubscription")
+        .equals(subscription.closed, false)
         ._("Unsubscribe returns undefined")
         .equals(subscription.unsubscribe(), undefined)
         ._("Unsubscribe calls the cleanup function")
         .equals(called, 1)
+        ._("closed property is true after calling unsubscribe")
+        .equals(subscription.closed, true)
         ;
     },
 
