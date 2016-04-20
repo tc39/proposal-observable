@@ -289,76 +289,34 @@ export class Observable {
             if (typeof fn !== "function")
                 throw new TypeError(fn + " is not a function");
 
-            let state = "executing",
-                queue = [];
+            let subscription, error;
 
-            function send(type, value) {
+            subscription = this.subscribe({
 
-                switch (type) {
+                next(value) {
 
-                    case "error":
-                        state = "completed";
-                        reject(value);
+                    if (error)
                         return;
 
-                    case "complete":
-                        state = "completed";
-                        resolve(value);
-                        return;
-                }
+                    try {
 
-                try {
+                        return fn(value);
 
-                    state = "executing";
-                    fn(value);
+                    } catch (err) {
 
-                    if (queue.length === 0)
-                        state = "ready";
+                        reject(error = err);
 
-                } catch (err) {
+                        if (subscription)
+                            subscription.unsubscribe();
+                    }
+                },
 
-                    state = "completed";
-                    subscription.unsubscribe();
-                    reject(err);
-                }
-            }
-
-            function enqueue(type, value) {
-
-                if (state === "completed")
-                    return;
-
-                if (state === "ready")
-                    return send(type, value);
-
-                // Assert: state === "executing"
-                if (queue.length === 0)
-                    Promise.resolve().then(flush);
-
-                queue.push({ type, value });
-            }
-
-            function flush() {
-
-                let list = queue;
-                queue = [];
-
-                for (let entry of list) {
-
-                    send(entry.type, entry.value);
-
-                    if (state === "completed")
-                        return;
-                }
-            }
-
-            let subscription = this.subscribe({
-                next(x) { enqueue("next", x) },
-                error(x) { enqueue("error", x) },
-                complete(x) { enqueue("complete", x) },
+                error: reject,
+                complete: resolve,
             });
 
-            state = "ready";
+            if (error)
+                subscription.unsubscribe();
         });
     }
 
