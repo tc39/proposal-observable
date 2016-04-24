@@ -21,10 +21,10 @@
       1. Let _constructor_ be ? Get(_observable_, `"constructor"`).
       1. If SameValue(_constructor_, _C_) is *true*, return _observable_.
       1. Let _subscriber_ be a new built-in function object as defined in Observable.from Delegating Functions.
-      1. Set the value of the [[Observable]] internal slot of _subscriber_ to _observable_.
+      1. Set _subscriber_'s [[Observable]] internal slot to _observable_.
     1. Else,
       1. Let _subscriber_ be a new built-in function object as defined in Observable.from Iteration Functions.
-      1. Set the value of the [[Items]] internal slot of _subscriber_ to _x_.
+      1. Set _subscriber_'s [[Items]] internal slot to _x_.
     1. Return Construct(_C_, « ‍_subscriber_ »).
   </emu-alg>
 
@@ -52,56 +52,30 @@
 
     <emu-alg>
       1. Let _items_ be the value of the [[Items]] internal slot of _F_.
-      1. Let _cleanup_ be a new built-in function object as defined in Subscriber Closed Functions.
-      1. Set the value of the [[SubscriptionClosed]] internal slot of _cleanup_ to *false*.
-      1. Perform EnqueueJob(`"PromiseJobs"`, ObservableFromJob, « ‍_observer_, _items_, _cleanup_ »).
-      1. Return _cleanup_.
-    </emu-alg>
-
-    <p>The `length` property of an Observable.from iteration function is `1`.</p>
-  </emu-clause>
-
-  <emu-clause id="observable-subscriber-closed-functions">
-    <h1>Subscriber Closed Functions</h1>
-
-    <p>A subscriber closed function is an anonymous built-in function that has a [[SubscriptionClosed]] internal slot.</p>
-
-    <p>When a subscriber closed function is called the following steps are taken:</p>
-
-    <emu-alg>
-      1. Set the value of the [[SubscriptionClosed]] internal slot of _F_ to *true*.
-      1. Return *undefined*.
-    </emu-alg>
-
-    <p>The `length` property of a subscriber closed function is `0`.</p>
-  </emu-clause>
-
-  <emu-clause id="observable-from-job">
-    <h1>ObservableFromJob ( _observer_, _items_, _cleanupFunction_ )</h1>
-    <emu-alg>
-      1. If the value of the [[SubscriptionClosed]] internal slot of _cleanupFunction_ is *true*, then
-        1. NextJob *undefined*.
-      1. Let _iterator_ be GetIterator(_observer_).
+      1. Let _iterator_ be GetIterator(_items_).
       1. If _iterator_ is an abrupt completion, then
-        1. NextJob Invoke(_observer_, `"error"`, «‍ _iterator_.[[value]] »).
+        1. Perform ? Invoke(_observer_, `"error"`, «‍ _iterator_.[[value]] »).
+        1. Return *undefined*.
       1. Let _iterator_ be _iterator.[[value]].
       1. Repeat
         1. Let _next_ be IteratorStep(_iterator_).
         1. If _next_ is an abrupt completion, then
-          1. NextJob Invoke(_observer_, `"error"`, « ‍_next_.[[value]] »).
+          1. Perform ? Invoke(_observer_, `"error"`, «‍ _next_.[[value]] »).
+          1. Return *undefined*.
         1. Let _next_ be _next_.[[value]].
         1. If _next_ is *false*, then
-          1. NextJob Invoke(_observer_, `"complete"`, «‍ »).
+          1. Perform ? Invoke(_observer_, `"complete"`, «‍ »).
         1. Let _nextValue_ be IteratorValue(_next_).
         1. If _nextValue_ is an abrupt completion, then
-          1. NextJob Invoke(_observer_, `"error"`, «‍ _nextValue_.[[value]] »).
+          1. Perform ? Invoke(_observer_, `"error"`, «‍ _nextValue_.[[value]] »).
+          1. Return *undefined*.
         1. Let _nextValue_ be _nextValue_.[[value]].
         1. Let _result_ be Invoke(_observer_, `"next"`, « ‍_nextValue_ »).
         1. If _result_ in an abrupt completion, then
-          1. NextJob IteratorClose(_iterator_, _result_).
-        1. If the value of the [[SubscriptionClosed]] internal slot of _cleanupFunction_ is *true*, then
-          1. NextJob *undefined*.
+          1. Return ? IteratorClose(_iterator_, _result_).
     </emu-alg>
+
+    <p>The `length` property of an Observable.from iteration function is `1`.</p>
   </emu-clause>
 
 </emu-clause>
@@ -113,7 +87,7 @@
     1. Let _C_ be the *this* value.
     1. If IsConstructor(C) is *false*, let _C_ be %Observable%.
     1. Let _subscriber_ be a new built-in function object as defined in Observable.of Subscriber Functions.
-    1. Set the value of the [[Items]] internal slot of _subscriber_ to _items_.
+    1. Set _subscriber_'s [[Items]] internal slot to _items_.
     1. Return Construct(_C_, « ‍_subscriber_ »).
   </emu-alg>
 
@@ -126,29 +100,13 @@
 
     <emu-alg>
       1. Let _items_ be the value of the [[Items]] internal slot of _F_.
-      1. Let _cleanup_ be a new built-in function object as defined in Subscriber Closed Functions.
-      1. Set the value of the [[SubscriptionClosed]] internal slot of _cleanup_ to *false*.
-      1. Perform EnqueueJob(`"PromiseJobs"`, ObservableOfJob, «‍ _observer_, _items_, _cleanup_ »).
-      1. Return _cleanup_.
+      1. For each element _value_ of _items_
+        1. Perform ? Invoke(_observer_, `"next"`, « ‍_value_ »).
+      1. Perform ? Invoke(_observer_, `"complete"`, «‍ »).
+      1. Return *undefined*.
     </emu-alg>
 
     <p>The `length` property of an Observable.of subscriber function is `1`.</p>
-  </emu-clause>
-
-  <emu-clause id="observable-of-job">
-    <h1>ObservableOfJob ( _observer_, _items_, _cleanupFunction_ )</h1>
-
-    <emu-alg>
-      1. If the value of the [[SubscriptionClosed]] internal slot of _cleanupFunction_ is *true*, then
-        1. NextJob *undefined*.
-      1. For each element _value_ of _items_
-        1. Let _nextResult_ be Invoke(_observer_, `"next"`, « ‍_value_ »).
-        1. If _nextResult_ is an abrupt completion, then
-          1. NextJob _nextResult_.
-        1. If the value of the [[SubscriptionClosed]] internal slot of _cleanupFunction_ is *true*, then
-          1. NextJob *undefined*.
-      1. NextJob Invoke(_observer_, `"complete"`, «‍ »).
-    </emu-alg>
   </emu-clause>
 
 </emu-clause>

@@ -289,13 +289,14 @@ export class Observable {
             if (typeof fn !== "function")
                 throw new TypeError(fn + " is not a function");
 
-            let subscription, error;
+            let threwError = false,
+                subscription;
 
             subscription = this.subscribe({
 
                 next(value) {
 
-                    if (error)
+                    if (threwError)
                         return;
 
                     try {
@@ -304,10 +305,9 @@ export class Observable {
 
                     } catch (err) {
 
-                        reject(error = err);
-
-                        if (subscription)
-                            subscription.unsubscribe();
+                        threwError = true;
+                        reject(err);
+                        subscription.unsubscribe();
                     }
                 },
 
@@ -315,7 +315,7 @@ export class Observable {
                 complete: resolve,
             });
 
-            if (error)
+            if (threwError)
                 subscription.unsubscribe();
         });
     }
