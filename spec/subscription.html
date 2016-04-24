@@ -50,6 +50,16 @@
 
   <p>All Subscription objects inherit properties from the %SubscriptionPrototype% intrinsic object.  The %SubscriptionPrototype% object is an ordinary object and its [[Prototype]] internal slot is the %ObjectPrototype% intrinsic object. In addition, %SubscriptionPrototype% has the following properties:</p>
 
+  <emu-clause id="subscription-prototype-closed">
+    <h1>get %SubscriptionPrototype%.closed</h1>
+    <emu-alg>
+      1. Let _subscription_ be the *this* value.
+      1. If Type(_subscription_) is not Object, throw a *TypeError* exception.
+      1. If _subscription_ does not have all of the internal slots of a Subscription instance, throw a *TypeError* exception.
+      1. Return ! SubscriptionClosed(_subscription_).
+    </emu-alg>
+  </emu-clause>
+
   <emu-clause id="subscription-prototype-unsubscribe">
     <h1>%SubscriptionPrototype%.unsubscribe ( )</h1>
     <emu-alg>
