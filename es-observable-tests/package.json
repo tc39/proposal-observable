@@ -1,9 +1,9 @@
 {
-    "name": "es-observable-tests",
-    "version": "0.2.8",
-    "description": "Unit tests for es-observable",
-    "repository": {
-        "type": "git",
-        "url": "git://github.com/zenparsing/es-observable"
-    }
+  "name": "es-observable-tests",
+  "version": "0.2.8",
+  "description": "Unit tests for es-observable",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/zenparsing/es-observable"
+  }
 }

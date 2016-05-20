@@ -126,6 +126,16 @@ function Subscription(observer, subscriber) {
     this._cleanup = undefined;
     this._observer = observer;
 
+    let start = getMethod(observer, "start");
+
+    // If the observer has a start method, call it with the subscription object
+    if (start)
+        start.call(observer, this);
+
+    // If the observer has unsubscribed from the start method, exit
+    if (subscriptionClosed(this))
+        return;
+
     observer = new SubscriptionObserver(this);
 
     try {
@@ -289,14 +299,15 @@ export class Observable {
             if (typeof fn !== "function")
                 throw new TypeError(fn + " is not a function");
 
-            let threwError = false,
-                subscription;
+            this.subscribe({
 
-            subscription = this.subscribe({
+                _subscription: null,
+
+                start(subscription) { this._subscription = subscription },
 
                 next(value) {
 
-                    if (threwError)
+                    if (this._subscription.closed)
                         return;
 
                     try {
@@ -305,18 +316,14 @@ export class Observable {
 
                     } catch (err) {
 
-                        threwError = true;
                         reject(err);
-                        subscription.unsubscribe();
+                        this._subscription.unsubscribe();
                     }
                 },
 
                 error: reject,
                 complete: resolve,
             });
-
-            if (threwError)
-                subscription.unsubscribe();
         });
     }
 
@@ -356,8 +363,13 @@ export class Observable {
             // will receive an error.
             try {
 
-                for (let item of x)
+                for (let item of x) {
+
                     observer.next(item);
+
+                    if (observer.closed)
+                        return;
+                }
 
             } catch (e) {
 
@@ -375,8 +387,13 @@ export class Observable {
 
         return new C(observer => {
 
-            for (let i = 0; i < items.length; ++i)
+            for (let i = 0; i < items.length; ++i) {
+
                 observer.next(items[i]);
+
+                if (observer.closed)
+                    return;
+            }
 
             observer.complete();
         });

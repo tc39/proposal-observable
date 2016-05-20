@@ -372,23 +372,14 @@ function equal(a, b) {
 	if (!isObject(a) || !isObject(b))
 		return a === b;
 
-    var proto;
-
+	// Prototypes must be identical.  getPrototypeOf may throw on
+	// ES3 engines that don't provide access to the prototype.
 	try {
 
-        // Prototypes must be identical.  getPrototypeOf may throw on
-    	// ES3 engines that don't provide access to the prototype.
-        proto = Object.getPrototypeOf(a);
-
-	    if (Object.getPrototypeOf(b) !== proto)
+	    if (Object.getPrototypeOf(a) !== Object.getPrototypeOf(b))
 		    return false;
 
 	} catch (err) {}
-
-    // If the value is not a "plain" object or "plain" array, then
-    // they are not "equal"
-    if (proto && proto !== Object.prototype && proto !== Array.prototype)
-        return false;
 
 	var aKeys = Object.keys(a),
 		bKeys = Object.keys(b);
@@ -455,15 +446,6 @@ var Test = _esdown.class(function(__) { var Test;
 			method: "equal"
 		});
 	},
-
-    is: function(actual, expected) {
-
-        return this._assert(sameValue(actual, expected), {
-            actual: actual,
-            expected: expected,
-            method: "is"
-        });
-    },
 
 	throws: function(fn, error) {
 
@@ -1142,6 +1124,55 @@ exports["default"] = {
 
         test._("Subscribe sends an error to the observer")
         .equals(thrown, error);
+    },
+
+    "Start method": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
+
+        var events = [];
+
+        var observable = new Observable(function(observer) {
+            events.push("subscriber");
+            observer.complete();
+        });
+
+        var observer = {
+
+            startCalls: 0,
+            thisValue: null,
+            subscription: null,
+
+            start: function(subscription) {
+                events.push("start");
+                observer.startCalls++;
+                observer.thisValue = this;
+                observer.subscription = subscription;
+            }
+        }
+
+        var subscription = observable.subscribe(observer);
+
+        test._("If the observer has a start method, it is called")
+        .equals(observer.startCalls, 1)
+        ._("Start is called with the observer as the this value")
+        .equals(observer.thisValue, observer)
+        ._("Start is called with the subscription as the first argument")
+        .equals(observer.subscription, subscription)
+        ._("Start is called before the subscriber function is called")
+        .equals(events, ["start", "subscriber"]);
+
+        events = [];
+
+        observer = {
+            start: function(subscription) {
+                events.push("start");
+                subscription.unsubscribe();
+            }
+        };
+
+        subscription = observable.subscribe(observer);
+
+        test._("If unsubscribe is called from start, the subscriber is not called")
+        .equals(events, ["start"]);
     },
 
 };

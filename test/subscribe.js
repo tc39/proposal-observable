@@ -187,4 +187,53 @@ export default {
         .equals(thrown, error);
     },
 
+    "Start method" (test, { Observable }) {
+
+        let events = [];
+
+        let observable = new Observable(observer => {
+            events.push("subscriber");
+            observer.complete();
+        });
+
+        let observer = {
+
+            startCalls: 0,
+            thisValue: null,
+            subscription: null,
+
+            start(subscription) {
+                events.push("start");
+                observer.startCalls++;
+                observer.thisValue = this;
+                observer.subscription = subscription;
+            }
+        }
+
+        let subscription = observable.subscribe(observer);
+
+        test._("If the observer has a start method, it is called")
+        .equals(observer.startCalls, 1)
+        ._("Start is called with the observer as the this value")
+        .equals(observer.thisValue, observer)
+        ._("Start is called with the subscription as the first argument")
+        .equals(observer.subscription, subscription)
+        ._("Start is called before the subscriber function is called")
+        .equals(events, ["start", "subscriber"]);
+
+        events = [];
+
+        observer = {
+            start(subscription) {
+                events.push("start");
+                subscription.unsubscribe();
+            }
+        };
+
+        subscription = observable.subscribe(observer);
+
+        test._("If unsubscribe is called from start, the subscriber is not called")
+        .equals(events, ["start"]);
+    },
+
 };
