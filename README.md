@@ -144,6 +144,9 @@ interface Subscription {
 
     // Cancels the subscription
     unsubscribe() : void;
+
+    // A boolean value indicating whether the subscription is closed
+    get closed() : Boolean
 }
 
 function SubscriberFunction(observer: SubscriptionObserver) : (void => void)|Subscription;
@@ -152,7 +155,7 @@ function SubscriberFunction(observer: SubscriptionObserver) : (void => void)|Sub
 #### Observable.of ####
 
 `Observable.of` creates an Observable of the values provided as arguments.  The values
-are delivered asynchronously, in a future turn of the event loop.
+are delivered synchronously when `subscribe` is called.
 
 ```js
 Observable.of("red", "green", "blue").subscribe({
@@ -176,7 +179,7 @@ Observable.of("red", "green", "blue").subscribe({
   invoking that method.  If the resulting object is not an instance of Observable,
   then it is wrapped in an Observable which will delegate subscription.
 - Otherwise, the argument is assumed to be an iterable and the iteration values are
-  delivered asynchronously in a future turn of the event loop.
+  delivered synchronously when `subscribe` is called.
 
 Converting from an object which supports `Symbol.observable` to an Observable:
 
@@ -233,6 +236,9 @@ All methods are optional.
 ```js
 interface Observer {
 
+    // Receives the subscription object when `subscribe` is called
+    start(subscription : Subscription);
+
     // Receives the next value in the sequence
     next(value);
 
@@ -260,5 +266,8 @@ interface SubscriptionObserver {
 
     // Sends the sequence completion value
     complete(completeValue);
+
+    // A boolean value indicating whether the subscription is closed
+    get closed() : Boolean
 }
 ```
