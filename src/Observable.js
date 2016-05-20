@@ -361,20 +361,12 @@ export class Observable {
 
             // Assume that the object is iterable.  If not, then the observer
             // will receive an error.
-            try {
+            for (let item of x) {
 
-                for (let item of x) {
+                observer.next(item);
 
-                    observer.next(item);
-
-                    if (observer.closed)
-                        return;
-                }
-
-            } catch (e) {
-
-                observer.error(e);
-                return;
+                if (observer.closed)
+                    return;
             }
 
             observer.complete();
