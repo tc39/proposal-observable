@@ -325,7 +325,7 @@ exports.asyncIter = asyncIterator;
 })();
 
 var __M; (function(a) { var list = Array(a.length / 2); __M = function(i, es) { var m = list[i], f, e; if (typeof m === 'function') { f = m; m = { exports: i ? {} : exports }; f(list[i] = m, m.exports); e = m.exports; m.es = Object(e) !== e || e.constructor === Object ? e : Object.create(e, { 'default': { value: e } }); } return es ? m.es : m.exports; }; for (var i = 0; i < a.length; i += 2) { var j = Math.abs(a[i]); list[j] = a[i + 1]; if (a[i] >= 0) __M(j); } })([
-17, function(module, exports) {
+19, function(module, exports) {
 
 'use strict'; var OP_toString = Object.prototype.toString,
     OP_hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -495,7 +495,7 @@ exports.Test = Test;
 
 
 },
-18, function(module, exports) {
+17, function(module, exports) {
 
 'use strict'; var ELEMENT_ID = "moon-unit";
 
@@ -608,7 +608,7 @@ exports.HtmlLogger = HtmlLogger;
 
 
 },
-19, function(module, exports) {
+18, function(module, exports) {
 
 'use strict'; var Style = {
 
@@ -713,8 +713,8 @@ exports.NodeLogger = NodeLogger;
 },
 16, function(module, exports) {
 
-'use strict'; var HtmlLogger = __M(18, 1).HtmlLogger;
-var NodeLogger = __M(19, 1).NodeLogger;
+'use strict'; var HtmlLogger = __M(17, 1).HtmlLogger;
+var NodeLogger = __M(18, 1).NodeLogger;
 
 var Logger = (typeof global === "object" && global.process) ?
     NodeLogger :
@@ -726,7 +726,7 @@ exports.Logger = Logger;
 },
 15, function(module, exports) {
 
-'use strict'; var Test = __M(17, 1).Test;
+'use strict'; var Test = __M(19, 1).Test;
 var Logger = __M(16, 1).Logger;
 
 var TestRunner = _esdown.class(function(__) { var TestRunner;
@@ -1493,10 +1493,8 @@ exports["default"] = {
         ._("Symbol.observable must be a function")
         .throws(function(_) { return Observable.from(_esdown.computed({ }, getSymbol("observable"), { _: {} })); }, TypeError)
         .throws(function(_) { return Observable.from(_esdown.computed({ }, getSymbol("observable"), { _: 0 })); }, TypeError)
-        ._("Null is allowed")
-        .not().throws(function(_) { return Observable.from(_esdown.computed({ }, getSymbol("observable"), { _: null })); })
-        ._("Undefined is allowed")
-        .not().throws(function(_) { return Observable.from(_esdown.computed({ }, getSymbol("observable"), { _: undefined })); })
+        .throws(function(_) { return Observable.from(_esdown.computed({ }, getSymbol("observable"), { _: null })); }, TypeError)
+        .throws(function(_) { return Observable.from(_esdown.computed({ }, getSymbol("observable"), { _: undefined })); }, TypeError)
         ;
 
         called = 0;
@@ -1586,13 +1584,10 @@ exports["default"] = {
         });
     },
 
-    "Non-iterables result in a catchable error": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
+    "Non-convertibles throw": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
 
-        var error = null;
-        Observable.from({}).subscribe({ error: function(e) { error = e } });
-
-        test._("If argument is not iterable, then error method is called")
-        .assert(error instanceof Error);
+        test._("If argument is not observable or iterable, subscribe throws")
+        .throws(function(_) { return Observable.from({}).subscribe({}); }, TypeError);
 
     },
 

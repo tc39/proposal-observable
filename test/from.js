@@ -58,10 +58,8 @@ export default {
         ._("Symbol.observable must be a function")
         .throws(_=> Observable.from({ [getSymbol("observable")]: {} }), TypeError)
         .throws(_=> Observable.from({ [getSymbol("observable")]: 0 }), TypeError)
-        ._("Null is allowed")
-        .not().throws(_=> Observable.from({ [getSymbol("observable")]: null }))
-        ._("Undefined is allowed")
-        .not().throws(_=> Observable.from({ [getSymbol("observable")]: undefined }))
+        .throws(_=> Observable.from({ [getSymbol("observable")]: null }), TypeError)
+        .throws(_=> Observable.from({ [getSymbol("observable")]: undefined }), TypeError)
         ;
 
         called = 0;
@@ -151,13 +149,10 @@ export default {
         });
     },
 
-    "Non-iterables result in a catchable error" (test, { Observable }) {
+    "Non-convertibles throw" (test, { Observable }) {
 
-        let error = null;
-        Observable.from({}).subscribe({ error(e) { error = e } });
-
-        test._("If argument is not iterable, then error method is called")
-        .assert(error instanceof Error);
+        test._("If argument is not observable or iterable, subscribe throws")
+        .throws(_=> Observable.from({}).subscribe({}), TypeError);
 
     },
 

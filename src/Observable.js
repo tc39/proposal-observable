@@ -363,13 +363,14 @@ export class Observable {
             return new C(observer => observable.subscribe(observer));
         }
 
-        // TODO: Should we throw here if object does not have Symbol.iterator?
+        method = getMethod(x, Symbol.iterator);
+
+        if (!method)
+            throw new TypeError(x + " is not observable");
 
         return new C(observer => {
 
-            // Assume that the object is iterable.  If not, then the observer
-            // will receive an error.
-            for (let item of x) {
+            for (let item of method.call(x)) {
 
                 observer.next(item);
 
