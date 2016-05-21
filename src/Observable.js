@@ -303,11 +303,19 @@ export class Observable {
 
                 _subscription: null,
 
-                start(subscription) { this._subscription = subscription },
+                start(subscription) {
+
+                    if (Object(subscription) !== subscription)
+                        throw new TypeError(subscription + " is not an object");
+
+                    this._subscription = subscription;
+                },
 
                 next(value) {
 
-                    if (this._subscription.closed)
+                    let subscription = this._subscription;
+
+                    if (subscription.closed)
                         return;
 
                     try {
@@ -317,7 +325,7 @@ export class Observable {
                     } catch (err) {
 
                         reject(err);
-                        this._subscription.unsubscribe();
+                        subscription.unsubscribe();
                     }
                 },
 
