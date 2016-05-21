@@ -30,6 +30,8 @@ export default {
         ;
     },
 
+    // TODO: Add tests for function arguments
+
     "Subscriber arguments" (test, { Observable }) {
 
         let observer = null;
