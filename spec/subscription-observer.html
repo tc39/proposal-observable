@@ -20,15 +20,26 @@
 
   <p>All Subscription Observer objects inherit properties from the %SubscriptionObserverPrototype% intrinsic object.  The %SubscriptionObserverPrototype% object is an ordinary object and its [[Prototype]] internal slot is the %ObjectPrototype% intrinsic object. In addition, %SubscriptionObserverPrototype% has the following properties:</p>
 
+  <emu-clause id="subscription-observer-prototype-closed">
+    <h1>get %SubscriptionObserverPrototype%.closed</h1>
+    <emu-alg>
+      1. Let _O_ be the *this* value.
+      1. If Type(_O_) is not Object, throw a *TypeError* exception.
+      1. If _O_ does not have all of the internal slots of a Subscription Observer instance, throw a *TypeError* exception.
+      1. Let _subscription_ be the value of _O_'s [[Subscription]] internal.
+      1. Return ! SubscriptionClosed(_subscription_).
+    </emu-alg>
+  </emu-clause>
+
   <emu-clause id="subscription-observer-prototype-next">
     <h1>%SubscriptionObserverPrototype%.next ( _value_ )</h1>
     <emu-alg>
       1. Let _O_ be the *this* value.
       1. If Type(_O_) is not Object, throw a *TypeError* exception.
       1. If _O_ does not have all of the internal slots of a Subscription Observer instance, throw a *TypeError* exception.
-      1. Let _subscription_ be the value of the [[Subscription]] internal slot of _O_.
+      1. Let _subscription_ be the value of _O_'s [[Subscription]] internal slot.
       1. If SubscriptionClosed(_subscription_) is *true*, return *undefined*.
-      1. Let _observer_ be the value of the [[Observer]] internal slot of _subscription_.
+      1. Let _observer_ be the value of _subscription_'s [[Observer]] internal slot.
       1. Assert: Type(_observer_) is Object.
       1. Let _result_ be GetMethod(_observer_, `"next"`).
       1. If _result_ is not an abrupt completion, then
@@ -47,11 +58,11 @@
       1. Let _O_ be the *this* value.
       1. If Type(_O_) is not Object, throw a *TypeError* exception.
       1. If _O_ does not have all of the internal slots of a Subscription Observer instance, throw a *TypeError* exception.
-      1. Let _subscription_ be the value of the [[Subscription]] internal slot of _O_.
+      1. Let _subscription_ be the value of _O_'s [[Subscription]] internal slot.
       1. If SubscriptionClosed(_subscription_) is *true*, return Completion{[[type]]: ~throw~, [[value]]: _exception_, [[target]]: ~empty~}.
-      1. Let _observer_ be the value of the [[Observer]] internal slot of _subscription_.
+      1. Let _observer_ be the value of _subscription_'s [[Observer]] internal slot.
       1. Assert: Type(_observer_) is Object.
-      1. Set the value of the [[Observer]] internal slot of _subscription_ to *undefined*.
+      1. Set _subscription_'s [[Observer]] internal slot to *undefined*.
       1. Let _result_ be GetMethod(_observer_, `"error"`).
       1. If _result_ is not an abrupt completion, then
         1. Let _errorMethod_ be _result_.[[value]].
@@ -68,11 +79,11 @@
       1. Let _O_ be the *this* value.
       1. If Type(_O_) is not Object, throw a *TypeError* exception.
       1. If _O_ does not have all of the internal slots of a Subscription Observer instance, throw a *TypeError* exception.
-      1. Let _subscription_ be the value of the [[Subscription]] internal slot of _O_.
+      1. Let _subscription_ be the value of _O_'s [[Subscription]] internal slot.
       1. If SubscriptionClosed(_subscription_) is *true*, return *undefined*.
-      1. Let _observer_ be the value of the [[Observer]] internal slot of _subscription_.
+      1. Let _observer_ be the value of _subscription_'s [[Observer]] internal slot.
       1. Assert: Type(_observer_) is Object.
-      1. Set the value of the [[Observer]] internal slot of _subscription_ to *undefined*.
+      1. Set _subscription_'s [[Observer]] internal slot to *undefined*.
       1. Let _result_ be GetMethod(_observer_, `"complete"`).
       1. If _result_ is not an abrupt completion, then
         1. Let _completeMethod_ be _result_.[[value]].

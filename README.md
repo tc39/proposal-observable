@@ -22,7 +22,7 @@ function listen(element, eventName) {
         element.addEventListener(eventName, handler, true);
 
         // Return a function which will cancel the event stream
-        return _ => {
+        return () => {
             // Detach the event handler from the element
             element.removeEventListener(eventName, handler, true);
         };
@@ -79,7 +79,7 @@ Observable.of(1, 2, 3, 4, 5)
     .map(n => n * n)
     .filter(n => n > 10)
     .forEach(n => console.log(n))
-    .then(_ => console.log("All done!"));
+    .then(() => console.log("All done!"));
 ```
 
 ### Motivation ###
@@ -135,15 +135,15 @@ interface Observable {
     // Converts an observable or iterable to an Observable
     static from(observable) : Observable;
 
-    // Subclassing support
-    static get [Symbol.species]() : Constructor;
-
 }
 
 interface Subscription {
 
     // Cancels the subscription
     unsubscribe() : void;
+
+    // A boolean value indicating whether the subscription is closed
+    get closed() : Boolean
 }
 
 function SubscriberFunction(observer: SubscriptionObserver) : (void => void)|Subscription;
@@ -152,7 +152,7 @@ function SubscriberFunction(observer: SubscriptionObserver) : (void => void)|Sub
 #### Observable.of ####
 
 `Observable.of` creates an Observable of the values provided as arguments.  The values
-are delivered asynchronously, in a future turn of the event loop.
+are delivered synchronously when `subscribe` is called.
 
 ```js
 Observable.of("red", "green", "blue").subscribe({
@@ -176,7 +176,7 @@ Observable.of("red", "green", "blue").subscribe({
   invoking that method.  If the resulting object is not an instance of Observable,
   then it is wrapped in an Observable which will delegate subscription.
 - Otherwise, the argument is assumed to be an iterable and the iteration values are
-  delivered asynchronously in a future turn of the event loop.
+  delivered synchronously when `subscribe` is called.
 
 Converting from an object which supports `Symbol.observable` to an Observable:
 
@@ -184,7 +184,7 @@ Converting from an object which supports `Symbol.observable` to an Observable:
 Observable.from({
     [Symbol.observable]() {
         return new Observable(observer => {
-            setTimeout(_=> {
+            setTimeout(() => {
                 observer.next("hello");
                 observer.next("world");
                 observer.complete();
@@ -233,6 +233,9 @@ All methods are optional.
 ```js
 interface Observer {
 
+    // Receives the subscription object when `subscribe` is called
+    start(subscription : Subscription);
+
     // Receives the next value in the sequence
     next(value);
 
@@ -246,7 +249,7 @@ interface Observer {
 
 #### SubscriptionObserver ####
 
-A SubscriptionObserver is a normalized Observer which wraps the observer supplied to
+A SubscriptionObserver is a normalized Observer which wraps the observer object supplied to
 **subscribe**.
 
 ```js
@@ -260,5 +263,8 @@ interface SubscriptionObserver {
 
     // Sends the sequence completion value
     complete(completeValue);
+
+    // A boolean value indicating whether the subscription is closed
+    get closed() : Boolean
 }
 ```

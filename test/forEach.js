@@ -118,13 +118,18 @@ export default {
         let callCount = 0;
 
         return new Observable(observer => {
+
             observer.next(1);
             observer.next(2);
             observer.next(3);
+
         }).forEach(x => {
+
             callCount++;
             throw new Error();
+
         }).catch(x => {
+
             test._("The callback is not called again after throwing an error")
             .equals(callCount, 1);
         });

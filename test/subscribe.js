@@ -30,6 +30,8 @@ export default {
         ;
     },
 
+    // TODO: Add tests for function arguments
+
     "Subscriber arguments" (test, { Observable }) {
 
         let observer = null;
@@ -76,19 +78,32 @@ export default {
 
         let proto = Object.getPrototypeOf(subscription);
 
+        testMethodProperty(test, proto, "unsubscribe", {
+            configurable: true,
+            writable: true,
+            length: 0,
+        });
+
+        testMethodProperty(test, proto, "closed", {
+            get: true,
+            configurable: true,
+            writable: true,
+            length: 0,
+        });
+
         test
         ._("Subscribe returns an object")
         .equals(typeof subscription, "object")
-        ._("Subscriptions have an unsubscribe method")
-        .equals(typeof subscription.unsubscribe, "function")
         ._("Contructor property is Object")
         .equals(subscription.constructor, Object)
-        ._("Unsubscribe is defined on the prototype object")
-        .equals(subscription.unsubscribe, proto.unsubscribe)
+        ._("closed property returns false before unsubscription")
+        .equals(subscription.closed, false)
         ._("Unsubscribe returns undefined")
         .equals(subscription.unsubscribe(), undefined)
         ._("Unsubscribe calls the cleanup function")
         .equals(called, 1)
+        ._("closed property is true after calling unsubscribe")
+        .equals(subscription.closed, true)
         ;
     },
 
@@ -172,6 +187,55 @@ export default {
 
         test._("Subscribe sends an error to the observer")
         .equals(thrown, error);
+    },
+
+    "Start method" (test, { Observable }) {
+
+        let events = [];
+
+        let observable = new Observable(observer => {
+            events.push("subscriber");
+            observer.complete();
+        });
+
+        let observer = {
+
+            startCalls: 0,
+            thisValue: null,
+            subscription: null,
+
+            start(subscription) {
+                events.push("start");
+                observer.startCalls++;
+                observer.thisValue = this;
+                observer.subscription = subscription;
+            }
+        }
+
+        let subscription = observable.subscribe(observer);
+
+        test._("If the observer has a start method, it is called")
+        .equals(observer.startCalls, 1)
+        ._("Start is called with the observer as the this value")
+        .equals(observer.thisValue, observer)
+        ._("Start is called with the subscription as the first argument")
+        .equals(observer.subscription, subscription)
+        ._("Start is called before the subscriber function is called")
+        .equals(events, ["start", "subscriber"]);
+
+        events = [];
+
+        observer = {
+            start(subscription) {
+                events.push("start");
+                subscription.unsubscribe();
+            }
+        };
+
+        subscription = observable.subscribe(observer);
+
+        test._("If unsubscribe is called from start, the subscriber is not called")
+        .equals(events, ["start"]);
     },
 
 };

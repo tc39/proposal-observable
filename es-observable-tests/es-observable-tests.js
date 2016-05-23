@@ -1,6 +1,6 @@
-/*=esdown=*/(function(fn, name) { if (typeof exports !== 'undefined') fn(exports, module); else if (typeof self !== 'undefined') fn(name === '*' ? self : (name ? self[name] = {} : {})); })(function(exports, module) { 'use strict'; var _esdown = {}; (function() { var exports = _esdown;
+(function(fn, name) { if (typeof exports !== 'undefined') fn(exports, module); else if (typeof self !== 'undefined') fn(name === '*' ? self : (name ? self[name] = {} : {})); })(function(exports, module) { var _esdown = {}; (function() { var exports = _esdown;
 
-var VERSION = "1.1.2";
+var VERSION = "1.1.16";
 
 var GLOBAL = (function() {
 
@@ -324,10 +324,10 @@ exports.asyncIter = asyncIterator;
 
 })();
 
-var __M; (function(a) { var list = Array(a.length / 2); __M = function(i) { var m = list[i], f, e, ee; if (typeof m !== 'function') return m.exports; f = m; m = { exports: i ? {} : exports }; f(list[i] = m, e = m.exports); ee = m.exports; if (ee && ee !== e && !('default' in ee)) ee['default'] = ee; return ee; }; for (var i = 0; i < a.length; i += 2) { var j = Math.abs(a[i]); list[j] = a[i + 1]; if (a[i] >= 0) __M(j); } })([
+var __M; (function(a) { var list = Array(a.length / 2); __M = function(i, es) { var m = list[i], f, e; if (typeof m === 'function') { f = m; m = { exports: i ? {} : exports }; f(list[i] = m, m.exports); e = m.exports; m.es = Object(e) !== e || e.constructor === Object ? e : Object.create(e, { 'default': { value: e } }); } return es ? m.es : m.exports; }; for (var i = 0; i < a.length; i += 2) { var j = Math.abs(a[i]); list[j] = a[i + 1]; if (a[i] >= 0) __M(j); } })([
 16, function(module, exports) {
 
-var OP_toString = Object.prototype.toString,
+'use strict'; var OP_toString = Object.prototype.toString,
     OP_hasOwnProperty = Object.prototype.hasOwnProperty;
 
 // Returns the internal class of an object
@@ -497,7 +497,7 @@ exports.Test = Test;
 },
 17, function(module, exports) {
 
-var ELEMENT_ID = "moon-unit";
+'use strict'; var ELEMENT_ID = "moon-unit";
 
 function findTarget() {
 
@@ -610,7 +610,7 @@ exports.HtmlLogger = HtmlLogger;
 },
 18, function(module, exports) {
 
-var Style = {
+'use strict'; var Style = {
 
     green: function(msg) { return "\x1B[32m" + (msg) + "\x1B[39m" },
     red: function(msg) { return "\x1B[31m" + (msg) + "\x1B[39m" },
@@ -713,8 +713,8 @@ exports.NodeLogger = NodeLogger;
 },
 15, function(module, exports) {
 
-var HtmlLogger = __M(17).HtmlLogger;
-var NodeLogger = __M(18).NodeLogger;
+'use strict'; var HtmlLogger = __M(17, 1).HtmlLogger;
+var NodeLogger = __M(18, 1).NodeLogger;
 
 var Logger = (typeof global === "object" && global.process) ?
     NodeLogger :
@@ -726,8 +726,8 @@ exports.Logger = Logger;
 },
 14, function(module, exports) {
 
-var Test = __M(16).Test;
-var Logger = __M(15).Logger;
+'use strict'; var Test = __M(16, 1).Test;
+var Logger = __M(15, 1).Logger;
 
 var TestRunner = _esdown.class(function(__) { var TestRunner;
 
@@ -802,8 +802,8 @@ exports.TestRunner = TestRunner;
 },
 12, function(module, exports) {
 
-var TestRunner = __M(14).TestRunner;
-var Logger = __M(15).Logger;
+'use strict'; var TestRunner = __M(14, 1).TestRunner;
+var Logger = __M(15, 1).Logger;
 
 function runTests(tests) {
 
@@ -819,13 +819,13 @@ exports.TestRunner = TestRunner;
 },
 1, function(module, exports) {
 
-Object.keys(__M(12)).forEach(function(k) { exports[k] = __M(12)[k]; });
+'use strict'; Object.keys(__M(12, 1)).forEach(function(k) { exports[k] = __M(12, 1)[k]; });
 
 
 },
 13, function(module, exports) {
 
-function testLength(test, value, length) {
+'use strict'; function testLength(test, value, length) {
 
     if (typeof value !== "function" || typeof length !== "number")
         return;
@@ -889,7 +889,7 @@ exports.getSymbol = getSymbol;
 },
 2, function(module, exports) {
 
-var testMethodProperty = __M(13).testMethodProperty;
+'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -937,7 +937,7 @@ exports["default"] = {
 },
 3, function(module, exports) {
 
-var testMethodProperty = __M(13).testMethodProperty;
+'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -968,6 +968,8 @@ exports["default"] = {
         .not().throws(function(_) { return x.subscribe(function() {}); })
         ;
     },
+
+    // TODO: Add tests for function arguments
 
     "Subscriber arguments": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
 
@@ -1015,19 +1017,32 @@ exports["default"] = {
 
         var proto = Object.getPrototypeOf(subscription);
 
+        testMethodProperty(test, proto, "unsubscribe", {
+            configurable: true,
+            writable: true,
+            length: 0,
+        });
+
+        testMethodProperty(test, proto, "closed", {
+            get: true,
+            configurable: true,
+            writable: true,
+            length: 0,
+        });
+
         test
         ._("Subscribe returns an object")
         .equals(typeof subscription, "object")
-        ._("Subscriptions have an unsubscribe method")
-        .equals(typeof subscription.unsubscribe, "function")
         ._("Contructor property is Object")
         .equals(subscription.constructor, Object)
-        ._("Unsubscribe is defined on the prototype object")
-        .equals(subscription.unsubscribe, proto.unsubscribe)
+        ._("closed property returns false before unsubscription")
+        .equals(subscription.closed, false)
         ._("Unsubscribe returns undefined")
         .equals(subscription.unsubscribe(), undefined)
         ._("Unsubscribe calls the cleanup function")
         .equals(called, 1)
+        ._("closed property is true after calling unsubscribe")
+        .equals(subscription.closed, true)
         ;
     },
 
@@ -1113,13 +1128,62 @@ exports["default"] = {
         .equals(thrown, error);
     },
 
+    "Start method": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
+
+        var events = [];
+
+        var observable = new Observable(function(observer) {
+            events.push("subscriber");
+            observer.complete();
+        });
+
+        var observer = {
+
+            startCalls: 0,
+            thisValue: null,
+            subscription: null,
+
+            start: function(subscription) {
+                events.push("start");
+                observer.startCalls++;
+                observer.thisValue = this;
+                observer.subscription = subscription;
+            }
+        }
+
+        var subscription = observable.subscribe(observer);
+
+        test._("If the observer has a start method, it is called")
+        .equals(observer.startCalls, 1)
+        ._("Start is called with the observer as the this value")
+        .equals(observer.thisValue, observer)
+        ._("Start is called with the subscription as the first argument")
+        .equals(observer.subscription, subscription)
+        ._("Start is called before the subscriber function is called")
+        .equals(events, ["start", "subscriber"]);
+
+        events = [];
+
+        observer = {
+            start: function(subscription) {
+                events.push("start");
+                subscription.unsubscribe();
+            }
+        };
+
+        subscription = observable.subscribe(observer);
+
+        test._("If unsubscribe is called from start, the subscriber is not called")
+        .equals(events, ["start"]);
+    },
+
 };
 
 
 },
 4, function(module, exports) {
 
-var testMethodProperty = __M(13).testMethodProperty;
+'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -1239,13 +1303,18 @@ exports["default"] = {
         var callCount = 0;
 
         return new Observable(function(observer) {
+
             observer.next(1);
             observer.next(2);
             observer.next(3);
+
         }).forEach(function(x) {
+
             callCount++;
             throw new Error();
+
         }).catch(function(x) {
+
             test._("The callback is not called again after throwing an error")
             .equals(callCount, 1);
         });
@@ -1257,7 +1326,7 @@ exports["default"] = {
 },
 5, function(module, exports) {
 
-var testMethodProperty = __M(13).testMethodProperty, getSymbol = __M(13).getSymbol;
+'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty, getSymbol = __M(13, 1).getSymbol;
 
 exports["default"] = {
 
@@ -1284,33 +1353,7 @@ exports["default"] = {
 },
 6, function(module, exports) {
 
-var testMethodProperty = __M(13).testMethodProperty, getSymbol = __M(13).getSymbol;
-
-exports["default"] = {
-
-    "Observable has a species method": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        testMethodProperty(test, Observable, getSymbol("species"), {
-            get: true,
-            configurable: true
-        });
-    },
-
-    "Return value": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        var desc = Object.getOwnPropertyDescriptor(Observable, getSymbol("species")),
-            thisVal = {};
-
-        test._("Returns the 'this' value").equals(desc.get.call(thisVal), thisVal);
-    }
-
-};
-
-
-},
-7, function(module, exports) {
-
-var testMethodProperty = __M(13).testMethodProperty;
+'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty;
 
 // TODO: Verify that Observable.from subscriber returns a cleanup function
 
@@ -1344,72 +1387,19 @@ exports["default"] = {
 
     "Arguments are delivered to next": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
 
-        return new Promise(function(resolve) {
+        var values = [],
+            turns = 0;
 
-            var values = [],
-                turns = 0;
+        Observable.of(1, 2, 3, 4).subscribe({
 
-            Observable.of(1, 2, 3, 4).subscribe({
+            next: function(v) {
+                values.push(v);
+            },
 
-                next: function(v) {
-                    values.push(v);
-                    Promise.resolve().then(function(_) { return turns++; });
-                },
-
-                complete: function() {
-                    test._("All items are delivered and complete is called")
-                    .equals(values, [1, 2, 3, 4]);
-                    test._("Items are delivered in a single future turn")
-                    .equals(turns, 1);
-
-                    resolve();
-                },
-            });
-
-            turns++;
-
-        });
-    },
-
-    "Responds to cancellation from next": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        return new Promise(function(resolve) {
-
-            var values = [];
-
-            var subscription = Observable.of(1, 2, 3, 4).subscribe({
-
-                next: function(v) {
-
-                    values.push(v);
-                    subscription.unsubscribe();
-                    Promise.resolve().then(function(_) {
-                        test._("Cancelling from next stops observation")
-                        .equals(values, [1]);
-                        resolve();
-                    });
-                }
-            });
-        });
-    },
-
-    "Responds to cancellation before next is called": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        return new Promise(function(resolve) {
-
-            var values = [];
-
-            var subscription = Observable.of(1, 2, 3, 4).subscribe({
-                next: function(v) { values.push(v) }
-            });
-
-            subscription.unsubscribe();
-
-            Promise.resolve().then(function(_) {
-                test._("Cancelling before next is called stops observation")
-                .equals(values, []);
-                resolve();
-            });
+            complete: function() {
+                test._("All items are delivered and complete is called")
+                .equals(values, [1, 2, 3, 4]);
+            },
         });
     },
 
@@ -1417,9 +1407,9 @@ exports["default"] = {
 
 
 },
-8, function(module, exports) {
+7, function(module, exports) {
 
-var testMethodProperty = __M(13).testMethodProperty, hasSymbol = __M(13).hasSymbol, getSymbol = __M(13).getSymbol;
+'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty, hasSymbol = __M(13, 1).hasSymbol, getSymbol = __M(13, 1).getSymbol;
 
 // TODO: Verify that Observable.from subscriber returns a cleanup function
 
@@ -1479,10 +1469,8 @@ exports["default"] = {
         ._("Symbol.observable must be a function")
         .throws(function(_) { return Observable.from(_esdown.computed({ }, getSymbol("observable"), { _: {} })); }, TypeError)
         .throws(function(_) { return Observable.from(_esdown.computed({ }, getSymbol("observable"), { _: 0 })); }, TypeError)
-        ._("Null is allowed")
-        .not().throws(function(_) { return Observable.from(_esdown.computed({ }, getSymbol("observable"), { _: null })); })
-        ._("Undefined is allowed")
-        .not().throws(function(_) { return Observable.from(_esdown.computed({ }, getSymbol("observable"), { _: undefined })); })
+        .throws(function(_) { return Observable.from(_esdown.computed({ }, getSymbol("observable"), { _: null })); }, TypeError)
+        .throws(function(_) { return Observable.from(_esdown.computed({ }, getSymbol("observable"), { _: undefined })); }, TypeError)
         ;
 
         called = 0;
@@ -1552,95 +1540,30 @@ exports["default"] = {
 
     "Iterables: values are delivered to next": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
 
-        return new Promise(function(resolve) {
+        var values = [],
+            turns = 0,
+            iterable = [1, 2, 3, 4];
 
-            var values = [],
-                turns = 0,
-                iterable = [1, 2, 3, 4];
+        if (hasSymbol("iterator"))
+            iterable = iterable[Symbol.iterator]();
 
-            if (hasSymbol("iterator"))
-                iterable = iterable[Symbol.iterator]();
+        Observable.from(iterable).subscribe({
 
-            Observable.from(iterable).subscribe({
+            next: function(v) {
+                values.push(v);
+            },
 
-                next: function(v) {
-                    values.push(v);
-                    Promise.resolve().then(function(_) { return turns++; });
-                },
-
-                complete: function() {
-                    test._("All items are delivered and complete is called")
-                    .equals(values, [1, 2, 3, 4]);
-                    test._("Items are delivered in a single future turn")
-                    .equals(turns, 1);
-
-                    resolve();
-                },
-            });
-
-            turns++;
-
+            complete: function() {
+                test._("All items are delivered and complete is called")
+                .equals(values, [1, 2, 3, 4]);
+            },
         });
     },
 
-    "Iterables: responds to cancellation from next": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
+    "Non-convertibles throw": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
 
-        return new Promise(function(resolve) {
-
-            var values = [];
-
-            var subscription = Observable.from([1, 2, 3, 4]).subscribe({
-
-                next: function(v) {
-
-                    values.push(v);
-                    subscription.unsubscribe();
-                    Promise.resolve().then(function(_) {
-                        test._("Cancelling from next stops observation")
-                        .equals(values, [1]);
-                        resolve();
-                    });
-                }
-            });
-        });
-    },
-
-    "Iterables: responds to cancellation before next is called": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        return new Promise(function(resolve) {
-
-            var values = [];
-
-            var subscription = Observable.from([1, 2, 3, 4]).subscribe({
-                next: function(v) { values.push(v) }
-            });
-
-            subscription.unsubscribe();
-
-            Promise.resolve().then(function(_) {
-                test._("Cancelling before next is called stops observation")
-                .equals(values, []);
-                resolve();
-            });
-        });
-    },
-
-    "Non-iterables result in a catchable error": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        var error = null;
-        Observable.from({}).subscribe({ error: function(e) { error = e } });
-
-        return new Promise(function(resolve) {
-
-            setTimeout(function(_) {
-
-                test._("If argument is not iterable, then error method is called")
-                .assert(error instanceof Error);
-
-                resolve();
-
-            }, 10);
-        });
+        test._("If argument is not observable or iterable, subscribe throws")
+        .throws(function(_) { return Observable.from({}).subscribe({}); }, TypeError);
 
     },
 
@@ -1648,9 +1571,9 @@ exports["default"] = {
 
 
 },
-9, function(module, exports) {
+8, function(module, exports) {
 
-var testMethodProperty = __M(13).testMethodProperty;
+'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -1791,9 +1714,9 @@ exports["default"] = {
 
 
 },
-10, function(module, exports) {
+9, function(module, exports) {
 
-var testMethodProperty = __M(13).testMethodProperty;
+'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -1969,9 +1892,9 @@ exports["default"] = {
 
 
 },
-11, function(module, exports) {
+10, function(module, exports) {
 
-var testMethodProperty = __M(13).testMethodProperty;
+'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -2145,21 +2068,71 @@ exports["default"] = {
 
 
 },
+11, function(module, exports) {
+
+'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty;
+
+exports["default"] = {
+
+    "SubscriptionObserver.prototype has a closed getter": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
+
+        var observer;
+        new Observable(function(x) { observer = x }).subscribe({});
+
+        testMethodProperty(test, Object.getPrototypeOf(observer), "closed", {
+            get: true,
+            configurable: true,
+            writable: true,
+            length: 1
+        });
+    },
+
+    "Returns false when the subscription is active": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
+        new Observable(function(observer) {
+            test._("Returns false when the subscription is active")
+            .equals(observer.closed, false);
+        }).subscribe({});
+    },
+
+    "Returns true when the subscription is closed": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
+        new Observable(function(observer) {
+            observer.complete();
+            test._("Returns true after complete is called")
+            .equals(observer.closed, true);
+        }).subscribe({});
+
+        new Observable(function(observer) {
+            observer.error(1);
+            test._("Returns true after error is called")
+            .equals(observer.closed, true);
+        }).subscribe({ error: function() {} });
+
+        var observer;
+
+        new Observable(function(x) { observer = x }).subscribe({}).unsubscribe();
+        test._("Returns true after unsubscribe is called")
+        .equals(observer.closed, true);
+    },
+
+};
+
+
+},
 0, function(module, exports) {
 
-var TestRunner = __M(1).TestRunner;
+'use strict'; var TestRunner = __M(1, 1).TestRunner;
 
-var constructor = __M(2)['default'];
-var subscribe = __M(3)['default'];
-var forEach = __M(4)['default'];
-var observable = __M(5)['default'];
-var species = __M(6)['default'];
-var ofTests = __M(7)['default'];
-var fromTests = __M(8)['default'];
+var constructor = __M(2, 1)['default'];
+var subscribe = __M(3, 1)['default'];
+var forEach = __M(4, 1)['default'];
+var observable = __M(5, 1)['default'];
+var ofTests = __M(6, 1)['default'];
+var fromTests = __M(7, 1)['default'];
 
-var observerNext = __M(9)['default'];
-var observerError = __M(10)['default'];
-var observerComplete = __M(11)['default'];
+var observerNext = __M(8, 1)['default'];
+var observerError = __M(9, 1)['default'];
+var observerComplete = __M(10, 1)['default'];
+var observerClosed = __M(11, 1)['default'];
 
 
 function runTests(C) {
@@ -2174,11 +2147,11 @@ function runTests(C) {
 
         "Observable.of": ofTests,
         "Observable.from": fromTests,
-        "Observable[Symbol.species]": species,
 
         "SubscriptionObserver.prototype.next": observerNext,
         "SubscriptionObserver.prototype.error": observerError,
         "SubscriptionObserver.prototype.complete": observerComplete,
+        "SubscriptionObserver.prototype.closed": observerClosed,
 
     });
 }

@@ -126,6 +126,16 @@ function Subscription(observer, subscriber) {
     this._cleanup = undefined;
     this._observer = observer;
 
+    let start = getMethod(observer, "start");
+
+    // If the observer has a start method, call it with the subscription object
+    if (start)
+        start.call(observer, this);
+
+    // If the observer has unsubscribed from the start method, exit
+    if (subscriptionClosed(this))
+        return;
+
     observer = new SubscriptionObserver(this);
 
     try {
@@ -147,7 +157,8 @@ function Subscription(observer, subscriber) {
     } catch (e) {
 
         // If an error occurs during startup, then attempt to send the error
-        // to the observer
+        // to the observer.  If the subscription is already closed, then the
+        // error will be rethrown.
         observer.error(e);
         return;
     }
@@ -158,7 +169,8 @@ function Subscription(observer, subscriber) {
 }
 
 Subscription.prototype = nonEnum({
-    unsubscribe() { closeSubscription(this) }
+    get closed() { return subscriptionClosed(this) },
+    unsubscribe() { closeSubscription(this) },
 });
 
 function SubscriptionObserver(subscription) {
@@ -166,6 +178,11 @@ function SubscriptionObserver(subscription) {
 }
 
 SubscriptionObserver.prototype = nonEnum({
+
+    get closed() {
+
+        return subscriptionClosed(this._subscription);
+    },
 
     next(value) {
 
@@ -270,7 +287,18 @@ export class Observable {
         this._subscriber = subscriber;
     }
 
-    subscribe(observer) {
+    subscribe(observer, ...args) {
+
+        /*
+        if (typeof observer === "function") {
+
+            observer = {
+                next: observer,
+                error: args[0],
+                complete: args[1]
+            };
+        }
+        */
 
         return new Subscription(observer, this._subscriber);
     }
@@ -282,19 +310,32 @@ export class Observable {
             if (typeof fn !== "function")
                 throw new TypeError(fn + " is not a function");
 
-            let subscription;
+            this.subscribe({
 
-            subscription = this.subscribe({
+                _subscription: null,
+
+                start(subscription) {
+
+                    if (Object(subscription) !== subscription)
+                        throw new TypeError(subscription + " is not an object");
+
+                    this._subscription = subscription;
+                },
 
                 next(value) {
+
+                    let subscription = this._subscription;
+
+                    if (subscription.closed)
+                        return;
 
                     try {
 
                         return fn(value);
 
-                    } catch (e) {
+                    } catch (err) {
 
-                        reject(e);
+                        reject(err);
                         subscription.unsubscribe();
                     }
                 },
@@ -306,8 +347,6 @@ export class Observable {
     }
 
     [Symbol.observable]() { return this }
-
-    static get [Symbol.species]() { return this }
 
     // == Derived ==
 
@@ -333,42 +372,22 @@ export class Observable {
             return new C(observer => observable.subscribe(observer));
         }
 
-        // TODO: Should we check for a Symbol.iterator method here?
+        method = getMethod(x, Symbol.iterator);
+
+        if (!method)
+            throw new TypeError(x + " is not observable");
 
         return new C(observer => {
 
-            let done = false;
+            for (let item of method.call(x)) {
 
-            enqueueJob(_=> {
+                observer.next(item);
 
-                if (done)
+                if (observer.closed)
                     return;
+            }
 
-                // Assume that the object is iterable.  If not, then the observer
-                // will receive an error.
-                try {
-
-                    for (let item of x) {
-
-                        observer.next(item);
-
-                        if (done)
-                            return;
-                    }
-
-                } catch (e) {
-
-                    if (done)
-                        throw e;
-
-                    observer.error(e);
-                    return;
-                }
-
-                observer.complete();
-            });
-
-            return _=> { done = true };
+            observer.complete();
         });
     }
 
@@ -378,25 +397,15 @@ export class Observable {
 
         return new C(observer => {
 
-            let done = false;
+            for (let i = 0; i < items.length; ++i) {
 
-            enqueueJob(_=> {
+                observer.next(items[i]);
 
-                if (done)
+                if (observer.closed)
                     return;
+            }
 
-                for (let i = 0; i < items.length; ++i) {
-
-                    observer.next(items[i]);
-
-                    if (done)
-                        return;
-                }
-
-                observer.complete();
-            });
-
-            return _=> { done = true };
+            observer.complete();
         });
     }
 

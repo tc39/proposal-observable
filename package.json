@@ -1,0 +1,7 @@
+{
+  "name": "es-observable",
+  "private": true,
+  "devDependencies": {
+    "moon-unit": "^0.2.1"
+  }
+}

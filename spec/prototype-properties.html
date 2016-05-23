@@ -11,6 +11,11 @@
     1. If _O_ does not have an [[Subscriber]] internal slot, throw a *TypeError* exception.
     1. If Type(_observer_) is not Object, throw a *TypeError* exception.
     1. Let _subscription_ be ? CreateSubscription(_observer_).
+    1. Let _start_ be ? GetMethod(_observer_, `"start"`).
+    1. If _start_ is not **undefined**, then
+      1. Perform ? Call(_start_, _observer_, « _subscription_ »).
+      1. If SubscriptionClosed(_subscription_) is *true*, then
+        1. Return *undefined*.
     1. Let _subscriptionObserver_ be ? CreateSubscriptionObserver(_subscription_).
     1. Let _subscriber_ be the value of _O's_ [[Subscriber]] internal slot.
     1. Assert: IsCallable(_subscriber_) is *true*.
@@ -38,8 +43,8 @@
       1. Let _result_ be ? GetMethod(_subscriberResult_, `"unsubscribe"`).
       1. If _result_ is *undefined*, throw a *TypeError* exception.
       1. Let _cleanupFunction_ be a new built-in function object as defined in Subscription Cleanup Functions.
-      1. Set the [[Subscription]] internal slot of _cancelFunction_ to _subscriberResult_.
-      1. Return _cancelFunction_.
+      1. Set _cleanupFunction_'s [[Subscription]] internal slot to _subscriberResult_.
+      1. Return _cleanupFunction_.
     </emu-alg>
   </emu-clause>
 
@@ -52,7 +57,7 @@
 
     <emu-alg>
       1. Assert: _F_ as a [[Subscription]] internal slot whose value is an Object.
-      1. Let _subscription_ be the value of the [[Subscription]] internal slot of _F_.
+      1. Let _subscription_ be the value of _F_'s [[Subscription]] internal slot.
       1. Return Invoke(_subscription_, `"unsubscribe"`, « ‍»).
     </emu-alg>
 
@@ -78,36 +83,58 @@
       1. Let _r_ be a new *TypeError* exception.
       1. Let _rejectResult_ be ! Call(_promiseCapability_.[[Reject]], « _r_ »).
       1. Return _promiseCapability_.[[Promise]].
-    1. Let _observer_ be ObjectCreate(%ObjectPrototype%).
-    1. Let _next_ be a new built-in function object as defined in Observable.prototype.forEach Next Functions.
-    1. Set the [[CallbackFn]] internal slot of _next_ to _callbackFn_.
-    1. Set the [[Reject]] internal slot of _next_ to _promiseCapability_.[[Reject]].
-    1. Set the [[Subscription]] internal slot of _next_ to *undefined*.
-    1. Perform CreateDataProperty(_observer_, `"next"`, _next_).
-    1. Perform CreateDataProperty(_observer_, `"error"`, _promiseCapability_.[[Reject]]).
-    1. Perform CreateDataProperty(_observer_, `"complete"`, _promiseCapability_.[[Resolve]]).
+    1. Let _observer_ be ObjectCreate(%ObjectPrototype%, «‍ [[Subscription]], [[CallbackFn]], [[PromiseCapability]] »).
+    1. Set _observer_'s [[CallbackFn]] internal slot to _callbackFn_.
+    1. Set _observer_'s [[PromiseCapability]] internal slot to _promiseCapability_.
+    1. Set _observer_'s [[Subscription]] internal slot to *undefined*.
+    1. Let _start_ be a new built-in function object as defined in ForEachObserver `start`.
+    1. Let _next_ be a new built-in function object as defined in ForEachObserver `next`.
+    1. Perform CreateMethodProperty(_observer_, `"start"`, _start_).
+    1. Perform CreateMethodProperty(_observer_, `"next"`, _next_).
+    1. Perform CreateMethodProperty(_observer_, `"error"`, _promiseCapability_.[[Reject]]).
+    1. Perform CreateMethodProperty(_observer_, `"complete"`, _promiseCapability_.[[Resolve]]).
+    1. TODO: Make it so that methods on this object are non-transferrable?
+    1. TODO: Wrap resolve/reject on this object so that they are non-transferrable?
     1. Let _subscription_ be Invoke(_O_, `"subscribe"`, «‍ _observer_ »).
     1. IfAbruptRejectPromise(_subscription_, _promiseCapability_).
-    1. Set the [[Subscription]] internal slot of _next_ to _subscription_.
     1. Return _promiseCapability_.[[Promise]].
   </emu-alg>
 
   <p>The `length` property of the `forEach` method is `1`.</p>
 
-  <emu-clause id="observable-prototype-foreach-next-functions">
-    <h1>Observable.prototype.forEach Next Functions</h1>
+  <emu-clause id="foreachobserver-start">
+    <h1>ForEachObserver start( _subscription_ )</h1>
 
-    <p>An Observable.prototype.forEach next function is an anonymous built-in function that is used to process each element of an observable sequence when _forEach_ is invoked. Each Observable.prototype.forEach next function has [[CallbackFn]], [[Reject]] and [[Subscription]] internal slots.</p>
-
-    <p>When an Observable.prototype.forEach next function _F_ is called with argument _x_, the following steps are taken:</p>
+    <p>The ForEachObserver `start` method is a standard built-in function object (clause <emu-xref href="#sec-ecmascript-standard-built-in-objects"></emu-xref>) that performs the following steps:</p>
 
     <emu-alg>
-      1. Let _callbackFn_ be the value of the [[CallbackFn]] internal slot of _F_.
-      1. Let _result_ be Call(_callbackFn_, `undefined`, «‍ _x_ »).
+      1. Let _O_ be the *this* value.
+      1. TODO: Assert the other internal slots?
+      1. If _O_ does not have a [[Subscription]] internal slot, throw a *TypeError* exception.
+      1. If Type(_subscription_) is not Object, throw a *TypeError* exception.
+      1. Set _O_'s [[Subscription]] internal slot to _subscription_.
+      1. Return *undefined*.
+    </emu-alg>
+  </emu-clause>
+
+  <emu-clause id="foreachobserver-next">
+    <h1>ForEachObserver next ( _value_ )</h1>
+
+    <p>The ForEachObserver `start` method is a standard built-in function object (clause <emu-xref href="#sec-ecmascript-standard-built-in-objects"></emu-xref>) that performs the following steps:</p>
+
+    <emu-alg>
+      1. Let _O_ be the *this* value.
+      1. TODO: Assert the other internal slots?
+      1. If _O_ does not have a [[Subscription]] internal slot, throw a *TypeError* exception.
+      1. Let _subscription_ be the value of _O_'s [[Subscription]] internal slot.
+      1. Let _closed_ be ToBoolean(? Get(_observer_, `"closed"`)).
+      1. If _closed_ is *true*, then
+        1. Return *undefined*.
+      1. Let _callbackFn_ be the value of _O_'s [[CallbackFn]] internal slot.
+      1. Let _promiseCapability_ be the value of _O_'s [[PromiseCapability]] internal slot.
+      1. Let _result_ be Call(_callbackFn_, `undefined`, «‍ _value_ »).
       1. If _result_ is an abrupt completion, then
-        1. Let _promiseReject_ be the value of the [[Reject]] internal slot of _F_.
-        1. Let _rejectResult_ be ! Call(_promiseReject_, `undefined`, « _result_.[[value]] »).
-        1. Let _subscription_ be _F_'s [[Subscription]] internal slot.
+        1. Perform ! Call(_reject_, `undefined`, « _result_.[[value]] »).
         1. Perform ? Invoke(_subscription_, `"unsubscribe"`, «‍ »).
         1. Return *undefined*.
       1. Return Completion(_result_).

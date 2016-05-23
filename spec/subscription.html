@@ -9,22 +9,8 @@
     <emu-alg>
       1. Assert: Type(_observer_) is Object.
       1. Let _subscription_ be ObjectCreate(%SubscriptionPrototype%, «‍ [[Observer]], [[Cleanup]] »).
-      1. Set _subscription's_ [[Observer]] internal slot to _observer_.
-      1. Set _subscription's_ [[Cleanup]] internal slot to *undefined*.
-      1. Return _subscription_.
-    </emu-alg>
-  </emu-clause>
-
-  <emu-clause id="create-subscription" aoid="CreateSubscription">
-    <h1>CreateSubscription ( _observer_ )</h1>
-
-    <p>The abstract operation CreateSubscription with argument _observer_ is used to create a Subscription object.  It performs the following steps:</p>
-
-    <emu-alg>
-      1. Assert: Type(_observer_) is Object.
-      1. Let _subscription_ be ObjectCreate(%SubscriptionPrototype%, «‍ [[Observer]], [[Cleanup]] »).
-      1. Set _subscription's_ [[Observer]] internal slot to _observer_.
-      1. Set _subscription's_ [[Cleanup]] internal slot to *undefined*.
+      1. Set _subscription_'s [[Observer]] internal slot to _observer_.
+      1. Set _subscription_'s [[Cleanup]] internal slot to *undefined*.
       1. Return _subscription_.
     </emu-alg>
   </emu-clause>
@@ -36,10 +22,10 @@
 
     <emu-alg>
       1. Assert: _subscription_ is a Subscription object.
-      1. Let _cleanup_ be the value of the [[Cleanup]] internal slot of _subscription_.
+      1. Let _cleanup_ be the value of _subscription_'s [[Cleanup]] internal slot.
       1. If _cleanup_ is *undefined*, return *undefined*.
       1. Assert: IsCallable(_cleanup_) is *true*.
-      1. Set the value of the [[Cleanup]] internal slot of _subscription_ to *undefined*.
+      1. Set _subscription_'s [[Cleanup]] internal slot to *undefined*.
       1. Perform ? Call(_cleanup_, *undefined*, «‍ »).
       1. Return *undefined*.
     </emu-alg>
@@ -52,7 +38,7 @@
 
     <emu-alg>
       1. Assert: _subscription_ is a Subscription object.
-      1. If the value of the [[Observer]] internal slot of _subscription_ is *undefined*, return *true*.
+      1. If the value of _subscription_'s [[Observer]] internal slot is *undefined*, return *true*.
       1. Else, return *false*.
     </emu-alg>
   </emu-clause>
@@ -64,6 +50,16 @@
 
   <p>All Subscription objects inherit properties from the %SubscriptionPrototype% intrinsic object.  The %SubscriptionPrototype% object is an ordinary object and its [[Prototype]] internal slot is the %ObjectPrototype% intrinsic object. In addition, %SubscriptionPrototype% has the following properties:</p>
 
+  <emu-clause id="subscription-prototype-closed">
+    <h1>get %SubscriptionPrototype%.closed</h1>
+    <emu-alg>
+      1. Let _subscription_ be the *this* value.
+      1. If Type(_subscription_) is not Object, throw a *TypeError* exception.
+      1. If _subscription_ does not have all of the internal slots of a Subscription instance, throw a *TypeError* exception.
+      1. Return ! SubscriptionClosed(_subscription_).
+    </emu-alg>
+  </emu-clause>
+
   <emu-clause id="subscription-prototype-unsubscribe">
     <h1>%SubscriptionPrototype%.unsubscribe ( )</h1>
     <emu-alg>
@@ -71,7 +67,7 @@
       1. If Type(_subscription_) is not Object, throw a *TypeError* exception.
       1. If _subscription_ does not have all of the internal slots of a Subscription instance, throw a *TypeError* exception.
       1. If SubscriptionClosed(_subscription_) is *true*, return *undefined*.
-      1. Set the value of the [[Observer]] internal slot of _subscription_ to *undefined*.
+      1. Set _subscription_'s [[Observer]] internal slot to *undefined*.
       1. Return CleanupSubscription(_subscription_).
     </emu-alg>
   </emu-clause>
