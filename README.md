@@ -249,7 +249,7 @@ interface Observer {
 
 #### SubscriptionObserver ####
 
-A SubscriptionObserver is a normalized Observer which wraps the observer supplied to
+A SubscriptionObserver is a normalized Observer which wraps the observer object supplied to
 **subscribe**.
 
 ```js
