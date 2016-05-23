@@ -22,7 +22,7 @@ function listen(element, eventName) {
         element.addEventListener(eventName, handler, true);
 
         // Return a function which will cancel the event stream
-        return _ => {
+        return () => {
             // Detach the event handler from the element
             element.removeEventListener(eventName, handler, true);
         };
@@ -79,7 +79,7 @@ Observable.of(1, 2, 3, 4, 5)
     .map(n => n * n)
     .filter(n => n > 10)
     .forEach(n => console.log(n))
-    .then(_ => console.log("All done!"));
+    .then(() => console.log("All done!"));
 ```
 
 ### Motivation ###
@@ -187,7 +187,7 @@ Converting from an object which supports `Symbol.observable` to an Observable:
 Observable.from({
     [Symbol.observable]() {
         return new Observable(observer => {
-            setTimeout(_=> {
+            setTimeout(() => {
                 observer.next("hello");
                 observer.next("world");
                 observer.complete();
