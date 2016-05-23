@@ -289,6 +289,7 @@ export class Observable {
 
     subscribe(observer, ...args) {
 
+        /*
         if (typeof observer === "function") {
 
             observer = {
@@ -297,6 +298,7 @@ export class Observable {
                 complete: args[1]
             };
         }
+        */
 
         return new Subscription(observer, this._subscriber);
     }
@@ -345,8 +347,6 @@ export class Observable {
     }
 
     [Symbol.observable]() { return this }
-
-    static get [Symbol.species]() { return this }
 
     // == Derived ==
 

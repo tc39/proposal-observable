@@ -135,9 +135,6 @@ interface Observable {
     // Converts an observable or iterable to an Observable
     static from(observable) : Observable;
 
-    // Subclassing support
-    static get [Symbol.species]() : Constructor;
-
 }
 
 interface Subscription {

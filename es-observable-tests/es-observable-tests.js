@@ -325,7 +325,7 @@ exports.asyncIter = asyncIterator;
 })();
 
 var __M; (function(a) { var list = Array(a.length / 2); __M = function(i, es) { var m = list[i], f, e; if (typeof m === 'function') { f = m; m = { exports: i ? {} : exports }; f(list[i] = m, m.exports); e = m.exports; m.es = Object(e) !== e || e.constructor === Object ? e : Object.create(e, { 'default': { value: e } }); } return es ? m.es : m.exports; }; for (var i = 0; i < a.length; i += 2) { var j = Math.abs(a[i]); list[j] = a[i + 1]; if (a[i] >= 0) __M(j); } })([
-19, function(module, exports) {
+16, function(module, exports) {
 
 'use strict'; var OP_toString = Object.prototype.toString,
     OP_hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -711,7 +711,7 @@ exports.NodeLogger = NodeLogger;
 
 
 },
-16, function(module, exports) {
+15, function(module, exports) {
 
 'use strict'; var HtmlLogger = __M(17, 1).HtmlLogger;
 var NodeLogger = __M(18, 1).NodeLogger;
@@ -724,10 +724,10 @@ exports.Logger = Logger;
 
 
 },
-15, function(module, exports) {
+14, function(module, exports) {
 
-'use strict'; var Test = __M(19, 1).Test;
-var Logger = __M(16, 1).Logger;
+'use strict'; var Test = __M(16, 1).Test;
+var Logger = __M(15, 1).Logger;
 
 var TestRunner = _esdown.class(function(__) { var TestRunner;
 
@@ -800,10 +800,10 @@ exports.TestRunner = TestRunner;
 
 
 },
-13, function(module, exports) {
+12, function(module, exports) {
 
-'use strict'; var TestRunner = __M(15, 1).TestRunner;
-var Logger = __M(16, 1).Logger;
+'use strict'; var TestRunner = __M(14, 1).TestRunner;
+var Logger = __M(15, 1).Logger;
 
 function runTests(tests) {
 
@@ -819,11 +819,11 @@ exports.TestRunner = TestRunner;
 },
 1, function(module, exports) {
 
-'use strict'; Object.keys(__M(13, 1)).forEach(function(k) { exports[k] = __M(13, 1)[k]; });
+'use strict'; Object.keys(__M(12, 1)).forEach(function(k) { exports[k] = __M(12, 1)[k]; });
 
 
 },
-14, function(module, exports) {
+13, function(module, exports) {
 
 'use strict'; function testLength(test, value, length) {
 
@@ -889,7 +889,7 @@ exports.getSymbol = getSymbol;
 },
 2, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(14, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -937,7 +937,7 @@ exports["default"] = {
 },
 3, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(14, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -968,6 +968,8 @@ exports["default"] = {
         .not().throws(function(_) { return x.subscribe(function() {}); })
         ;
     },
+
+    // TODO: Add tests for function arguments
 
     "Subscriber arguments": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
 
@@ -1181,7 +1183,7 @@ exports["default"] = {
 },
 4, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(14, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -1324,7 +1326,7 @@ exports["default"] = {
 },
 5, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(14, 1).testMethodProperty, getSymbol = __M(14, 1).getSymbol;
+'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty, getSymbol = __M(13, 1).getSymbol;
 
 exports["default"] = {
 
@@ -1351,33 +1353,7 @@ exports["default"] = {
 },
 6, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(14, 1).testMethodProperty, getSymbol = __M(14, 1).getSymbol;
-
-exports["default"] = {
-
-    "Observable has a species method": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        testMethodProperty(test, Observable, getSymbol("species"), {
-            get: true,
-            configurable: true
-        });
-    },
-
-    "Return value": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        var desc = Object.getOwnPropertyDescriptor(Observable, getSymbol("species")),
-            thisVal = {};
-
-        test._("Returns the 'this' value").equals(desc.get.call(thisVal), thisVal);
-    }
-
-};
-
-
-},
-7, function(module, exports) {
-
-'use strict'; var testMethodProperty = __M(14, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty;
 
 // TODO: Verify that Observable.from subscriber returns a cleanup function
 
@@ -1431,9 +1407,9 @@ exports["default"] = {
 
 
 },
-8, function(module, exports) {
+7, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(14, 1).testMethodProperty, hasSymbol = __M(14, 1).hasSymbol, getSymbol = __M(14, 1).getSymbol;
+'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty, hasSymbol = __M(13, 1).hasSymbol, getSymbol = __M(13, 1).getSymbol;
 
 // TODO: Verify that Observable.from subscriber returns a cleanup function
 
@@ -1595,9 +1571,9 @@ exports["default"] = {
 
 
 },
-9, function(module, exports) {
+8, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(14, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -1738,9 +1714,9 @@ exports["default"] = {
 
 
 },
-10, function(module, exports) {
+9, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(14, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -1916,9 +1892,9 @@ exports["default"] = {
 
 
 },
-11, function(module, exports) {
+10, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(14, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -2092,9 +2068,9 @@ exports["default"] = {
 
 
 },
-12, function(module, exports) {
+11, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(14, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -2150,14 +2126,13 @@ var constructor = __M(2, 1)['default'];
 var subscribe = __M(3, 1)['default'];
 var forEach = __M(4, 1)['default'];
 var observable = __M(5, 1)['default'];
-var species = __M(6, 1)['default'];
-var ofTests = __M(7, 1)['default'];
-var fromTests = __M(8, 1)['default'];
+var ofTests = __M(6, 1)['default'];
+var fromTests = __M(7, 1)['default'];
 
-var observerNext = __M(9, 1)['default'];
-var observerError = __M(10, 1)['default'];
-var observerComplete = __M(11, 1)['default'];
-var observerClosed = __M(12, 1)['default'];
+var observerNext = __M(8, 1)['default'];
+var observerError = __M(9, 1)['default'];
+var observerComplete = __M(10, 1)['default'];
+var observerClosed = __M(11, 1)['default'];
 
 
 function runTests(C) {
@@ -2172,7 +2147,6 @@ function runTests(C) {
 
         "Observable.of": ofTests,
         "Observable.from": fromTests,
-        "Observable[Symbol.species]": species,
 
         "SubscriptionObserver.prototype.next": observerNext,
         "SubscriptionObserver.prototype.error": observerError,
