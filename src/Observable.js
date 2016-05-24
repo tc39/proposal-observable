@@ -257,43 +257,47 @@ export class Observable {
 
     forEach(fn) {
 
-        return new Promise((resolve, reject) => {
+        return Promise.resolve().then(() => {
 
             if (typeof fn !== "function")
-                throw new TypeError(fn + " is not a function");
+                return Promise.reject(new TypeError(fn + " is not a function"));
 
-            this.subscribe({
+            return new Promise((resolve, reject) => {
 
-                _subscription: null,
+                this.subscribe({
 
-                start(subscription) {
+                    _subscription: null,
 
-                    if (Object(subscription) !== subscription)
-                        throw new TypeError(subscription + " is not an object");
+                    start(subscription) {
 
-                    this._subscription = subscription;
-                },
+                        if (Object(subscription) !== subscription)
+                            throw new TypeError(subscription + " is not an object");
 
-                next(value) {
+                        this._subscription = subscription;
+                    },
 
-                    let subscription = this._subscription;
+                    next(value) {
 
-                    if (subscription.closed)
-                        return;
+                        let subscription = this._subscription;
 
-                    try {
+                        if (subscription.closed)
+                            return;
 
-                        return fn(value);
+                        try {
 
-                    } catch (err) {
+                            return fn(value);
 
-                        reject(err);
-                        subscription.unsubscribe();
-                    }
-                },
+                        } catch (err) {
 
-                error: reject,
-                complete: resolve,
+                            reject(err);
+                            subscription.unsubscribe();
+                        }
+                    },
+
+                    error: reject,
+                    complete: resolve,
+                });
+                
             });
         });
     }

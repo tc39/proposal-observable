@@ -26,25 +26,49 @@ export default {
         });
     },
 
+    "Subscribe is called asynchronously" (test, { Observable }) {
+        let observer = null,
+            list = [];
+
+        Promise.resolve().then(_=> list.push(1));
+
+        let promise = Observable.prototype.forEach.call({
+
+            subscribe(x) {
+                list.push(2);
+                x.complete();
+            }
+
+        }, _=> null).then(_=> {
+
+            test._("Subscribe is called in a job").equals(list, [1, 2]);
+        });
+
+        test._("Subscribe is not called synchronously").equals(list, []);
+        return promise;
+    },
+
     "Subscribe is called on the 'this' value" (test, { Observable }) {
 
-        let called = 0,
-            observer = null;
+        let observer = null,
+            called = 0;
 
-        Observable.prototype.forEach.call({
+        return Observable.prototype.forEach.call({
 
             subscribe(x) {
                 called++;
                 observer = x;
+                x.complete();
             }
 
-        }, _=> null);
+        }, _=> null).then(_=> {
 
-        test._("The subscribe method is called with an observer")
-        .equals(called, 1)
-        .equals(typeof observer, "object")
-        .equals(typeof observer.next, "function")
-        ;
+            test._("The subscribe method is called with an observer")
+            .equals(called, 1)
+            .equals(typeof observer, "object")
+            .equals(typeof observer.next, "function")
+            ;
+        });
     },
 
     "Error rejects the promise" (test, { Observable }) {

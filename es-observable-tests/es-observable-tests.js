@@ -800,7 +800,7 @@ exports.TestRunner = TestRunner;
 
 
 },
-12, function(module, exports) {
+13, function(module, exports) {
 
 'use strict'; var TestRunner = __M(14, 1).TestRunner;
 var Logger = __M(15, 1).Logger;
@@ -819,11 +819,11 @@ exports.TestRunner = TestRunner;
 },
 1, function(module, exports) {
 
-'use strict'; Object.keys(__M(12, 1)).forEach(function(k) { exports[k] = __M(12, 1)[k]; });
+'use strict'; Object.keys(__M(13, 1)).forEach(function(k) { exports[k] = __M(13, 1)[k]; });
 
 
 },
-13, function(module, exports) {
+12, function(module, exports) {
 
 'use strict'; function testLength(test, value, length) {
 
@@ -889,7 +889,7 @@ exports.getSymbol = getSymbol;
 },
 2, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -937,7 +937,7 @@ exports["default"] = {
 },
 3, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -1183,7 +1183,7 @@ exports["default"] = {
 },
 4, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -1211,25 +1211,49 @@ exports["default"] = {
         });
     },
 
+    "Subscribe is called asynchronously": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
+        var observer = null,
+            list = [];
+
+        Promise.resolve().then(function(_) { return list.push(1); });
+
+        var promise = Observable.prototype.forEach.call({
+
+            subscribe: function(x) {
+                list.push(2);
+                x.complete();
+            }
+
+        }, function(_) { return null; }).then(function(_) {
+
+            test._("Subscribe is called in a job").equals(list, [1, 2]);
+        });
+
+        test._("Subscribe is not called synchronously").equals(list, []);
+        return promise;
+    },
+
     "Subscribe is called on the 'this' value": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
 
-        var called = 0,
-            observer = null;
+        var observer = null,
+            called = 0;
 
-        Observable.prototype.forEach.call({
+        return Observable.prototype.forEach.call({
 
             subscribe: function(x) {
                 called++;
                 observer = x;
+                x.complete();
             }
 
-        }, function(_) { return null; });
+        }, function(_) { return null; }).then(function(_) {
 
-        test._("The subscribe method is called with an observer")
-        .equals(called, 1)
-        .equals(typeof observer, "object")
-        .equals(typeof observer.next, "function")
-        ;
+            test._("The subscribe method is called with an observer")
+            .equals(called, 1)
+            .equals(typeof observer, "object")
+            .equals(typeof observer.next, "function")
+            ;
+        });
     },
 
     "Error rejects the promise": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
@@ -1326,7 +1350,7 @@ exports["default"] = {
 },
 5, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty, getSymbol = __M(13, 1).getSymbol;
+'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty, getSymbol = __M(12, 1).getSymbol;
 
 exports["default"] = {
 
@@ -1353,7 +1377,7 @@ exports["default"] = {
 },
 6, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
 
 // TODO: Verify that Observable.from subscriber returns a cleanup function
 
@@ -1409,7 +1433,7 @@ exports["default"] = {
 },
 7, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty, hasSymbol = __M(13, 1).hasSymbol, getSymbol = __M(13, 1).getSymbol;
+'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty, hasSymbol = __M(12, 1).hasSymbol, getSymbol = __M(12, 1).getSymbol;
 
 // TODO: Verify that Observable.from subscriber returns a cleanup function
 
@@ -1573,7 +1597,7 @@ exports["default"] = {
 },
 8, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -1716,7 +1740,7 @@ exports["default"] = {
 },
 9, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -1894,7 +1918,7 @@ exports["default"] = {
 },
 10, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -2070,7 +2094,7 @@ exports["default"] = {
 },
 11, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(13, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
 
 exports["default"] = {
 
