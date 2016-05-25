@@ -241,7 +241,6 @@ export class Observable {
 
     subscribe(observer, ...args) {
 
-        /*
         if (typeof observer === "function") {
 
             observer = {
@@ -250,56 +249,8 @@ export class Observable {
                 complete: args[1]
             };
         }
-        */
 
         return new Subscription(observer, this._subscriber);
-    }
-
-    forEach(fn) {
-
-        return Promise.resolve().then(() => {
-
-            if (typeof fn !== "function")
-                return Promise.reject(new TypeError(fn + " is not a function"));
-
-            return new Promise((resolve, reject) => {
-
-                this.subscribe({
-
-                    _subscription: null,
-
-                    start(subscription) {
-
-                        if (Object(subscription) !== subscription)
-                            throw new TypeError(subscription + " is not an object");
-
-                        this._subscription = subscription;
-                    },
-
-                    next(value) {
-
-                        let subscription = this._subscription;
-
-                        if (subscription.closed)
-                            return;
-
-                        try {
-
-                            return fn(value);
-
-                        } catch (err) {
-
-                            reject(err);
-                            subscription.unsubscribe();
-                        }
-                    },
-
-                    error: reject,
-                    complete: resolve,
-                });
-                
-            });
-        });
     }
 
     [Symbol.observable]() { return this }
