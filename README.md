@@ -65,23 +65,6 @@ Upon cancelation, the Observable's cleanup function will be executed.
 subscription.unsubscribe();
 ```
 
-Alternatively, we can subscribe to an Observable with the **forEach** method, which accepts
-a single callback and returns a Promise.
-
-```js
-commandKeys(inputElement).forEach(val => {
-    console.log("Received key command: " + val);
-});
-```
-
-```js
-Observable.of(1, 2, 3, 4, 5)
-    .map(n => n * n)
-    .filter(n => n > 10)
-    .forEach(n => console.log(n))
-    .then(() => console.log("All done!"));
-```
-
 ### Motivation ###
 
 The Observable type represents one of the fundamental protocols for processing asynchronous
@@ -120,11 +103,13 @@ interface Observable {
 
     constructor(subscriber : SubscriberFunction);
 
-    // Subscribes to the sequence
+    // Subscribes to the sequence with an observer
     subscribe(observer : Observer) : Subscription;
 
-    // Subscribes to the sequence with a callback, returning a promise
-    forEach(onNext : any => any) : Promise;
+    // Subscribes to the sequence with callbacks
+    subscribe(onNext : Function,
+              onError? : Function,
+              onComplete? : Function) : Subscription;
 
     // Returns itself
     [Symbol.observable]() : Observable;
@@ -143,7 +128,7 @@ interface Subscription {
     unsubscribe() : void;
 
     // A boolean value indicating whether the subscription is closed
-    get closed() : Boolean
+    get closed() : Boolean;
 }
 
 function SubscriberFunction(observer: SubscriptionObserver) : (void => void)|Subscription;
@@ -265,6 +250,6 @@ interface SubscriptionObserver {
     complete(completeValue);
 
     // A boolean value indicating whether the subscription is closed
-    get closed() : Boolean
+    get closed() : Boolean;
 }
 ```
