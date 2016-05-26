@@ -629,7 +629,7 @@ var NodeLogger = _esdown.class(function(__) { var NodeLogger;
 
         this.passed = 0;
         this.failed = 0;
-        this.failList = [];
+        this.errored = 0;
         this.path = [];
         this.margin = false;
     },
@@ -639,19 +639,7 @@ var NodeLogger = _esdown.class(function(__) { var NodeLogger;
         return new Array(Math.max(this.path.length, 0) * 2 + 1).join(" ");
     },
 
-    end: function() { var __this = this; 
-
-        this.failList.forEach(function(__$0) { var __$1; var path = (__$1 = _esdown.objd(__$0), __$1.path), result = __$1.result; 
-
-            if (result.name)
-                path += " > " + result.name;
-
-            __this._write(Style.bold("[" + path + "]"));
-            __this._write("Actual: " + result.actual);
-            __this._write("Expected: " + result.expected);
-            __this._newline();
-        });
-    },
+    end: function() {},
 
     pushGroup: function(name) {
 
@@ -672,17 +660,22 @@ var NodeLogger = _esdown.class(function(__) { var NodeLogger;
         if (passed) this.passed++;
         else this.failed++;
 
-        if (!passed)
-            this.failList.push({ path: this.path.join(" > "), result: result });
-
         this._write("" + (this.indent) + "" + (result.name) + " " +
             "" + (Style.bold(passed ? Style.green("OK") : Style.red("FAIL"))) + "");
+
+        if (!passed) {
+
+            this._write("" + (this.indent) + "  Actual: " + (result.actual) + "");
+            this._write("" + (this.indent) + "  Expected: " + (result.expected) + "");
+        }
     },
 
     error: function(e) {
 
-        if (e)
-            this._write("\n" + Style.red(e.stack) + "\n");
+        if (!e) return;
+
+        this.errored++;
+        this._write("\n" + Style.red(e.stack) + "\n");
     },
 
     comment: function(msg) {
@@ -750,7 +743,7 @@ var TestRunner = _esdown.class(function(__) { var TestRunner;
 
         return this._visit(tests).then(function(val) {
 
-            __this.logger.comment("Passed " + (__this.logger.passed) + " tests and failed " + (__this.logger.failed) + " tests.");
+            __this.logger.comment("Passed " + (__this.logger.passed) + " tests and failed " + (__this.logger.failed) + " tests, with " + (__this.logger.errored) + " errors");
             __this.logger.end();
             return __this;
         });
@@ -765,7 +758,6 @@ var TestRunner = _esdown.class(function(__) { var TestRunner;
         }).catch(function(error) {
 
             __this.logger.error(error);
-            throw error;
         });
     },
 
@@ -837,6 +829,12 @@ exports.TestRunner = TestRunner;
 function testMethodProperty(test, object, key, options) {
 
     var desc = Object.getOwnPropertyDescriptor(object, key);
+
+    test._("Property " + (key.toString()) + " exists on the object")
+    .equals(Boolean(desc), true);
+
+    if (!desc)
+        return;
 
     if (options.get || options.set) {
 
@@ -968,8 +966,6 @@ exports["default"] = {
         .not().throws(function(_) { return x.subscribe(function() {}); })
         ;
     },
-
-    // TODO: Add tests for function arguments
 
     "Subscriber arguments": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
 
@@ -1122,7 +1118,9 @@ exports["default"] = {
         .throws(function(_) { return observable.subscribe({}); }, error);
 
         var thrown = null;
-        observable.subscribe({ error: function(e) { thrown = e } });
+
+        test._("Subscribe does not throw if the observer has an error method")
+        .not().throws(function(_) { observable.subscribe({ error: function(e) { thrown = e } }) });
 
         test._("Subscribe sends an error to the observer")
         .equals(thrown, error);
@@ -1388,7 +1386,7 @@ exports["default"] = {
         ._("Constructor is called with a function")
         .equals(typeof result.fn, "function")
         ._("Calling the function calls subscribe on the object and returns the result")
-        .equals(result.fn(123), token)
+        .equals(result.fn && result.fn(123), token)
         ._("The subscriber argument is supplied to the subscribe method")
         .equals(input, 123)
         ;

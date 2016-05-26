@@ -11,6 +11,12 @@ export function testMethodProperty(test, object, key, options) {
 
     let desc = Object.getOwnPropertyDescriptor(object, key);
 
+    test._(`Property ${ key.toString() } exists on the object`)
+    .equals(Boolean(desc), true);
+
+    if (!desc)
+        return;
+
     if (options.get || options.set) {
 
         test._(`Property ${ options.get ? "has" : "does not have" } a getter`)
