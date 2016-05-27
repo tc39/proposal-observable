@@ -792,7 +792,7 @@ exports.TestRunner = TestRunner;
 
 
 },
-11, function(module, exports) {
+12, function(module, exports) {
 
 'use strict'; var TestRunner = __M(13, 1).TestRunner;
 var Logger = __M(14, 1).Logger;
@@ -811,11 +811,11 @@ exports.TestRunner = TestRunner;
 },
 1, function(module, exports) {
 
-'use strict'; Object.keys(__M(11, 1)).forEach(function(k) { exports[k] = __M(11, 1)[k]; });
+'use strict'; Object.keys(__M(12, 1)).forEach(function(k) { exports[k] = __M(12, 1)[k]; });
 
 
 },
-12, function(module, exports) {
+11, function(module, exports) {
 
 'use strict'; function testLength(test, value, length) {
 
@@ -887,7 +887,7 @@ exports.getSymbol = getSymbol;
 },
 2, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -935,7 +935,7 @@ exports["default"] = {
 },
 3, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -1181,7 +1181,7 @@ exports["default"] = {
 },
 4, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty, getSymbol = __M(12, 1).getSymbol;
+'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty, getSymbol = __M(11, 1).getSymbol;
 
 exports["default"] = {
 
@@ -1208,7 +1208,7 @@ exports["default"] = {
 },
 5, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty;
 
 // TODO: Verify that Observable.from subscriber returns a cleanup function
 
@@ -1264,7 +1264,7 @@ exports["default"] = {
 },
 6, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty, hasSymbol = __M(12, 1).hasSymbol, getSymbol = __M(12, 1).getSymbol;
+'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty, hasSymbol = __M(11, 1).hasSymbol, getSymbol = __M(11, 1).getSymbol;
 
 // TODO: Verify that Observable.from subscriber returns a cleanup function
 
@@ -1428,7 +1428,7 @@ exports["default"] = {
 },
 7, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -1571,7 +1571,7 @@ exports["default"] = {
 },
 8, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -1749,7 +1749,7 @@ exports["default"] = {
 },
 9, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -1925,7 +1925,7 @@ exports["default"] = {
 },
 10, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty;
 
 exports["default"] = {
 
