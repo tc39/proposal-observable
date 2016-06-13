@@ -30,8 +30,6 @@ export default {
         ;
     },
 
-    // TODO: Add tests for function arguments
-
     "Subscriber arguments" (test, { Observable }) {
 
         let observer = null;
@@ -183,7 +181,9 @@ export default {
         .throws(_=> observable.subscribe({}), error);
 
         let thrown = null;
-        observable.subscribe({ error(e) { thrown = e } });
+
+        test._("Subscribe does not throw if the observer has an error method")
+        .not().throws(_=> { observable.subscribe({ error(e) { thrown = e } }) });
 
         test._("Subscribe sends an error to the observer")
         .equals(thrown, error);

@@ -2,7 +2,6 @@ import { TestRunner } from "moon-unit";
 
 import constructor from "./constructor.js";
 import subscribe from "./subscribe.js";
-import forEach from "./forEach.js";
 import observable from "./symbol-observable.js";
 import ofTests from "./of.js";
 import fromTests from "./from.js";
@@ -20,7 +19,6 @@ export function runTests(C) {
         "Observable constructor": constructor,
 
         "Observable.prototype.subscribe": subscribe,
-        "Observable.prototype.forEach": forEach,
         "Observable.prototype[Symbol.observable]": observable,
 
         "Observable.of": ofTests,

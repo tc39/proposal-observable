@@ -325,7 +325,7 @@ exports.asyncIter = asyncIterator;
 })();
 
 var __M; (function(a) { var list = Array(a.length / 2); __M = function(i, es) { var m = list[i], f, e; if (typeof m === 'function') { f = m; m = { exports: i ? {} : exports }; f(list[i] = m, m.exports); e = m.exports; m.es = Object(e) !== e || e.constructor === Object ? e : Object.create(e, { 'default': { value: e } }); } return es ? m.es : m.exports; }; for (var i = 0; i < a.length; i += 2) { var j = Math.abs(a[i]); list[j] = a[i + 1]; if (a[i] >= 0) __M(j); } })([
-16, function(module, exports) {
+15, function(module, exports) {
 
 'use strict'; var OP_toString = Object.prototype.toString,
     OP_hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -495,7 +495,7 @@ exports.Test = Test;
 
 
 },
-17, function(module, exports) {
+16, function(module, exports) {
 
 'use strict'; var ELEMENT_ID = "moon-unit";
 
@@ -608,7 +608,7 @@ exports.HtmlLogger = HtmlLogger;
 
 
 },
-18, function(module, exports) {
+17, function(module, exports) {
 
 'use strict'; var Style = {
 
@@ -629,7 +629,7 @@ var NodeLogger = _esdown.class(function(__) { var NodeLogger;
 
         this.passed = 0;
         this.failed = 0;
-        this.failList = [];
+        this.errored = 0;
         this.path = [];
         this.margin = false;
     },
@@ -639,19 +639,7 @@ var NodeLogger = _esdown.class(function(__) { var NodeLogger;
         return new Array(Math.max(this.path.length, 0) * 2 + 1).join(" ");
     },
 
-    end: function() { var __this = this; 
-
-        this.failList.forEach(function(__$0) { var __$1; var path = (__$1 = _esdown.objd(__$0), __$1.path), result = __$1.result; 
-
-            if (result.name)
-                path += " > " + result.name;
-
-            __this._write(Style.bold("[" + path + "]"));
-            __this._write("Actual: " + result.actual);
-            __this._write("Expected: " + result.expected);
-            __this._newline();
-        });
-    },
+    end: function() {},
 
     pushGroup: function(name) {
 
@@ -672,17 +660,22 @@ var NodeLogger = _esdown.class(function(__) { var NodeLogger;
         if (passed) this.passed++;
         else this.failed++;
 
-        if (!passed)
-            this.failList.push({ path: this.path.join(" > "), result: result });
-
         this._write("" + (this.indent) + "" + (result.name) + " " +
             "" + (Style.bold(passed ? Style.green("OK") : Style.red("FAIL"))) + "");
+
+        if (!passed) {
+
+            this._write("" + (this.indent) + "  Actual: " + (result.actual) + "");
+            this._write("" + (this.indent) + "  Expected: " + (result.expected) + "");
+        }
     },
 
     error: function(e) {
 
-        if (e)
-            this._write("\n" + Style.red(e.stack) + "\n");
+        if (!e) return;
+
+        this.errored++;
+        this._write("\n" + Style.red(e.stack) + "\n");
     },
 
     comment: function(msg) {
@@ -711,10 +704,10 @@ exports.NodeLogger = NodeLogger;
 
 
 },
-15, function(module, exports) {
+14, function(module, exports) {
 
-'use strict'; var HtmlLogger = __M(17, 1).HtmlLogger;
-var NodeLogger = __M(18, 1).NodeLogger;
+'use strict'; var HtmlLogger = __M(16, 1).HtmlLogger;
+var NodeLogger = __M(17, 1).NodeLogger;
 
 var Logger = (typeof global === "object" && global.process) ?
     NodeLogger :
@@ -724,10 +717,10 @@ exports.Logger = Logger;
 
 
 },
-14, function(module, exports) {
+13, function(module, exports) {
 
-'use strict'; var Test = __M(16, 1).Test;
-var Logger = __M(15, 1).Logger;
+'use strict'; var Test = __M(15, 1).Test;
+var Logger = __M(14, 1).Logger;
 
 var TestRunner = _esdown.class(function(__) { var TestRunner;
 
@@ -750,7 +743,7 @@ var TestRunner = _esdown.class(function(__) { var TestRunner;
 
         return this._visit(tests).then(function(val) {
 
-            __this.logger.comment("Passed " + (__this.logger.passed) + " tests and failed " + (__this.logger.failed) + " tests.");
+            __this.logger.comment("Passed " + (__this.logger.passed) + " tests and failed " + (__this.logger.failed) + " tests, with " + (__this.logger.errored) + " errors");
             __this.logger.end();
             return __this;
         });
@@ -765,7 +758,6 @@ var TestRunner = _esdown.class(function(__) { var TestRunner;
         }).catch(function(error) {
 
             __this.logger.error(error);
-            throw error;
         });
     },
 
@@ -800,10 +792,10 @@ exports.TestRunner = TestRunner;
 
 
 },
-13, function(module, exports) {
+12, function(module, exports) {
 
-'use strict'; var TestRunner = __M(14, 1).TestRunner;
-var Logger = __M(15, 1).Logger;
+'use strict'; var TestRunner = __M(13, 1).TestRunner;
+var Logger = __M(14, 1).Logger;
 
 function runTests(tests) {
 
@@ -819,11 +811,11 @@ exports.TestRunner = TestRunner;
 },
 1, function(module, exports) {
 
-'use strict'; Object.keys(__M(13, 1)).forEach(function(k) { exports[k] = __M(13, 1)[k]; });
+'use strict'; Object.keys(__M(12, 1)).forEach(function(k) { exports[k] = __M(12, 1)[k]; });
 
 
 },
-12, function(module, exports) {
+11, function(module, exports) {
 
 'use strict'; function testLength(test, value, length) {
 
@@ -837,6 +829,12 @@ exports.TestRunner = TestRunner;
 function testMethodProperty(test, object, key, options) {
 
     var desc = Object.getOwnPropertyDescriptor(object, key);
+
+    test._("Property " + (key.toString()) + " exists on the object")
+    .equals(Boolean(desc), true);
+
+    if (!desc)
+        return;
 
     if (options.get || options.set) {
 
@@ -889,7 +887,7 @@ exports.getSymbol = getSymbol;
 },
 2, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -937,7 +935,7 @@ exports["default"] = {
 },
 3, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -968,8 +966,6 @@ exports["default"] = {
         .not().throws(function(_) { return x.subscribe(function() {}); })
         ;
     },
-
-    // TODO: Add tests for function arguments
 
     "Subscriber arguments": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
 
@@ -1122,7 +1118,9 @@ exports["default"] = {
         .throws(function(_) { return observable.subscribe({}); }, error);
 
         var thrown = null;
-        observable.subscribe({ error: function(e) { thrown = e } });
+
+        test._("Subscribe does not throw if the observer has an error method")
+        .not().throws(function(_) { observable.subscribe({ error: function(e) { thrown = e } }) });
 
         test._("Subscribe sends an error to the observer")
         .equals(thrown, error);
@@ -1183,174 +1181,7 @@ exports["default"] = {
 },
 4, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
-
-exports["default"] = {
-
-    "Observable.prototype has a forEach property": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        testMethodProperty(test, Observable.prototype, "forEach", {
-            configurable: true,
-            writable: true,
-            length: 1,
-        });
-    },
-
-    "Argument must be a function": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        var result = Observable.prototype.forEach.call({}, {});
-
-        test._("If the first argument is not a function, a promise is returned")
-        .assert(result instanceof Promise);
-
-        return result.then(function(_) { return null; }, function(e) { return e; }).then(function(error) {
-
-            test._("The promise is rejected with a TypeError")
-            .assert(Boolean(error))
-            .assert(error instanceof TypeError);
-        });
-    },
-
-    "Subscribe is called asynchronously": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-        var observer = null,
-            list = [];
-
-        Promise.resolve().then(function(_) { return list.push(1); });
-
-        var promise = Observable.prototype.forEach.call({
-
-            subscribe: function(x) {
-                list.push(2);
-                x.complete();
-            }
-
-        }, function(_) { return null; }).then(function(_) {
-
-            test._("Subscribe is called in a job").equals(list, [1, 2]);
-        });
-
-        test._("Subscribe is not called synchronously").equals(list, []);
-        return promise;
-    },
-
-    "Subscribe is called on the 'this' value": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        var observer = null,
-            called = 0;
-
-        return Observable.prototype.forEach.call({
-
-            subscribe: function(x) {
-                called++;
-                observer = x;
-                x.complete();
-            }
-
-        }, function(_) { return null; }).then(function(_) {
-
-            test._("The subscribe method is called with an observer")
-            .equals(called, 1)
-            .equals(typeof observer, "object")
-            .equals(typeof observer.next, "function")
-            ;
-        });
-    },
-
-    "Error rejects the promise": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        var error = new Error();
-
-        return new Observable(function(observer) { observer.error(error) })
-            .forEach(function(_) { return null; })
-            .then(function(_) { return null; }, function(e) { return e; })
-            .then(function(value) {
-                test._("Sending error rejects the promise with the supplied value")
-                .equals(value, error);
-            });
-    },
-
-    "Complete resolves the promise": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        var token = {};
-
-        return new Observable(function(observer) { observer.complete(token) })
-            .forEach(function(_) { return null; })
-            .then(function(x) { return x; }, function(e) { return null; })
-            .then(function(value) {
-                test._("Sending complete resolves the promise with the supplied value")
-                .equals(value, token);
-            });
-    },
-
-    "The callback is called with the next value": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        var values = [], thisArg;
-
-        return new Observable(function(observer) {
-
-            observer.next(1);
-            observer.next(2);
-            observer.next(3);
-            observer.complete();
-
-        }).forEach(function(x) {
-
-            thisArg = this;
-            values.push(x);
-
-        }).then(function(_) {
-
-            test
-            ._("The callback receives each next value")
-            .equals(values, [1, 2, 3])
-            ._("The callback receives undefined as the this value")
-            .equals(thisArg, undefined);
-
-        });
-    },
-
-    "If the callback throws an error, the promise is rejected": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        var error = new Error();
-
-        return new Observable(function(observer) { observer.next(1) })
-            .forEach(function(_) { throw error })
-            .then(function(_) { return null; }, function(e) { return e; })
-            .then(function(value) {
-                test._("The promise is rejected with the thrown value")
-                .equals(value, error);
-            });
-    },
-
-    "If the callback throws an error, the callback function is not called again": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
-
-        var callCount = 0;
-
-        return new Observable(function(observer) {
-
-            observer.next(1);
-            observer.next(2);
-            observer.next(3);
-
-        }).forEach(function(x) {
-
-            callCount++;
-            throw new Error();
-
-        }).catch(function(x) {
-
-            test._("The callback is not called again after throwing an error")
-            .equals(callCount, 1);
-        });
-    },
-
-};
-
-
-},
-5, function(module, exports) {
-
-'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty, getSymbol = __M(12, 1).getSymbol;
+'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty, getSymbol = __M(11, 1).getSymbol;
 
 exports["default"] = {
 
@@ -1375,9 +1206,9 @@ exports["default"] = {
 
 
 },
-6, function(module, exports) {
+5, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty;
 
 // TODO: Verify that Observable.from subscriber returns a cleanup function
 
@@ -1431,9 +1262,9 @@ exports["default"] = {
 
 
 },
-7, function(module, exports) {
+6, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty, hasSymbol = __M(12, 1).hasSymbol, getSymbol = __M(12, 1).getSymbol;
+'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty, hasSymbol = __M(11, 1).hasSymbol, getSymbol = __M(11, 1).getSymbol;
 
 // TODO: Verify that Observable.from subscriber returns a cleanup function
 
@@ -1555,7 +1386,7 @@ exports["default"] = {
         ._("Constructor is called with a function")
         .equals(typeof result.fn, "function")
         ._("Calling the function calls subscribe on the object and returns the result")
-        .equals(result.fn(123), token)
+        .equals(result.fn && result.fn(123), token)
         ._("The subscriber argument is supplied to the subscribe method")
         .equals(input, 123)
         ;
@@ -1595,9 +1426,9 @@ exports["default"] = {
 
 
 },
-8, function(module, exports) {
+7, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -1738,9 +1569,9 @@ exports["default"] = {
 
 
 },
-9, function(module, exports) {
+8, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -1916,9 +1747,9 @@ exports["default"] = {
 
 
 },
-10, function(module, exports) {
+9, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -2092,9 +1923,9 @@ exports["default"] = {
 
 
 },
-11, function(module, exports) {
+10, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -2148,15 +1979,14 @@ exports["default"] = {
 
 var constructor = __M(2, 1)['default'];
 var subscribe = __M(3, 1)['default'];
-var forEach = __M(4, 1)['default'];
-var observable = __M(5, 1)['default'];
-var ofTests = __M(6, 1)['default'];
-var fromTests = __M(7, 1)['default'];
+var observable = __M(4, 1)['default'];
+var ofTests = __M(5, 1)['default'];
+var fromTests = __M(6, 1)['default'];
 
-var observerNext = __M(8, 1)['default'];
-var observerError = __M(9, 1)['default'];
-var observerComplete = __M(10, 1)['default'];
-var observerClosed = __M(11, 1)['default'];
+var observerNext = __M(7, 1)['default'];
+var observerError = __M(8, 1)['default'];
+var observerComplete = __M(9, 1)['default'];
+var observerClosed = __M(10, 1)['default'];
 
 
 function runTests(C) {
@@ -2166,7 +1996,6 @@ function runTests(C) {
         "Observable constructor": constructor,
 
         "Observable.prototype.subscribe": subscribe,
-        "Observable.prototype.forEach": forEach,
         "Observable.prototype[Symbol.observable]": observable,
 
         "Observable.of": ofTests,

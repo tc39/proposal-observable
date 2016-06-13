@@ -120,7 +120,7 @@ export default {
         ._("Constructor is called with a function")
         .equals(typeof result.fn, "function")
         ._("Calling the function calls subscribe on the object and returns the result")
-        .equals(result.fn(123), token)
+        .equals(result.fn && result.fn(123), token)
         ._("The subscriber argument is supplied to the subscribe method")
         .equals(input, 123)
         ;
