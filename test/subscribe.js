@@ -30,6 +30,47 @@ export default {
         ;
     },
 
+    "Function arguments" (test, { Observable }) {
+
+        let list = [], error = new Error();
+
+        new Observable(s => {
+            s.next(1);
+            s.error(error);
+        }).subscribe(
+            x => list.push("next:" + x),
+            e => list.push(e),
+            x => list.push("complete:" + x)
+        );
+
+        new Observable(s => {
+            s.complete(3);
+        }).subscribe(
+            x => list.push("next:" + x),
+            e => list.push(e),
+            x => list.push("complete:" + x)
+        );
+
+        test
+        ._("First argument is next callback")
+        .equals(list[0], "next:1")
+        ._("Second argument is error callback")
+        .equals(list[1], error)
+        ._("Third argument is complete callback")
+        .equals(list[2], "complete:3");
+
+        list = [];
+
+        new Observable(s => {
+            s.next(1);
+            s.complete();
+        }).subscribe(x => list.push("next:" + x));
+
+        test._("Second and third arguments are optional")
+        .throws(() => new Observable(s => { s.error(error) }).subscribe(() => null))
+        .equals(list, ["next:1"]);
+    },
+
     "Subscriber arguments" (test, { Observable }) {
 
         let observer = null;
