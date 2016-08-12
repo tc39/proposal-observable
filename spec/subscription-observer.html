@@ -7,7 +7,7 @@
     <p>The abstract operation CreateSubscriptionObserver with argument _observer_ is used to create a normalized observer which can be supplied to an observable's subscriber function.  It performs the following steps:</p>
 
     <emu-alg>
-      1. Assert: Type(_observer_) is Object.
+      1. Assert: Type(_subscription_) is Object.
       1. Let _subscriptionObserver_ be ObjectCreate(%SubscriptionObserverPrototype%, «‍ [[Subscription]] »).
       1. Set _subscriptionObserver_'s [[Subscription]] internal slot to _subscription_.
       1. Return _subscriptionObserver_.
