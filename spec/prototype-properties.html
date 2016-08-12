@@ -27,7 +27,7 @@
     1. If _start_ is not **undefined**, then
       1. Perform ? Call(_start_, _observer_, « _subscription_ »).
       1. If SubscriptionClosed(_subscription_) is *true*, then
-        1. Return *undefined*.
+        1. Return _subscription_.
     1. Let _subscriptionObserver_ be ? CreateSubscriptionObserver(_subscription_).
     1. Let _subscriber_ be the value of _O's_ [[Subscriber]] internal slot.
     1. Assert: IsCallable(_subscriber_) is *true*.
