@@ -2,6 +2,8 @@
   "name": "es-observable",
   "private": true,
   "devDependencies": {
+    "babel-cli": "^6.18.0",
+    "babel-plugin-transform-es2015-modules-commonjs-simple": "^6.7.4",
     "moon-unit": "^0.2.1"
   }
 }

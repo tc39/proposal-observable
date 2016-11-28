@@ -1,7 +1,19 @@
+import CancelToken from './CancelToken';
+import Cancel from './Cancel';
+
+// special cancel used to cancel subscriptions, needs brand check
+function isSubscriptionCancel(maybeSubscriptionCancel) {
+    return maybeSubscriptionCancel instanceof SubscriptionCancel;
+}
+
+class SubscriptionCancel extends Cancel {
+    constructor(message) {
+        super(message)
+    }
+}
+
 // === Symbol Polyfills ===
-
 function polyfillSymbol(name) {
-
     if (!Symbol[name])
         Object.defineProperty(Symbol, name, { value: Symbol(name) });
 }
@@ -11,7 +23,6 @@ polyfillSymbol("observable");
 // === Abstract Operations ===
 
 function nonEnum(obj) {
-
     Object.getOwnPropertyNames(obj).forEach(k => {
         Object.defineProperty(obj, k, { enumerable: false });
     });
@@ -20,7 +31,6 @@ function nonEnum(obj) {
 }
 
 function getMethod(obj, key) {
-
     let value = obj[key];
 
     if (value == null)
@@ -32,204 +42,145 @@ function getMethod(obj, key) {
     return value;
 }
 
-function cleanupSubscription(subscription) {
-
-    // Assert:  observer._observer is undefined
-
-    let cleanup = subscription._cleanup;
-
-    if (!cleanup)
-        return;
-
-    // Drop the reference to the cleanup function so that we won't call it
-    // more than once
-    subscription._cleanup = undefined;
-
-    // Call the cleanup function
-    cleanup();
+function isCancelTokenObserverClosed(cancelTokenObserver) {
+    return cancelTokenObserver._token.reason !== undefined;
 }
 
-function subscriptionClosed(subscription) {
-
-    return subscription._observer === undefined;
+function isCancelTokenObserver(maybeCancelTokenObserver) {
+    return maybeCancelTokenObserver instanceof CancelTokenObserver;
 }
 
-function closeSubscription(subscription) {
-
-    if (subscriptionClosed(subscription))
-        return;
-
-    subscription._observer = undefined;
-    cleanupSubscription(subscription);
+function closeCancelTokenObserver(cancelTokenObserver) {
+    cancelTokenObserver._observer = undefined;
+    cancelTokenObserver._cancel(new SubscriptionCancel());
 }
 
-function cleanupFromSubscription(subscription) {
-    return _=> { subscription.unsubscribe() };
-}
+function CancelTokenObserver(observer, sourceToken) {
+    const { token: inputToken, cancel } = CancelToken.source();
+    const token = CancelToken.race([sourceToken, inputToken]);
 
-function Subscription(observer, subscriber) {
-
-    // Assert: subscriber is callable
-
-    // The observer must be an object
-    if (Object(observer) !== observer)
-        throw new TypeError("Observer must be an object");
-
-    this._cleanup = undefined;
     this._observer = observer;
-
-    let start = getMethod(observer, "start");
-
-    // If the observer has a start method, call it with the subscription object
-    if (start)
-        start.call(observer, this);
-
-    // If the observer has unsubscribed from the start method, exit
-    if (subscriptionClosed(this))
-        return;
-
-    observer = new SubscriptionObserver(this);
-
-    try {
-
-        // Call the subscriber function
-        let cleanup = subscriber.call(undefined, observer);
-
-        // The return value must be undefined, null, a subscription object, or a function
-        if (cleanup != null) {
-
-            if (typeof cleanup.unsubscribe === "function")
-                cleanup = cleanupFromSubscription(cleanup);
-            else if (typeof cleanup !== "function")
-                throw new TypeError(cleanup + " is not a function");
-
-            this._cleanup = cleanup;
-        }
-
-    } catch (e) {
-
-        // If an error occurs during startup, then attempt to send the error
-        // to the observer.  If the subscription is already closed, then the
-        // error will be rethrown.
-        observer.error(e);
-        return;
-    }
-
-    // If the stream is already finished, then perform cleanup
-    if (subscriptionClosed(this))
-        cleanupSubscription(this);
+    this._token = token;
+    this._cancel = cancel;
+    token.promise.then(c => this.catch(c));
 }
 
-Subscription.prototype = nonEnum({
-    get closed() { return subscriptionClosed(this) },
-    unsubscribe() { closeSubscription(this) },
-});
-
-function SubscriptionObserver(subscription) {
-    this._subscription = subscription;
+function isCancel(maybeCancel) {
+    return maybeCancel instanceof Cancel;
 }
 
-SubscriptionObserver.prototype = nonEnum({
-
-    get closed() {
-
-        return subscriptionClosed(this._subscription);
-    },
-
+CancelTokenObserver.prototype = nonEnum({
     next(value) {
-
-        let subscription = this._subscription;
-
         // If the stream if closed, then return undefined
-        if (subscriptionClosed(subscription))
+        if (isCancelTokenObserverClosed(this)) {
+            return undefined;
+        }
+
+        let observer = this._observer;
+
+        let m = getMethod(observer, "next");
+
+        // If the observer doesn't support "next", then return undefined
+        if (!m)
             return undefined;
 
-        let observer = subscription._observer;
-
+        // Send the next value to the sink
         try {
-
-            let m = getMethod(observer, "next");
-
-            // If the observer doesn't support "next", then return undefined
-            if (!m)
-                return undefined;
-
-            // Send the next value to the sink
             return m.call(observer, value);
-
         } catch (e) {
-
-            // If the observer throws, then close the stream and rethrow the error
-            try { closeSubscription(subscription) }
-            finally { throw e }
+            closeCancelTokenObserver(this);
+            throw e;
         }
     },
-
-    error(value) {
-
-        let subscription = this._subscription;
-
+    throw(value) {
         // If the stream is closed, throw the error to the caller
-        if (subscriptionClosed(subscription))
+        if (isCancelTokenObserverClosed(this)) {
             throw value;
-
-        let observer = subscription._observer;
-        subscription._observer = undefined;
-
-        try {
-
-            let m = getMethod(observer, "error");
-
-            // If the sink does not support "error", then throw the error to the caller
-            if (!m)
-                throw value;
-
-            value = m.call(observer, value);
-
-        } catch (e) {
-
-            try { cleanupSubscription(subscription) }
-            finally { throw e }
         }
 
-        cleanupSubscription(subscription);
-        return value;
-    },
+        let observer = this._observer;
+        closeCancelTokenObserver(this);
 
+        if (isCancelTokenObserver(this._observer)) {
+            return this._observer.throw(value);
+        }
+
+        let m;
+        if (!isCancel(value)) {
+            m = getMethod(observer, "else");
+            if (m) {
+                return m.call(observer, value);
+            }
+        }
+
+        m = getMethod(observer, "catch");
+        if (m) {
+            return m.call(observer, value);
+        }
+        else {
+            throw value;
+        }
+    },
+    else(value) {
+        // If the stream is closed, throw the error to the caller
+        if (isCancelTokenObserverClosed(this)) {
+            throw value;
+        }
+
+        let observer = this._observer;
+        closeCancelTokenObserver(this);
+
+        let m = getMethod(observer, "else");
+
+        if (m) {
+            m.call(observer, value);
+        }
+        else {
+            throw value;
+        }
+    },
+    catch(value) {
+        if (isSubscriptionCancel(value)) {
+            return;
+        }
+        // If the stream is closed, throw the error to the caller
+        if (isCancelTokenObserverClosed(this)) {
+            throw value;
+        }
+
+        let observer = this._observer;
+        closeCancelTokenObserver(this);
+
+        let m = getMethod(observer, "catch");
+
+        if (m) {
+            return m.call(observer, value);
+        }
+        else {
+            throw value;
+        }
+    },
     complete(value) {
-
-        let subscription = this._subscription;
-
-        // If the stream is closed, then return undefined
-        if (subscriptionClosed(subscription))
+        // If the stream if closed, then return undefined
+        if (isCancelTokenObserverClosed(this)) {
             return undefined;
-
-        let observer = subscription._observer;
-        subscription._observer = undefined;
-
-        try {
-
-            let m = getMethod(observer, "complete");
-
-            // If the sink does not support "complete", then return undefined
-            value = m ? m.call(observer, value) : undefined;
-
-        } catch (e) {
-
-            try { cleanupSubscription(subscription) }
-            finally { throw e }
         }
 
-        cleanupSubscription(subscription);
-        return value;
-    },
+        let observer = this._observer;
+        closeCancelTokenObserver(this);
 
+        let m = getMethod(observer, "complete");
+
+        // If the sink does not support "complete", then return undefined
+        value = m ? m.call(observer, value) : undefined;
+
+        return value;
+
+    }
 });
 
 export class Observable {
-
     // == Fundamental ==
-
     constructor(subscriber) {
 
         // The stream subscriber must be a function
@@ -239,18 +190,10 @@ export class Observable {
         this._subscriber = subscriber;
     }
 
-    subscribe(observer, ...args) {
+    subscribe(observer, token = new CancelToken(cancel => { })) {
+        observer = new CancelTokenObserver(observer, token);
 
-        if (typeof observer === "function") {
-
-            observer = {
-                next: observer,
-                error: args[0],
-                complete: args[1]
-            };
-        }
-
-        return new Subscription(observer, this._subscriber);
+        this._subscriber(observer, token);
     }
 
     [Symbol.observable]() { return this }
@@ -276,7 +219,7 @@ export class Observable {
             if (observable.constructor === C)
                 return observable;
 
-            return new C(observer => observable.subscribe(observer));
+            return new C((observer, token) => observable.subscribe(observer, token));
         }
 
         method = getMethod(x, Symbol.iterator);
@@ -284,14 +227,19 @@ export class Observable {
         if (!method)
             throw new TypeError(x + " is not observable");
 
-        return new C(observer => {
+        return new C((observer, token) => {
+            token.cancelled.then(observer.cancel.bind(observer));
 
             for (let item of method.call(x)) {
-
-                observer.next(item);
-
-                if (observer.closed)
-                    return;
+                if (token.reason) {
+                    break;
+                }
+                try {
+                    observer.next(item);
+                }
+                catch(e) {
+                    return observer.throw(e);
+                }
             }
 
             observer.complete();
@@ -299,21 +247,22 @@ export class Observable {
     }
 
     static of(...items) {
-
         let C = typeof this === "function" ? this : Observable;
 
-        return new C(observer => {
-
-            for (let i = 0; i < items.length; ++i) {
-
-                observer.next(items[i]);
-
-                if (observer.closed)
-                    return;
+        return new C((observer, token) => {
+            for (let item of items) {
+                if (token.reason) {
+                    break;
+                }
+                try {
+                    observer.next(item);
+                }
+                catch(e) {
+                    return observer.throw(e);
+                }
             }
 
             observer.complete();
         });
     }
-
 }
