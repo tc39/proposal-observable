@@ -105,9 +105,9 @@ interface Observable {
     constructor(subscriber : SubscriberFunction);
 
     // Subscribes to the sequence with an observer
-    subscribe(observer : Observer, token : CancelToken?) : void;
+    subscribe(observer : Observer, token : CancelToken | void) : void;
 
-    forEach(next : NextFunction, token : CancelToken?): Promise
+    forEach(next : NextFunction, token : CancelToken | void): Promise
 
     // Returns itself
     [Symbol.observable]() : Observable;
