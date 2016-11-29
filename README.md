@@ -107,7 +107,7 @@ interface Observable {
     // Subscribes to the sequence with an observer
     subscribe(observer : Observer, token : CancelToken | void) : void;
 
-    forEach(next : NextFunction, token : CancelToken | void): Promise
+    forEach(next : NextFunction, token : CancelToken | void) : Promise
 
     // Returns itself
     [Symbol.observable]() : Observable;
@@ -120,7 +120,7 @@ interface Observable {
 }
 
 
-function SubscriberFunction(observer: CancelTokenObserver) : void
+function SubscriberFunction(observer: CancelTokenObserver, token : CancelToken) : void
 
 function NextFunction(value: any, index: number, thisArg: Observable): void
 
