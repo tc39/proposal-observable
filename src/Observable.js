@@ -219,21 +219,21 @@ export class Observable {
         this._subscriber = subscriber;
     }
 
-    subscribe(observer, sourceToken = new CancelToken(() => { })) {
+    subscribe(observer, outerToken) {
         if (Object(observer) !== observer) {
             throw new TypeError(observer + " is not a object");
         }
 
-        if (Object(sourceToken) !== sourceToken) {
-            throw new TypeError(sourceToken + " is not an object");
+        if (outerToken != null && Object(outerToken) !== outerToken) {
+            throw new TypeError(outerToken + " is not an object");
         }
 
-        const { token: inputToken, cancel } = CancelToken.source();
-        const token = CancelToken.race([sourceToken, inputToken]);
+        const { token: innerToken, cancel } = CancelToken.source();
+        const token = outerToken != null ? CancelToken.race([outerToken, innerToken]) : CancelToken.race([innerToken]);
 
         observer = new CancelTokenObserver(observer, token, cancel);
 
-        let reason = token.reason;
+        const reason = token.reason;
         if (reason) {
             observer.catch(reason);
         }
@@ -245,24 +245,24 @@ export class Observable {
         }
     }
 
-    forEach(next, outerToken = new CancelToken(() => { })) {
+    forEach(next, outerToken) {
         debugger;
         // The next argument must be a function
         if (typeof next !== "function") {
-            throw new TypeError(subscriber + " is not a function(…)");
+            throw new TypeError(next + " is not a function(…)");
         }
 
-        if (Object(outerToken) !== outerToken) {
-            throw new TypeError(token + " is not an object");
+        if (outerToken != null && Object(outerToken) !== outerToken) {
+            throw new TypeError(outerToken + " is not an object");
         }
 
         return new Promise((accept, reject) => {
             // schedule subscription logic
             Promise.resolve().then(() => {
-                let self = this;
+                const self = this;
                 let index = 0;
-                let { token: innerToken, cancel } = CancelToken.source();
-                let token = CancelToken.race([innerToken, outerToken]);
+                const { token: innerToken, cancel } = CancelToken.source();
+                const token = outerToken != null ? CancelToken.race([outerToken, innerToken]) : CancelToken.race([innerToken]);
 
                 this.subscribe(
                     {
