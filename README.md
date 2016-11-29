@@ -225,8 +225,8 @@ interface Observer {
 
 #### CancelTokenObserver ####
 
-A SubscriptionObserver is a normalized Observer which wraps the observer object supplied to
-**subscribe**.
+A CancelTokenObserver is a normalized Observer which wraps the observer object supplied to
+**subscribe** and the input token. It adds a `throw` method which internally performs a brand check on the error and delegates it to the correct method (`else` or `catch`) depending on whether the error is a `Cancel` instance. 
 
 ```js
 interface CancelTokenObserver {
