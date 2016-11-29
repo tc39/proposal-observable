@@ -325,7 +325,7 @@ exports.asyncIter = asyncIterator;
 })();
 
 var __M; (function(a) { var list = Array(a.length / 2); __M = function(i, es) { var m = list[i], f, e; if (typeof m === 'function') { f = m; m = { exports: i ? {} : exports }; f(list[i] = m, m.exports); e = m.exports; m.es = Object(e) !== e || e.constructor === Object ? e : Object.create(e, { 'default': { value: e } }); } return es ? m.es : m.exports; }; for (var i = 0; i < a.length; i += 2) { var j = Math.abs(a[i]); list[j] = a[i + 1]; if (a[i] >= 0) __M(j); } })([
-17, function(module, exports) {
+15, function(module, exports) {
 
 'use strict'; var OP_toString = Object.prototype.toString,
     OP_hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -495,7 +495,7 @@ exports.Test = Test;
 
 
 },
-15, function(module, exports) {
+16, function(module, exports) {
 
 'use strict'; var ELEMENT_ID = "moon-unit";
 
@@ -608,7 +608,7 @@ exports.HtmlLogger = HtmlLogger;
 
 
 },
-16, function(module, exports) {
+17, function(module, exports) {
 
 'use strict'; var Style = {
 
@@ -629,7 +629,7 @@ var NodeLogger = _esdown.class(function(__) { var NodeLogger;
 
         this.passed = 0;
         this.failed = 0;
-        this.errored = 0;
+        this.failList = [];
         this.path = [];
         this.margin = false;
     },
@@ -639,7 +639,19 @@ var NodeLogger = _esdown.class(function(__) { var NodeLogger;
         return new Array(Math.max(this.path.length, 0) * 2 + 1).join(" ");
     },
 
-    end: function() {},
+    end: function() { var __this = this; 
+
+        this.failList.forEach(function(__$0) { var __$1; var path = (__$1 = _esdown.objd(__$0), __$1.path), result = __$1.result; 
+
+            if (result.name)
+                path += " > " + result.name;
+
+            __this._write(Style.bold("[" + path + "]"));
+            __this._write("Actual: " + result.actual);
+            __this._write("Expected: " + result.expected);
+            __this._newline();
+        });
+    },
 
     pushGroup: function(name) {
 
@@ -660,22 +672,17 @@ var NodeLogger = _esdown.class(function(__) { var NodeLogger;
         if (passed) this.passed++;
         else this.failed++;
 
+        if (!passed)
+            this.failList.push({ path: this.path.join(" > "), result: result });
+
         this._write("" + (this.indent) + "" + (result.name) + " " +
             "" + (Style.bold(passed ? Style.green("OK") : Style.red("FAIL"))) + "");
-
-        if (!passed) {
-
-            this._write("" + (this.indent) + "  Actual: " + (result.actual) + "");
-            this._write("" + (this.indent) + "  Expected: " + (result.expected) + "");
-        }
     },
 
     error: function(e) {
 
-        if (!e) return;
-
-        this.errored++;
-        this._write("\n" + Style.red(e.stack) + "\n");
+        if (e)
+            this._write("\n" + Style.red(e.stack) + "\n");
     },
 
     comment: function(msg) {
@@ -706,8 +713,8 @@ exports.NodeLogger = NodeLogger;
 },
 14, function(module, exports) {
 
-'use strict'; var HtmlLogger = __M(15, 1).HtmlLogger;
-var NodeLogger = __M(16, 1).NodeLogger;
+'use strict'; var HtmlLogger = __M(16, 1).HtmlLogger;
+var NodeLogger = __M(17, 1).NodeLogger;
 
 var Logger = (typeof global === "object" && global.process) ?
     NodeLogger :
@@ -719,7 +726,7 @@ exports.Logger = Logger;
 },
 13, function(module, exports) {
 
-'use strict'; var Test = __M(17, 1).Test;
+'use strict'; var Test = __M(15, 1).Test;
 var Logger = __M(14, 1).Logger;
 
 var TestRunner = _esdown.class(function(__) { var TestRunner;
@@ -743,7 +750,7 @@ var TestRunner = _esdown.class(function(__) { var TestRunner;
 
         return this._visit(tests).then(function(val) {
 
-            __this.logger.comment("Passed " + (__this.logger.passed) + " tests and failed " + (__this.logger.failed) + " tests, with " + (__this.logger.errored) + " errors");
+            __this.logger.comment("Passed " + (__this.logger.passed) + " tests and failed " + (__this.logger.failed) + " tests.");
             __this.logger.end();
             return __this;
         });
@@ -758,6 +765,7 @@ var TestRunner = _esdown.class(function(__) { var TestRunner;
         }).catch(function(error) {
 
             __this.logger.error(error);
+            throw error;
         });
     },
 
@@ -792,7 +800,7 @@ exports.TestRunner = TestRunner;
 
 
 },
-12, function(module, exports) {
+11, function(module, exports) {
 
 'use strict'; var TestRunner = __M(13, 1).TestRunner;
 var Logger = __M(14, 1).Logger;
@@ -811,11 +819,11 @@ exports.TestRunner = TestRunner;
 },
 1, function(module, exports) {
 
-'use strict'; Object.keys(__M(12, 1)).forEach(function(k) { exports[k] = __M(12, 1)[k]; });
+'use strict'; Object.keys(__M(11, 1)).forEach(function(k) { exports[k] = __M(11, 1)[k]; });
 
 
 },
-11, function(module, exports) {
+12, function(module, exports) {
 
 'use strict'; function testLength(test, value, length) {
 
@@ -887,7 +895,7 @@ exports.getSymbol = getSymbol;
 },
 2, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -935,7 +943,7 @@ exports["default"] = {
 },
 3, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -1222,7 +1230,7 @@ exports["default"] = {
 },
 4, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty, getSymbol = __M(11, 1).getSymbol;
+'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty, getSymbol = __M(12, 1).getSymbol;
 
 exports["default"] = {
 
@@ -1249,7 +1257,7 @@ exports["default"] = {
 },
 5, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
 
 // TODO: Verify that Observable.from subscriber returns a cleanup function
 
@@ -1305,7 +1313,7 @@ exports["default"] = {
 },
 6, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty, hasSymbol = __M(11, 1).hasSymbol, getSymbol = __M(11, 1).getSymbol;
+'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty, hasSymbol = __M(12, 1).hasSymbol, getSymbol = __M(12, 1).getSymbol;
 
 // TODO: Verify that Observable.from subscriber returns a cleanup function
 
@@ -1469,7 +1477,7 @@ exports["default"] = {
 },
 7, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -1612,7 +1620,7 @@ exports["default"] = {
 },
 8, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -1790,7 +1798,7 @@ exports["default"] = {
 },
 9, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -1966,7 +1974,7 @@ exports["default"] = {
 },
 10, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
 
 exports["default"] = {
 

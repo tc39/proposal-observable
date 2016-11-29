@@ -1,3 +1,6 @@
+// Promise polyfill copied from here (https://github.com/taylorhakes/promise-polyfill/blob/master/promise.js)
+// Modified to notify synchronously
+
   (function (root) {
 
     // Store setTimeout reference so promise-polyfill will be unaffected by

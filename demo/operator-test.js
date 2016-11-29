@@ -94,17 +94,4 @@ function filter(observable, predicate) {
 
 var {token, cancel} = CancelToken.source();
 
-flatten(map(filter(Observable.of(1,2,3,4), x => x > 2), x => Observable.of(9,10,11))).subscribe({
-    next(v) {
-        console.log(v);
-    },
-    else(e) {
-        console.log("ELSE");
-    },
-    catch(e) {
-        console.log("CATCH");
-    },
-    complete() {
-        console.log("COMPLETE");
-    }
-})
+flatten(map(filter(Observable.of(1,2,3,4), x => x > 2), x => Observable.of(9,10,11))).forEach(v => console.log(v)).then(() => console.log("COMPLETE"), e => console.error("ERROR"));
