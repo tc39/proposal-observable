@@ -83,7 +83,6 @@ CancelTokenObserver.prototype = nonEnum({
         try {
             m.call(observer, value);
         } catch (e) {
-            closeCancelTokenObserver(this);
             // HostReportErrors(e)
         }
     },
@@ -210,8 +209,6 @@ CancelTokenObserver.prototype = nonEnum({
     }
 });
 
-Object.defineProperty(CancelTokenObserver.prototype, { closed: { get: function() { return this._closed; }}});
-
 export class Observable {
     // == Fundamental ==
     constructor(subscriber) {
@@ -227,8 +224,8 @@ export class Observable {
             throw new TypeError(observer + " is not a object");
         }
 
-        if (Object(token) !== token) {
-            throw new TypeError(token + " is not an object");
+        if (Object(sourceToken) !== sourceToken) {
+            throw new TypeError(sourceToken + " is not an object");
         }
 
         const { token: inputToken, cancel } = CancelToken.source();
@@ -238,7 +235,7 @@ export class Observable {
 
         let reason = token.reason;
         if (reason) {
-            return observer.catch(reason);
+            observer.catch(reason);
         }
 
         try {
@@ -248,13 +245,14 @@ export class Observable {
         }
     }
 
-    forEach(next, token = new CancelToken(() => { })) {
+    forEach(next, outerToken = new CancelToken(() => { })) {
+        debugger;
         // The next argument must be a function
         if (typeof next !== "function") {
             throw new TypeError(subscriber + " is not a function(…)");
         }
 
-        if (Object(token) !== token) {
+        if (Object(outerToken) !== outerToken) {
             throw new TypeError(token + " is not an object");
         }
 
@@ -263,6 +261,9 @@ export class Observable {
             Promise.resolve().then(() => {
                 let self = this;
                 let index = 0;
+                let { token: innerToken, cancel } = CancelToken.source();
+                let token = CancelToken.race([innerToken, outerToken]);
+
                 this.subscribe(
                     {
                         next(value) {
@@ -270,8 +271,8 @@ export class Observable {
                                 next(value, index++, this);
                             }
                             catch(e) {
+                                cancel(new Cancel("Subscription canceled due to observer error."));
                                 reject(e);
-                                throw e;
                             }
                         },
                         catch(e) {
@@ -318,8 +319,8 @@ export class Observable {
 
         return new C((observer, token) => {
             for (let item of method.call(x)) {
-                if (observer.closed) {
-                    break;
+                if (token.reason) {
+                    return;
                 }
 
                 observer.next(item);
@@ -341,7 +342,7 @@ export class Observable {
                     observer.next(item);
                 }
                 catch(e) {
-                    return observer.throw(e);
+                    observer.throw(e);
                 }
             }
 
