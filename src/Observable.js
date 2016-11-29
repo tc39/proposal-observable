@@ -54,10 +54,7 @@ function closeCancelTokenObserver(cancelTokenObserver) {
     cancelTokenObserver._cancel(cancelTokenObserver._subscriptionCancel);
 }
 
-function CancelTokenObserver(observer, sourceToken) {
-    const { token: inputToken, cancel } = CancelToken.source();
-    const token = CancelToken.race([sourceToken, inputToken]);
-
+function CancelTokenObserver(observer, token, cancel) {
     this._observer = observer;
     this._token = token;
     this._cancel = cancel;
@@ -72,7 +69,7 @@ CancelTokenObserver.prototype = nonEnum({
     next(value) {
         // If the stream if closed, then return undefined
         if (isCancelTokenObserverTokenCancelled(this)) {
-            return undefined;
+            return;
         }
 
         let observer = this._observer;
@@ -80,11 +77,11 @@ CancelTokenObserver.prototype = nonEnum({
 
         // If the observer doesn't support "next", then return undefined
         if (!m)
-            return undefined;
+            return;
 
         // Send the next value to the sink
         try {
-            return m.call(observer, value);
+            m.call(observer, value);
         } catch (e) {
             closeCancelTokenObserver(this);
             // HostReportErrors(e)
@@ -112,7 +109,7 @@ CancelTokenObserver.prototype = nonEnum({
                 closeCancelTokenObserver(this);
 
                 try {
-                    return m.call(observer, value);
+                    m.call(observer, value);
                 }
                 catch(e) {
                     // HostReportErrors(e)
@@ -137,7 +134,7 @@ CancelTokenObserver.prototype = nonEnum({
             closeCancelTokenObserver(this);
 
             try {
-                return m.call(observer, value);
+                m.call(observer, value);
             }
             catch(e) {
                 // HostReportErrors(e)
@@ -157,7 +154,7 @@ CancelTokenObserver.prototype = nonEnum({
 
         if (m) {
             try {
-                return m.call(observer, value);
+                m.call(observer, value);
             }
             catch(e) {
                 // HostReportErrors(e)
@@ -181,7 +178,7 @@ CancelTokenObserver.prototype = nonEnum({
 
         if (m) {
             try {
-                return m.call(observer, value);
+                m.call(observer, value);
             }
             catch(e) {
                 // HostReportErrors(e)
@@ -204,7 +201,7 @@ CancelTokenObserver.prototype = nonEnum({
 
         if (m) {
             try {
-                return m.call(observer, value);
+                m.call(observer, value);
             }
             catch(e) {
                 // HostReportErrors(e)
@@ -212,6 +209,8 @@ CancelTokenObserver.prototype = nonEnum({
         }
     }
 });
+
+Object.defineProperty(CancelTokenObserver.prototype, { closed: { get: function() { return this._closed; }}});
 
 export class Observable {
     // == Fundamental ==
@@ -223,7 +222,7 @@ export class Observable {
         this._subscriber = subscriber;
     }
 
-    subscribe(observer, token = new CancelToken(() => { })) {
+    subscribe(observer, sourceToken = new CancelToken(() => { })) {
         if (Object(observer) !== observer) {
             throw new TypeError(observer + " is not a object");
         }
@@ -232,7 +231,10 @@ export class Observable {
             throw new TypeError(token + " is not an object");
         }
 
-        observer = new CancelTokenObserver(observer, token);
+        const { token: inputToken, cancel } = CancelToken.source();
+        const token = CancelToken.race([sourceToken, inputToken]);
+
+        observer = new CancelTokenObserver(observer, token, cancel);
 
         let reason = token.reason;
         if (reason) {
@@ -316,7 +318,7 @@ export class Observable {
 
         return new C((observer, token) => {
             for (let item of method.call(x)) {
-                if (token.reason) {
+                if (observer.closed) {
                     break;
                 }
 
