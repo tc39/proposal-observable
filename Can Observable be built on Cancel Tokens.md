@@ -75,11 +75,12 @@ bodyMouseMoves.subscribe(
 ```
 
 
-Note that in order to cancel a subscription, the consumer must cancel the token passed to `subscribe`. The Cancelable Promises proposal dictates that when an asynchronous function is canceled, the Promise must resolve to a Cancel object. In order to allow developers to avoid inadvertently catching Cancel objects, the Cancelable Promises proposal a `else` method to the Promise prototype. This method only receives rejected values which are not `Cancel` instances, allowing Cancel instances to propagate.
+Note that in order to cancel a subscription, the consumer must cancel the token passed to `subscribe`. The Cancelable Promises proposal dictates that when an asynchronous function is canceled, the Promise must resolve to a Cancel object. In order to allow developers to avoid inadvertently catching Cancel objects, the Cancelable Promises proposal adds a `else` method to the Promise prototype. This method only receives rejected values which are not `Cancel` instances, allowing Cancel instances to propagate.
 
 
 If Observables are to be built on cancel tokens, consumers must be able to differentiate whether a subscription closed due to either cancellation or error.
-Replacing `error` method in Observer with `else` and `catch`
+
+### Replacing `error` method in Observer with `else` and `catch`
 
 
 In the Subscription-based proposal, Observers have only one method which receives errors:
@@ -139,8 +140,8 @@ interface SubscriptionObserver {
 In the Subscription-based proposal, a SubscriptionObserver is created which wraps the input Observer whenever `subscribe` is invoked. Then the `subscribe` method passes the SubscriptionObserver to the subscribe implementation provided to the Observable constructor.
 Wrapping the observer in a SubscriptionObserver is beneficial for the following reasons:
 
-It normalized the input Observer API, ensuring that all methods are present.
-The SubscriptionObserver ensures that no notifications are delivered to the Observer after the subscription is closed.
+* it normalizes the input Observer API, ensuring that all methods are present.
+* it ensures that no notifications are delivered to the Observer after the subscription is closed.
 
 
 if Subscriptions are replaced with Cancel Tokens,  it is necessary to replace the `SubscriptionObserver` with a `CancelTokenObserver`.
