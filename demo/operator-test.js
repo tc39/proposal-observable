@@ -91,50 +91,59 @@ function switch(observable) {
 
 function map(observable, projection) {
     return new Observable((observer, token) => {
-        observable.subscribe({
-            next(value) {
-                try {
-                    value = projection(value);
-                }
-                catch(e) {
-                    return observer.throw(e);
-                }
+        const self = this;
+        let index = 0;
+        observable.subscribe(
+            {
+                next(value) {
+                    try {
+                        value = projection(value, index++, self);
+                    }
+                    catch(e) {
+                        return observer.throw(e);
+                    }
 
-                observer.next(value);
+                    observer.next(value);
+                },
+                catch(e) {
+                    observer.throw(e);
+                },
+                complete(v) {
+                    observer.complete(v);
+                }
             },
-            catch(e) {
-                observer.throw(e);
-            },
-            complete(e) {
-                observer.complete(e);
-            }
-        });
+            token);
     });
 }
 
 function filter(observable, predicate) {
     return new Observable((observer, token) => {
-        observable.subscribe({
-            next(value) {
-                let include;
-                try {
-                    include = predicate(value);
-                }
-                catch(e) {
-                    return observer.throw(e);
-                }
+        const self = this;
+        let index = 0;
 
-                if (include) {
-                    observer.next(value);
+        observable.subscribe(
+            {
+                next(value) {
+                    let include;
+                    try {
+                        include = predicate(value, index++, self);
+                    }
+                    catch(e) {
+                        return observer.throw(e);
+                    }
+
+                    if (include) {
+                        observer.next(value);
+                    }
+                },
+                catch(e) {
+                    observer.throw(e);
+                },
+                complete(v) {
+                    observer.complete(v);
                 }
             },
-            catch(e) {
-                observer.throw(e);
-            },
-            complete(e) {
-                observer.complete(e);
-            }
-        })
+            token);
     });
 }
 

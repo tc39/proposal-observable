@@ -1,10 +1,6 @@
 import CancelToken from './CancelToken';
 import Cancel from './Cancel';
 
-function isCancelTokenObserverSelfCancelled(cancelTokenObserver, cancel) {
-    return cancelTokenObserver._subscriptionCancel === cancel;
-}
-
 // === Symbol Polyfills ===
 function polyfillSymbol(name) {
     if (!Symbol[name])
@@ -35,12 +31,20 @@ function getMethod(obj, key) {
     return value;
 }
 
+function isCancelTokenObserverSelfCancelled(cancelTokenObserver, cancel) {
+    return cancelTokenObserver._subscriptionCancel === cancel;
+}
+
 function isCancelTokenObserverTokenCancelled(cancelTokenObserver) {
     return cancelTokenObserver._token.reason !== undefined;
 }
 
 function isCancelTokenObserverClosed(cancelTokenObserver) {
     return cancelTokenObserver._closed;
+}
+
+function getCancelTokenObserverToken(cancelTokenObserver) {
+    return cancelTokenObserver._token;
 }
 
 function isCancelTokenObserver(maybeCancelTokenObserver) {
@@ -58,7 +62,6 @@ function CancelTokenObserver(observer, token, cancel) {
     this._observer = observer;
     this._token = token;
     this._cancel = cancel;
-    token.promise.then(c => this.catch(c));
 }
 
 function isCancel(maybeCancel) {
@@ -220,6 +223,7 @@ export class Observable {
     }
 
     subscribe(observer, outerToken) {
+        let token;
         if (Object(observer) !== observer) {
             throw new TypeError(observer + " is not a object");
         }
@@ -229,13 +233,14 @@ export class Observable {
         }
 
         const { token: innerToken, cancel } = CancelToken.source();
-        const token = outerToken != null ? CancelToken.race([outerToken, innerToken]) : CancelToken.race([innerToken]);
+        token = outerToken != null ? CancelToken.race([outerToken, innerToken]) : innerToken;
 
         observer = new CancelTokenObserver(observer, token, cancel);
+        token.promise.then(c => observer.catch(c));
 
         const reason = token.reason;
         if (reason) {
-            observer.catch(reason);
+            return observer.catch(reason);
         }
 
         try {
@@ -246,7 +251,8 @@ export class Observable {
     }
 
     forEach(next, outerToken) {
-        debugger;
+        const self = this;
+        let token;
         // The next argument must be a function
         if (typeof next !== "function") {
             throw new TypeError(next + " is not a function(…)");
@@ -262,13 +268,13 @@ export class Observable {
                 const self = this;
                 let index = 0;
                 const { token: innerToken, cancel } = CancelToken.source();
-                const token = outerToken != null ? CancelToken.race([outerToken, innerToken]) : CancelToken.race([innerToken]);
+                token = outerToken != null ? CancelToken.race([outerToken, innerToken]) : innerToken;
 
                 this.subscribe(
                     {
                         next(value) {
                             try {
-                                next(value, index++, this);
+                                next(value, index++, self);
                             }
                             catch(e) {
                                 cancel(new Cancel("Subscription canceled due to observer error."));
@@ -279,7 +285,8 @@ export class Observable {
                             reject(e);
                         },
                         complete(value) {
-                            accept(value);
+                            // suppress return value
+                            accept();
                         }
                     },
                     token);
