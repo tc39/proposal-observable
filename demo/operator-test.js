@@ -13,28 +13,75 @@ function flatten(observable) {
                 innerObservable.subscribe(
                     {
                         next(value) {
-                            return observer.next(value);
+                            observer.next(value);
                         },
                         catch(e) {
                             innerObservables--;
-                            return observer.throw(e);
+                            observer.throw(e);
                         },
                         complete(v) {
                             innerObservables--;
                             if (innerObservables === 0 && outerObservableDone) {
-                                return observer.complete(v);
+                                observer.complete(v);
                             }
                         }
                     },
                     token);
             },
             catch(e) {
-                return observer.throw(e);
+                observer.throw(e);
             },
             complete(v) {
                 outerObservableDone = true;
                 if (innerObservables === 0) {
-                    return observer.complete(v);
+                    observer.complete(v);
+                }
+            }
+        },
+        token);
+    });
+}
+
+function switch(observable) {
+    return new Observable((observer, token) => {
+        let outerObservableDone = false;
+        let innerCancel;
+
+        observable.subscribe({
+            next(innerObservable) {
+                if (innerCancel) {
+                    innerCancel(new Cancel());
+                    innerCancel = null;
+                }
+
+                let { preInnerToken: token, preInnerCancel: cancel } = CancelToken.source();
+                let innerToken = CancelToken.race([token, preInnerToken]);
+                innerCancel = preInnerCancel;
+
+                innerObservable.subscribe(
+                    {
+                        next(value) {
+                            observer.next(value);
+                        },
+                        catch(e) {
+                            observer.throw(e);
+                        },
+                        complete(v) {
+                            innerCancel = null;
+                            if (outerObservableDone) {
+                                observer.complete(v);
+                            }
+                        }
+                    },
+                    innerToken);
+            },
+            catch(e) {
+                observer.throw(e);
+            },
+            complete(v) {
+                outerObservableDone = true;
+                if (innerCancel == null) {
+                    observer.complete(v);
                 }
             }
         },
@@ -53,13 +100,13 @@ function map(observable, projection) {
                     return observer.throw(e);
                 }
 
-                return observer.next(value);
+                observer.next(value);
             },
             catch(e) {
-                return observer.throw(e);
+                observer.throw(e);
             },
             complete(e) {
-                return observer.complete(e);
+                observer.complete(e);
             }
         });
     });
@@ -78,20 +125,19 @@ function filter(observable, predicate) {
                 }
 
                 if (include) {
-                    return observer.next(value);
+                    observer.next(value);
                 }
             },
             catch(e) {
-                return observer.throw(e);
+                observer.throw(e);
             },
             complete(e) {
-                return observer.complete(e);
+                observer.complete(e);
             }
         })
     });
 }
 
-
-var {token, cancel} = CancelToken.source();
+var { token, cancel } = CancelToken.source();
 
 flatten(map(filter(Observable.of(1,2,3,4), x => x > 2), x => Observable.of(9,10,11))).forEach(v => console.log(v)).then(() => console.log("COMPLETE"), e => console.error("ERROR"));
