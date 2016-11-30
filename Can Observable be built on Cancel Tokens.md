@@ -26,8 +26,7 @@ In order to implement Observable with CancelTokens rather than Subscriptions, th
 
 ### Modifying subscribe to accept a CancelToken instead of returning a Subscription
 
-First we can change the API of subscribe from this…
-
+This is the API of the Subscription-based Observable proposal:
 ```js
 interface Observable {
     constructor(subscriber : SubscriberFunction);
@@ -38,9 +37,7 @@ interface Observable {
 function SubscriberFunction(observer: SubscriptionObserver) : (void => void) | Subscription;
 ```
 
-
-...to this...
-
+In order to build Observable on cancel tokens, the API of the Observable would need to be changed to this:
 
 ```js
 interface Observable {
