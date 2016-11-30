@@ -22,7 +22,7 @@ In order to implement Observable with CancelTokens rather than Subscriptions, th
 2. Replace `error` method in Observer with `else` and `catch`
 3. Replace SubscriptionObserver with CancelTokenObserver
 4. Ensure CancelTokens weakly reference input tokens
-5. Ensure CancelTokens synchronously propagate cancellation notifications synchronously
+5. Ensure CancelTokens propagate cancellation notifications synchronously
 
 ### Modifying subscribe to accept a CancelToken instead of returning a Subscription
 
