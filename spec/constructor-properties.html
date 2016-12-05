@@ -23,8 +23,11 @@
       1. Let _subscriber_ be a new built-in function object as defined in Observable.from Delegating Functions.
       1. Set _subscriber_'s [[Observable]] internal slot to _observable_.
     1. Else,
+      1. Let _iteratorMethod_ be ? GetMethod(_x_, `@@observable`).
+      1. If _iteratorMethod_ is *undefined*, throw a *TypeError* exception.
       1. Let _subscriber_ be a new built-in function object as defined in Observable.from Iteration Functions.
-      1. Set _subscriber_'s [[Items]] internal slot to _x_.
+      1. Set _subscriber_'s [[Iterable]] internal slot to _x_.
+      1. Set _subscriber_'s [[IteratorMethod]] internal slot to _iteratorMethod_.
     1. Return Construct(_C_, « ‍_subscriber_ »).
   </emu-alg>
 
@@ -46,13 +49,14 @@
   <emu-clause id="observable-from-iteration-functions">
     <h1>Observable.from Iteration Functions</h1>
 
-    <p>An Observable.from iteration function is an anonymous built-in function that has an [[Items]] internal slot.</p>
+    <p>An Observable.from iteration function is an anonymous built-in function that has [[Iterable]] and [[IteratorFunction]] internal slots.</p>
 
     <p>When an Observable.from iteration function is called with argument _observer_, the following steps are taken:</p>
 
     <emu-alg>
-      1. Let _items_ be the value of the [[Items]] internal slot of _F_.
-      1. Let _iterator_ be ? GetIterator(_items_).
+      1. Let _iterable_ be the value of the [[Iterable]] internal slot of _F_.
+      1. Let _iteratorMethod_ be the value of the [[IteratorMethod]] internal slot of _F_.
+      1. Let _iterator_ be ? GetIterator(_items_, _iteratorMethod_).
       1. Repeat
         1. Let _next_ be ? IteratorStep(_iterator_).
         1. If _next_ is *false*, then
@@ -83,7 +87,7 @@
   <emu-clause id="observable-of-subscriber-functions">
     <h1>Observable.of Subscriber Functions</h1>
 
-    <p>An Observable.of subscriber function is an anonymous built-in function that has a [[Items]] internal slot.</p>
+    <p>An Observable.of subscriber function is an anonymous built-in function that has an [[Items]] internal slot.</p>
 
     <p>When an Observable.of subscriber function is called with argument _observer_, the following steps are taken:</p>
 
