@@ -41,15 +41,9 @@
       1. If SubscriptionClosed(_subscription_) is *true*, return *undefined*.
       1. Let _observer_ be the value of _subscription_'s [[Observer]] internal slot.
       1. Assert: Type(_observer_) is Object.
-      1. Let _result_ be GetMethod(_observer_, `"next"`).
-      1. If _result_ is not an abrupt completion, then
-        1. Let _nextMethod_ be _result_.[[value]].
-        1. If _nextMethod_ is *undefined*, let _result_ be NormalCompletion(*undefined*).
-        1. Else, let _result_ be Call(_nextMethod_, _observer_, « ‍_value_ »).
-      1. If _result_ is an abrupt completion, then
-        1. Set _subscription_'s [[Observer]] internal slot to *undefined*.
-        1. Perform ? CleanupSubscription(_subscription_).
-      1. Return Completion(_result_).
+      1. Let _nextMethod_ be ? GetMethod(_observer_, `"next"`).
+      1. If _nextMethod_ is *undefined*, let _result_ be NormalCompletion(*undefined*).
+      1. Return ? Call(_nextMethod_, _observer_, « ‍_value_ »).
     </emu-alg>
   </emu-clause>
 

@@ -113,25 +113,14 @@ export default {
         });
 
         called = 0;
-        observable.subscribe({ next() { throw new Error() } });
+        let subscription = observable.subscribe({ next() { throw new Error() } });
         try { observer.next() }
         catch (x) {}
-        test._("Cleanup function is called when next throws an error")
-        .equals(called, 1);
+        test._("Cleanup function is not called when next throws an error")
+        .equals(called, 0);
 
-        let error = new Error(), caught = null;
-
-        new Observable(x => {
-            observer = x;
-            return _=> { throw new Error() };
-        }).subscribe({ next() { throw error } });
-
-        try { observer.next() }
-        catch (x) { caught = x }
-
-        test._("If both next and the cleanup function throw, then the error " +
-            "from the next method is thrown")
-        .assert(caught === error);
+        test._("Subscription is not closed when next throws an error")
+        .equals(subscription.closed, false);
 
     },
 

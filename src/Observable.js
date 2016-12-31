@@ -76,6 +76,7 @@ CancelTokenObserver.prototype = nonEnum({
         }
 
         let observer = this._observer;
+
         let m = getMethod(observer, "next");
 
         // If the observer doesn't support "next", then return undefined
