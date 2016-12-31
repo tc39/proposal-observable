@@ -14,18 +14,18 @@ observable stream of events for an arbitrary DOM element and event type.
 
 ```js
 function listen(element, eventName) {
-    return new Observable(observer => {
+    return new Observable((observer, token) => {
+        // Return a function which will cancel the event stream
+        token.promise.then(() => {
+            // Detach the event handler from the element
+            element.removeEventListener(eventName, handler, true);
+        });
+        
         // Create an event handler which sends data to the sink
         let handler = event => observer.next(event);
 
         // Attach the event handler
         element.addEventListener(eventName, handler, true);
-
-        // Return a function which will cancel the event stream
-        return () => {
-            // Detach the event handler from the element
-            element.removeEventListener(eventName, handler, true);
-        };
     });
 }
 ```
@@ -50,9 +50,10 @@ be added in a future version of this specification.*
 When we want to consume the event stream, we subscribe with an **observer**.
 
 ```js
-let subscription = commandKeys(inputElement).subscribe({
+let { cancel, token } = CancelToken.source();
+commandKeys(inputElement).subscribe({
     next(val) { console.log("Received key command: " + val) },
-    error(err) { console.log("Received an error: " + err) },
+    else(err) { console.log("Received an error that was not a Cancel: " + err) },
     complete() { console.log("Stream complete") },
 });
 ```
@@ -62,7 +63,7 @@ Upon cancelation, the Observable's cleanup function will be executed.
 
 ```js
 // After calling this function, no more events will be sent
-subscription.unsubscribe();
+cancel(new Cancel());
 ```
 
 ### Motivation ###
@@ -104,12 +105,9 @@ interface Observable {
     constructor(subscriber : SubscriberFunction);
 
     // Subscribes to the sequence with an observer
-    subscribe(observer : Observer) : Subscription;
+    subscribe(observer : Observer, token : CancelToken | void) : void;
 
-    // Subscribes to the sequence with callbacks
-    subscribe(onNext : Function,
-              onError? : Function,
-              onComplete? : Function) : Subscription;
+    forEach(next : NextFunction, token : CancelToken | void) : Promise
 
     // Returns itself
     [Symbol.observable]() : Observable;
@@ -119,19 +117,13 @@ interface Observable {
 
     // Converts an observable or iterable to an Observable
     static from(observable) : Observable;
-
 }
 
-interface Subscription {
 
-    // Cancels the subscription
-    unsubscribe() : void;
+function SubscriberFunction(observer: CancelTokenObserver, token : CancelToken) : void
 
-    // A boolean value indicating whether the subscription is closed
-    get closed() : Boolean;
-}
+function NextFunction(value: any, index: number, thisArg: Observable): void
 
-function SubscriberFunction(observer: SubscriptionObserver) : (void => void)|Subscription;
 ```
 
 #### Observable.of ####
@@ -217,39 +209,46 @@ All methods are optional.
 
 ```js
 interface Observer {
-
-    // Receives the subscription object when `subscribe` is called
-    start(subscription : Subscription);
-
     // Receives the next value in the sequence
     next(value);
 
-    // Receives the sequence error
-    error(errorValue);
+    // Receives all error values except Cancels
+    else(errorValue);
 
+    // When present alongside else method, receives only Cancels. If else method does not exist on Observer, receives all errors.
+    catch(errorValue);
+    
     // Receives the sequence completion value
     complete(completeValue);
 }
 ```
 
-#### SubscriptionObserver ####
+#### CancelTokenObserver ####
 
-A SubscriptionObserver is a normalized Observer which wraps the observer object supplied to
-**subscribe**.
+A CancelTokenObserver is a normalized Observer which wraps the observer object supplied to
+**subscribe** and the input token. It adds a `throw` method which internally performs a brand check on the error and delegates it to the correct method (`else` or `catch`) depending on whether the error is a `Cancel` instance. 
 
 ```js
-interface SubscriptionObserver {
+interface CancelTokenObserver {
 
     // Sends the next value in the sequence
     next(value);
+    
+    // If wrapped observer is CancelTokenObserver
+    //   calls throw on wrapped observer
+    // Else if errorValue is _not_ Cancel and wrapped observer has else method
+    //   calls else on wrapped observer
+    // Else if wrapped observer has catch method
+    //   calls catch on wrapped observer
+    throw(errorValue);
+    
+    // Receives all error values except Cancels
+    else(errorValue);
 
-    // Sends the sequence error
-    error(errorValue);
+    // When present alongside else method, receives only Cancels. If else method does not exist on Observer, receives all errors.
+    catch(errorValue);
 
     // Sends the sequence completion value
     complete(completeValue);
-
-    // A boolean value indicating whether the subscription is closed
-    get closed() : Boolean;
 }
 ```

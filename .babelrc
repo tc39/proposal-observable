@@ -1,0 +1,8 @@
+{
+    "plugins": [
+        ["transform-es2015-modules-commonjs-simple", {
+            "noMangle": true
+        }]
+    ],
+    "sourceMaps": true
+}
