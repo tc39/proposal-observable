@@ -45,7 +45,7 @@ export default {
         let called = 0;
 
         Observable.from({
-            get [getSymbol("observable")]() {
+            [getSymbol("observable")]: function() {
                 called++;
                 return _=> ({});
             }
