@@ -227,8 +227,8 @@ interface Observer {
     // Receives the sequence error
     error(errorValue);
 
-    // Receives the sequence completion value
-    complete(completeValue);
+    // Receives a completion notification
+    complete();
 }
 ```
 
@@ -246,8 +246,8 @@ interface SubscriptionObserver {
     // Sends the sequence error
     error(errorValue);
 
-    // Sends the sequence completion value
-    complete(completeValue);
+    // Sends the completion notification
+    complete();
 
     // A boolean value indicating whether the subscription is closed
     get closed() : Boolean;
