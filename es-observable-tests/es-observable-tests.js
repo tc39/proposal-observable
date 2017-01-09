@@ -325,7 +325,7 @@ exports.asyncIter = asyncIterator;
 })();
 
 var __M; (function(a) { var list = Array(a.length / 2); __M = function(i, es) { var m = list[i], f, e; if (typeof m === 'function') { f = m; m = { exports: i ? {} : exports }; f(list[i] = m, m.exports); e = m.exports; m.es = Object(e) !== e || e.constructor === Object ? e : Object.create(e, { 'default': { value: e } }); } return es ? m.es : m.exports; }; for (var i = 0; i < a.length; i += 2) { var j = Math.abs(a[i]); list[j] = a[i + 1]; if (a[i] >= 0) __M(j); } })([
-17, function(module, exports) {
+15, function(module, exports) {
 
 'use strict'; var OP_toString = Object.prototype.toString,
     OP_hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -495,7 +495,7 @@ exports.Test = Test;
 
 
 },
-15, function(module, exports) {
+16, function(module, exports) {
 
 'use strict'; var ELEMENT_ID = "moon-unit";
 
@@ -608,7 +608,7 @@ exports.HtmlLogger = HtmlLogger;
 
 
 },
-16, function(module, exports) {
+17, function(module, exports) {
 
 'use strict'; var Style = {
 
@@ -629,7 +629,7 @@ var NodeLogger = _esdown.class(function(__) { var NodeLogger;
 
         this.passed = 0;
         this.failed = 0;
-        this.errored = 0;
+        this.failList = [];
         this.path = [];
         this.margin = false;
     },
@@ -639,7 +639,19 @@ var NodeLogger = _esdown.class(function(__) { var NodeLogger;
         return new Array(Math.max(this.path.length, 0) * 2 + 1).join(" ");
     },
 
-    end: function() {},
+    end: function() { var __this = this; 
+
+        this.failList.forEach(function(__$0) { var __$1; var path = (__$1 = _esdown.objd(__$0), __$1.path), result = __$1.result; 
+
+            if (result.name)
+                path += " > " + result.name;
+
+            __this._write(Style.bold("[" + path + "]"));
+            __this._write("Actual: " + result.actual);
+            __this._write("Expected: " + result.expected);
+            __this._newline();
+        });
+    },
 
     pushGroup: function(name) {
 
@@ -660,22 +672,17 @@ var NodeLogger = _esdown.class(function(__) { var NodeLogger;
         if (passed) this.passed++;
         else this.failed++;
 
+        if (!passed)
+            this.failList.push({ path: this.path.join(" > "), result: result });
+
         this._write("" + (this.indent) + "" + (result.name) + " " +
             "" + (Style.bold(passed ? Style.green("OK") : Style.red("FAIL"))) + "");
-
-        if (!passed) {
-
-            this._write("" + (this.indent) + "  Actual: " + (result.actual) + "");
-            this._write("" + (this.indent) + "  Expected: " + (result.expected) + "");
-        }
     },
 
     error: function(e) {
 
-        if (!e) return;
-
-        this.errored++;
-        this._write("\n" + Style.red(e.stack) + "\n");
+        if (e)
+            this._write("\n" + Style.red(e.stack) + "\n");
     },
 
     comment: function(msg) {
@@ -706,8 +713,8 @@ exports.NodeLogger = NodeLogger;
 },
 14, function(module, exports) {
 
-'use strict'; var HtmlLogger = __M(15, 1).HtmlLogger;
-var NodeLogger = __M(16, 1).NodeLogger;
+'use strict'; var HtmlLogger = __M(16, 1).HtmlLogger;
+var NodeLogger = __M(17, 1).NodeLogger;
 
 var Logger = (typeof global === "object" && global.process) ?
     NodeLogger :
@@ -719,7 +726,7 @@ exports.Logger = Logger;
 },
 13, function(module, exports) {
 
-'use strict'; var Test = __M(17, 1).Test;
+'use strict'; var Test = __M(15, 1).Test;
 var Logger = __M(14, 1).Logger;
 
 var TestRunner = _esdown.class(function(__) { var TestRunner;
@@ -743,7 +750,7 @@ var TestRunner = _esdown.class(function(__) { var TestRunner;
 
         return this._visit(tests).then(function(val) {
 
-            __this.logger.comment("Passed " + (__this.logger.passed) + " tests and failed " + (__this.logger.failed) + " tests, with " + (__this.logger.errored) + " errors");
+            __this.logger.comment("Passed " + (__this.logger.passed) + " tests and failed " + (__this.logger.failed) + " tests.");
             __this.logger.end();
             return __this;
         });
@@ -758,6 +765,7 @@ var TestRunner = _esdown.class(function(__) { var TestRunner;
         }).catch(function(error) {
 
             __this.logger.error(error);
+            throw error;
         });
     },
 
@@ -792,7 +800,7 @@ exports.TestRunner = TestRunner;
 
 
 },
-12, function(module, exports) {
+11, function(module, exports) {
 
 'use strict'; var TestRunner = __M(13, 1).TestRunner;
 var Logger = __M(14, 1).Logger;
@@ -811,11 +819,11 @@ exports.TestRunner = TestRunner;
 },
 1, function(module, exports) {
 
-'use strict'; Object.keys(__M(12, 1)).forEach(function(k) { exports[k] = __M(12, 1)[k]; });
+'use strict'; Object.keys(__M(11, 1)).forEach(function(k) { exports[k] = __M(11, 1)[k]; });
 
 
 },
-11, function(module, exports) {
+12, function(module, exports) {
 
 'use strict'; function testLength(test, value, length) {
 
@@ -887,7 +895,7 @@ exports.getSymbol = getSymbol;
 },
 2, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -935,7 +943,7 @@ exports["default"] = {
 },
 3, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -953,14 +961,12 @@ exports["default"] = {
         var x = new Observable(function(sink) { return null; });
 
         test
-        ._("Throws if observer is not an object")
-        .throws(function(_) { return x.subscribe(null); }, TypeError)
-        .throws(function(_) { return x.subscribe(undefined); }, TypeError)
-        .throws(function(_) { return x.subscribe(1); }, TypeError)
-        .throws(function(_) { return x.subscribe(true); }, TypeError)
-        .throws(function(_) { return x.subscribe("string"); }, TypeError)
-
-        ._("Any object may be an observer")
+        ._("Any value passed as observer will not cause subscribe to throw")
+        .not().throws(function(_) { return x.subscribe(null); })
+        .not().throws(function(_) { return x.subscribe(undefined); })
+        .not().throws(function(_) { return x.subscribe(1); })
+        .not().throws(function(_) { return x.subscribe(true); })
+        .not().throws(function(_) { return x.subscribe("string"); })
         .not().throws(function(_) { return x.subscribe({}); })
         .not().throws(function(_) { return x.subscribe(Object(1)); })
         .not().throws(function(_) { return x.subscribe(function() {}); })
@@ -1038,11 +1044,28 @@ exports["default"] = {
         ._("Subscriptions can be returned")
         .not().throws(function(_) { return new Observable(function(sink) { return ({ unsubscribe: function() {} }).subscribe(sink); }); })
         ._("Non callable, non-subscription objects cannot be returned")
-        .throws(function(_) { return new Observable(function(sink) { return ({}); }).subscribe(sink); }, TypeError)
+        .throws(
+            function(_) {
+                var error;
+                new Observable(function(sink) { return ({}); }).subscribe({ error: function(e) { error = e; } });
+                throw error;
+            },
+            TypeError)
         ._("Non-functions cannot be returned")
-        .throws(function(_) { return new Observable(function(sink) { return 0; }).subscribe(sink); }, TypeError)
-        .throws(function(_) { return new Observable(function(sink) { return false; }).subscribe(sink); }, TypeError)
-        ;
+        .throws(
+            function(_) {
+                var error;
+                new Observable(function(sink) { return 0; }).subscribe({ error: function(e) { error = e; } });
+                throw error;
+            },
+            TypeError)
+        .throws(
+            function(_) {
+                var error;
+                new Observable(function(sink) { return false; }).subscribe({ error: function(e) { error = e; } });
+                throw error;
+            },
+            TypeError);
     },
 
     "Returns a subscription object": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
@@ -1155,8 +1178,8 @@ exports["default"] = {
         var error = new Error(),
             observable = new Observable(function(_) { throw error });
 
-        test._("Subscribe throws if the observer does not handle errors")
-        .throws(function(_) { return observable.subscribe({}); }, error);
+        test._("Subscribe does not throw if the observer does not handle errors")
+        .not().throws(function(_) { return observable.subscribe({}); }, error);
 
         var thrown = null;
 
@@ -1222,7 +1245,7 @@ exports["default"] = {
 },
 4, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty, getSymbol = __M(11, 1).getSymbol;
+'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty, getSymbol = __M(12, 1).getSymbol;
 
 exports["default"] = {
 
@@ -1249,7 +1272,7 @@ exports["default"] = {
 },
 5, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
 
 // TODO: Verify that Observable.from subscriber returns a cleanup function
 
@@ -1305,7 +1328,7 @@ exports["default"] = {
 },
 6, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty, hasSymbol = __M(11, 1).hasSymbol, getSymbol = __M(11, 1).getSymbol;
+'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty, hasSymbol = __M(12, 1).hasSymbol, getSymbol = __M(12, 1).getSymbol;
 
 // TODO: Verify that Observable.from subscriber returns a cleanup function
 
@@ -1469,7 +1492,7 @@ exports["default"] = {
 },
 7, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -1491,13 +1514,15 @@ exports["default"] = {
 
         new Observable(function(observer) {
 
-            observer.next(token);
+            observer.next(token, 1, 2);
 
         }).subscribe({
 
             next: function(value) { for (var args = [], __$0 = 1; __$0 < arguments.length; ++__$0) args.push(arguments[__$0]); 
                 test._("Input value is forwarded to the observer")
-                .equals(value, token);
+                .equals(value, token)
+                ._("Additional arguments are not forwarded")
+                .equals(args.length, 0);
             }
 
         });
@@ -1509,8 +1534,8 @@ exports["default"] = {
 
         new Observable(function(observer) {
 
-            test._("Returns the value returned from the observer")
-            .equals(observer.next(), token);
+          test._("Suppresses the value returned from the observer")
+          .equals(observer.next(), undefined);
 
             observer.complete();
 
@@ -1519,6 +1544,20 @@ exports["default"] = {
 
         }).subscribe({
             next: function() { return token }
+        });
+    },
+
+    "Thrown error": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
+
+        var token = {};
+
+        new Observable(function(observer) {
+
+            test._("Catches errors thrown from the observer")
+            .equals(observer.next(), undefined);
+
+        }).subscribe({
+            next: function() { throw new Error(); }
         });
     },
 
@@ -1540,14 +1579,15 @@ exports["default"] = {
         .equals(observer.next(), undefined);
 
         observable.subscribe({ next: {} });
-        test._("If property is not a function, then an error is thrown")
-        .throws(function(_) { return observer.next(); }, TypeError);
+        test._("If property is not a function, then next returns undefined")
+        .equals(observer.next(), undefined);
 
         var actual = {};
+        var calls = 0;
         observable.subscribe(actual);
-        actual.next = (function(_) { return 1; });
+        actual.next = (function(_) { return calls++; });
         test._("Method is not accessed until complete is called")
-        .equals(observer.next(), 1);
+        .equals(observer.next() || calls, 1);
 
         var called = 0;
         observable.subscribe({
@@ -1576,34 +1616,17 @@ exports["default"] = {
 
     "Cleanup functions": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
 
-        var called, observer;
+        var observer;
 
         var observable = new Observable(function(x) {
             observer = x;
-            return function(_) { called++ };
+            return function(_) { };
         });
 
-        called = 0;
-        observable.subscribe({ next: function() { throw new Error() } });
-        try { observer.next() }
-        catch (x) {}
-        test._("Cleanup function is called when next throws an error")
-        .equals(called, 1);
-
-        var error = new Error(), caught = null;
-
-        new Observable(function(x) {
-            observer = x;
-            return function(_) { throw new Error() };
-        }).subscribe({ next: function() { throw error } });
-
-        try { observer.next() }
-        catch (x) { caught = x }
-
-        test._("If both next and the cleanup function throw, then the error " +
-            "from the next method is thrown")
-        .assert(caught === error);
-
+        var subscription = observable.subscribe({ next: function() { throw new Error() } });
+        observer.next()
+        test._("Subscription is not closed when next throws an error")
+        .equals(subscription.closed, false);
     },
 
 };
@@ -1612,7 +1635,7 @@ exports["default"] = {
 },
 8, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -1654,14 +1677,28 @@ exports["default"] = {
 
         new Observable(function(observer) {
 
-            test._("Returns the value returned from the observer")
-            .equals(observer.error(), token);
+            test._("Suppresses the value returned from the observer")
+            .equals(observer.error(), undefined);
 
-            test._("Throws the input when closed")
-            .throws(function(_) { observer.error(token) }, token);
+            test._("Returns undefined when closed")
+            .equals(observer.error(), undefined);
 
         }).subscribe({
             error: function() { return token }
+        });
+    },
+
+    "Thrown error": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
+
+        var token = {};
+
+        new Observable(function(observer) {
+
+            test._("Catches errors thrown from the observer")
+            .equals(observer.error(), undefined);
+
+        }).subscribe({
+            error: function() { throw new Error(); }
         });
     },
 
@@ -1672,26 +1709,27 @@ exports["default"] = {
             observable = new Observable(function(x) { observer = x });
 
         observable.subscribe({});
-        test._("If property does not exist, then error throws the input")
-        .throws(function(_) { return observer.error(error); }, error);
+        test._("If property does not exist, then error returns undefined")
+        .equals(observer.error(error), undefined);
 
         observable.subscribe({ error: undefined });
-        test._("If property is undefined, then error throws the input")
-        .throws(function(_) { return observer.error(error); }, error);
+        test._("If property is undefined, then error returns undefined")
+        .equals(observer.error(error), undefined);
 
         observable.subscribe({ error: null });
-        test._("If property is null, then error throws the input")
-        .throws(function(_) { return observer.error(error); }, error);
+        test._("If property is null, then error returns undefined")
+        .equals(observer.error(error), undefined);
 
         observable.subscribe({ error: {} });
-        test._("If property is not a function, then an error is thrown")
-        .throws(function(_) { return observer.error(); }, TypeError);
+        test._("If property is not a function, then error returns undefined")
+        .equals(observer.error(error), undefined);
 
         var actual = {};
+        var calls = 0;
         observable.subscribe(actual);
-        actual.error = (function(_) { return 1; });
+        actual.error = (function(_) { return calls++; });
         test._("Method is not accessed until error is called")
-        .equals(observer.error(error), 1);
+        .equals(observer.error(error) || calls, 1);
 
         var called = 0;
         observable.subscribe({
@@ -1756,32 +1794,15 @@ exports["default"] = {
 
         called = 0;
         observable.subscribe({ get error() { throw new Error() } });
-        try { observer.error() }
-        catch (x) {}
+        observer.error()
         test._("Cleanup function is called when method lookup throws")
         .equals(called, 1);
 
         called = 0;
         observable.subscribe({ error: function() { throw new Error() } });
-        try { observer.error() }
-        catch (x) {}
+        observer.error()
         test._("Cleanup function is called when method throws")
         .equals(called, 1);
-
-        var error = new Error(), caught = null;
-
-        new Observable(function(x) {
-            observer = x;
-            return function(_) { throw new Error() };
-        }).subscribe({ error: function() { throw error } });
-
-        try { observer.error() }
-        catch (x) { caught = x }
-
-        test._("If both error and the cleanup function throw, then the error " +
-            "from the error method is thrown")
-        .assert(caught === error);
-
     },
 
 };
@@ -1790,7 +1811,7 @@ exports["default"] = {
 },
 9, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
 
 exports["default"] = {
 
@@ -1816,10 +1837,8 @@ exports["default"] = {
 
         }).subscribe({
 
-            complete: function(value) { for (var args = [], __$0 = 1; __$0 < arguments.length; ++__$0) args.push(arguments[__$0]); 
-                test._("Input value is forwarded to the observer")
-                .equals(value, token)
-                ._("Additional arguments are not forwarded")
+            complete: function() { for (var args = [], __$0 = 0; __$0 < arguments.length; ++__$0) args.push(arguments[__$0]); 
+                test._("Arguments are not forwarded")
                 .equals(args.length, 0);
             }
 
@@ -1832,14 +1851,28 @@ exports["default"] = {
 
         new Observable(function(observer) {
 
-            test._("Returns the value returned from the observer")
-            .equals(observer.complete(), token);
+            test._("Suppresses the value returned from the observer")
+            .equals(observer.complete(), undefined);
 
             test._("Returns undefined when closed")
             .equals(observer.complete(), undefined);
 
         }).subscribe({
             complete: function() { return token }
+        });
+    },
+
+    "Thrown error": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
+
+        var token = {};
+
+        new Observable(function(observer) {
+
+            test._("Catches errors thrown from the observer")
+            .equals(observer.complete(), undefined);
+
+        }).subscribe({
+            complete: function() { throw new Error(); }
         });
     },
 
@@ -1861,14 +1894,15 @@ exports["default"] = {
         .equals(observer.complete(), undefined);
 
         observable.subscribe({ complete: {} });
-        test._("If property is not a function, then an error is thrown")
-        .throws(function(_) { return observer.complete(); }, TypeError);
+        test._("If property is not a function, then complete returns undefined")
+        .equals(observer.complete(), undefined);
 
         var actual = {};
+        var calls = 0;
         observable.subscribe(actual);
-        actual.complete = (function(_) { return 1; });
+        actual.complete = (function(_) { return calls++; });
         test._("Method is not accessed until complete is called")
-        .equals(observer.complete(), 1);
+        .equals(observer.complete() || calls, 1);
 
         var called = 0;
         observable.subscribe({
@@ -1932,32 +1966,15 @@ exports["default"] = {
 
         called = 0;
         observable.subscribe({ get complete() { throw new Error() } });
-        try { observer.complete() }
-        catch (x) {}
+        observer.complete();
         test._("Cleanup function is called when method lookup throws")
         .equals(called, 1);
 
         called = 0;
         observable.subscribe({ complete: function() { throw new Error() } });
-        try { observer.complete() }
-        catch (x) {}
+        observer.complete();
         test._("Cleanup function is called when method throws")
         .equals(called, 1);
-
-        var error = new Error(), caught = null;
-
-        new Observable(function(x) {
-            observer = x;
-            return function(_) { throw new Error() };
-        }).subscribe({ complete: function() { throw error } });
-
-        try { observer.complete() }
-        catch (x) { caught = x }
-
-        test._("If both complete and the cleanup function throw, then the error " +
-            "from the complete method is thrown")
-        .assert(caught === error);
-
     },
 
 };
@@ -1966,7 +1983,7 @@ exports["default"] = {
 },
 10, function(module, exports) {
 
-'use strict'; var testMethodProperty = __M(11, 1).testMethodProperty;
+'use strict'; var testMethodProperty = __M(12, 1).testMethodProperty;
 
 exports["default"] = {
 

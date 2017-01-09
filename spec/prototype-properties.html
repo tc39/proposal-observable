@@ -9,7 +9,6 @@
     1. Let _O_ be the *this* value.
     1. If Type(_O_) is not Object, throw a *TypeError* exception.
     1. If _O_ does not have an [[Subscriber]] internal slot, throw a *TypeError* exception.
-    1. If Type(_observer_) is not Object, throw a *TypeError* exception.
     1. If IsCallable(_observer_) is *true*, then
       1. Let _len_ be the actual number of arguments passed to this function.
       1. Let _args_ be the List of arguments passed to this function.
@@ -22,22 +21,25 @@
       1. Perform ! CreateDataProperty(_observer_, `"next"`, _nextCallback_).
       1. Perform ! CreateDataProperty(_observer_, `"error"`, _errorCallback_).
       1. Perform ! CreateDataProperty(_observer_, `"complete"`, _completeCallback_).
+    1. Else if Type(_observer_) is not Object, Let _observer_ be ObjectCreate(%ObjectPrototype%).
     1. Let _subscription_ be ? CreateSubscription(_observer_).
-    1. Let _start_ be ? GetMethod(_observer_, `"start"`).
-    1. If _start_ is not **undefined**, then
-      1. Perform ? Call(_start_, _observer_, « _subscription_ »).
-      1. If SubscriptionClosed(_subscription_) is *true*, then
-        1. Return _subscription_.
+    1. Let _start_ be ! Get(_observer_, `"start"`).
+    1. If _start_ is not *undefined*, then
+      1. If IsCallable(_start_) is true
+        1. Let _result_ be Call(_start_, _observer_, « _subscription_ »).
+        1. If _result_ is an abrupt completion, perform HostReportErrors(« _result_.[[Value]] »)
+        1. If SubscriptionClosed(_subscription_) is *true*, then
+          1. Return _subscription_.
     1. Let _subscriptionObserver_ be ? CreateSubscriptionObserver(_subscription_).
     1. Let _subscriber_ be the value of _O's_ [[Subscriber]] internal slot.
     1. Assert: IsCallable(_subscriber_) is *true*.
     1. Let _subscriberResult_ be ExecuteSubscriber(_subscriber_, _subscriptionObserver_).
     1. If _subscriberResult_ is an abrupt completion, then
-      1. Perform ? Invoke(_subscriptionObserver_, `"error"`, « ‍_subscriberResult_.[[value]] »).
+      1. Perform ! Invoke(_subscriptionObserver_, `"error"`, « ‍_subscriberResult_.[[value]] »).
     1. Else,
       1. Set the [[Cleanup]] internal slot of _observer_ to _subscriberResult_.[[value]].
     1. If SubscriptionClosed(_subscription_) is *true*, then
-      1. Perform ? CleanupSubscription(_subscription_).
+      1. Perform ! CleanupSubscription(_subscription_).
     1. Return _subscription_.
   </emu-alg>
 

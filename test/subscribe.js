@@ -16,14 +16,12 @@ export default {
         let x = new Observable(sink => null);
 
         test
-        ._("Throws if observer is not an object")
-        .throws(_=> x.subscribe(null), TypeError)
-        .throws(_=> x.subscribe(undefined), TypeError)
-        .throws(_=> x.subscribe(1), TypeError)
-        .throws(_=> x.subscribe(true), TypeError)
-        .throws(_=> x.subscribe("string"), TypeError)
-
-        ._("Any object may be an observer")
+        ._("Any value passed as observer will not cause subscribe to throw")
+        .not().throws(_=> x.subscribe(null))
+        .not().throws(_=> x.subscribe(undefined))
+        .not().throws(_=> x.subscribe(1))
+        .not().throws(_=> x.subscribe(true))
+        .not().throws(_=> x.subscribe("string"))
         .not().throws(_=> x.subscribe({}))
         .not().throws(_=> x.subscribe(Object(1)))
         .not().throws(_=> x.subscribe(function() {}))
@@ -44,11 +42,11 @@ export default {
         );
 
         new Observable(s => {
-            s.complete(3);
+            s.complete();
         }).subscribe(
             x => list.push("next:" + x),
             e => list.push(e),
-            x => list.push("complete:" + x)
+            x => list.push("complete")
         );
 
         test
@@ -57,18 +55,19 @@ export default {
         ._("Second argument is error callback")
         .equals(list[1], error)
         ._("Third argument is complete callback")
-        .equals(list[2], "complete:3");
+        .equals(list[2], "complete");
 
         list = [];
 
-        new Observable(s => {
-            s.next(1);
-            s.complete();
-        }).subscribe(x => list.push("next:" + x));
-
-        test._("Second and third arguments are optional")
-        .throws(() => new Observable(s => { s.error(error) }).subscribe(() => null))
-        .equals(list, ["next:1"]);
+        test.
+          _("Second and third arguments are optional")
+          .not().throws(
+            () => new Observable(
+              s => {
+                s.next(1);
+                s.complete();
+              }).subscribe(x => list.push("next:" + x)))
+          .equals(list, ["next:1"]);
     },
 
     "Subscriber arguments" (test, { Observable }) {
@@ -101,11 +100,28 @@ export default {
         ._("Subscriptions can be returned")
         .not().throws(_=> new Observable(sink => ({ unsubscribe() {} }).subscribe(sink)))
         ._("Non callable, non-subscription objects cannot be returned")
-        .throws(_=> new Observable(sink => ({})).subscribe(sink), TypeError)
+        .throws(
+            _ => {
+                let error;
+                new Observable(sink => ({})).subscribe({ error(e) { error = e; } });
+                throw error;
+            },
+            TypeError)
         ._("Non-functions cannot be returned")
-        .throws(_=> new Observable(sink => 0).subscribe(sink), TypeError)
-        .throws(_=> new Observable(sink => false).subscribe(sink), TypeError)
-        ;
+        .throws(
+            _ => {
+                let error;
+                new Observable(sink => 0).subscribe({ error(e) { error = e; } });
+                throw error;
+            },
+            TypeError)
+        .throws(
+            _ => {
+                let error;
+                new Observable(sink => false).subscribe({ error(e) { error = e; } });
+                throw error;
+            },
+            TypeError);
     },
 
     "Returns a subscription object" (test, { Observable }) {
@@ -218,8 +234,8 @@ export default {
         let error = new Error(),
             observable = new Observable(_=> { throw error });
 
-        test._("Subscribe throws if the observer does not handle errors")
-        .throws(_=> observable.subscribe({}), error);
+        test._("Subscribe does not throw if the observer does not handle errors")
+        .not().throws(_=> observable.subscribe({}), error);
 
         let thrown = null;
 

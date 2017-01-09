@@ -32,6 +32,15 @@ function getMethod(obj, key) {
     return value;
 }
 
+function getObserverMethod(obj, key) {
+    let value = obj[key];
+
+    if (value == null || typeof value !== "function")
+        return undefined;
+
+    return value;
+}
+
 function cleanupSubscription(subscription) {
 
     // Assert:  observer._observer is undefined
@@ -46,7 +55,12 @@ function cleanupSubscription(subscription) {
     subscription._cleanup = undefined;
 
     // Call the cleanup function
-    cleanup();
+    try {
+        cleanup();
+    }
+    catch(e) {
+        // HostReportErrors(e);
+    }
 }
 
 function subscriptionClosed(subscription) {
@@ -68,21 +82,21 @@ function cleanupFromSubscription(subscription) {
 }
 
 function Subscription(observer, subscriber) {
-
     // Assert: subscriber is callable
-
     // The observer must be an object
-    if (Object(observer) !== observer)
-        throw new TypeError("Observer must be an object");
-
     this._cleanup = undefined;
     this._observer = observer;
 
-    let start = getMethod(observer, "start");
-
     // If the observer has a start method, call it with the subscription object
-    if (start)
-        start.call(observer, this);
+    try {
+        let start = getObserverMethod(observer, "start");
+        if (start) {
+            start.call(observer, this);
+        }
+    }
+    catch(e) {
+        // HostReportErrors(e);
+    }
 
     // If the observer has unsubscribed from the start method, exit
     if (subscriptionClosed(this))
@@ -97,7 +111,6 @@ function Subscription(observer, subscriber) {
 
         // The return value must be undefined, null, a subscription object, or a function
         if (cleanup != null) {
-
             if (typeof cleanup.unsubscribe === "function")
                 cleanup = cleanupFromSubscription(cleanup);
             else if (typeof cleanup !== "function")
@@ -108,16 +121,16 @@ function Subscription(observer, subscriber) {
 
     } catch (e) {
 
-        // If an error occurs during startup, then attempt to send the error
-        // to the observer.  If the subscription is already closed, then the
-        // error will be rethrown.
+        // If an error occurs during startup, then send the error
+        // to the observer.
         observer.error(e);
         return;
     }
 
     // If the stream is already finished, then perform cleanup
-    if (subscriptionClosed(this))
+    if (subscriptionClosed(this)) {
         cleanupSubscription(this);
+    }
 }
 
 Subscription.prototype = nonEnum({
@@ -145,14 +158,20 @@ SubscriptionObserver.prototype = nonEnum({
             return undefined;
 
         let observer = subscription._observer;
-        let m = getMethod(observer, "next");
+        let m = getObserverMethod(observer, "next");
 
         // If the observer doesn't support "next", then return undefined
         if (!m)
             return undefined;
 
         // Send the next value to the sink
-        return m.call(observer, value);
+        try {
+            m.call(observer, value);
+        }
+        catch(e) {
+            // HostReportErrors(e);
+        }
+        return undefined;
     },
 
     error(value) {
@@ -160,33 +179,34 @@ SubscriptionObserver.prototype = nonEnum({
         let subscription = this._subscription;
 
         // If the stream is closed, throw the error to the caller
-        if (subscriptionClosed(subscription))
-            throw value;
+        if (subscriptionClosed(subscription)) {
+            return undefined;
+        }
 
         let observer = subscription._observer;
         subscription._observer = undefined;
 
         try {
 
-            let m = getMethod(observer, "error");
+            let m = getObserverMethod(observer, "error");
 
-            // If the sink does not support "error", then throw the error to the caller
-            if (!m)
-                throw value;
-
-            value = m.call(observer, value);
-
+            // If the sink does not support "complete", then return undefined
+            if (m) {
+                m.call(observer, value);
+            }
+            else {
+                // HostReportErrors(e);
+            }
         } catch (e) {
-
-            try { cleanupSubscription(subscription) }
-            finally { throw e }
+            // HostReportErrors(e);
         }
 
         cleanupSubscription(subscription);
-        return value;
+
+        return undefined;
     },
 
-    complete(value) {
+    complete() {
 
         let subscription = this._subscription;
 
@@ -199,19 +219,19 @@ SubscriptionObserver.prototype = nonEnum({
 
         try {
 
-            let m = getMethod(observer, "complete");
+            let m = getObserverMethod(observer, "complete");
 
             // If the sink does not support "complete", then return undefined
-            value = m ? m.call(observer, value) : undefined;
-
+            if (m) {
+                m.call(observer);
+            }
         } catch (e) {
-
-            try { cleanupSubscription(subscription) }
-            finally { throw e }
+            // HostReportErrors(e);
         }
 
         cleanupSubscription(subscription);
-        return value;
+
+        return undefined;
     },
 
 });
@@ -224,20 +244,22 @@ export class Observable {
 
         // The stream subscriber must be a function
         if (typeof subscriber !== "function")
-            throw new TypeError("Observable initializer must be a function");
+            throw new
+            TypeError("Observable initializer must be a function");
 
         this._subscriber = subscriber;
     }
 
     subscribe(observer, ...args) {
-
         if (typeof observer === "function") {
-
             observer = {
                 next: observer,
                 error: args[0],
                 complete: args[1]
             };
+        }
+        else if (typeof observer !== "object") {
+            observer = {};
         }
 
         return new Subscription(observer, this._subscriber);

@@ -40,14 +40,28 @@ export default {
 
         new Observable(observer => {
 
-            test._("Returns the value returned from the observer")
-            .equals(observer.error(), token);
+            test._("Suppresses the value returned from the observer")
+            .equals(observer.error(), undefined);
 
-            test._("Throws the input when closed")
-            .throws(_=> { observer.error(token) }, token);
+            test._("Returns undefined when closed")
+            .equals(observer.error(), undefined);
 
         }).subscribe({
             error() { return token }
+        });
+    },
+
+    "Thrown error" (test, { Observable }) {
+
+        let token = {};
+
+        new Observable(observer => {
+
+            test._("Catches errors thrown from the observer")
+            .equals(observer.error(), undefined);
+
+        }).subscribe({
+            error() { throw new Error(); }
         });
     },
 
@@ -58,26 +72,27 @@ export default {
             observable = new Observable(x => { observer = x });
 
         observable.subscribe({});
-        test._("If property does not exist, then error throws the input")
-        .throws(_=> observer.error(error), error);
+        test._("If property does not exist, then error returns undefined")
+        .equals(observer.error(error), undefined);
 
         observable.subscribe({ error: undefined });
-        test._("If property is undefined, then error throws the input")
-        .throws(_=> observer.error(error), error);
+        test._("If property is undefined, then error returns undefined")
+        .equals(observer.error(error), undefined);
 
         observable.subscribe({ error: null });
-        test._("If property is null, then error throws the input")
-        .throws(_=> observer.error(error), error);
+        test._("If property is null, then error returns undefined")
+        .equals(observer.error(error), undefined);
 
         observable.subscribe({ error: {} });
-        test._("If property is not a function, then an error is thrown")
-        .throws(_=> observer.error(), TypeError);
+        test._("If property is not a function, then error returns undefined")
+        .equals(observer.error(error), undefined);
 
         let actual = {};
+        let calls = 0;
         observable.subscribe(actual);
-        actual.error = (_=> 1);
+        actual.error = (_=> calls++);
         test._("Method is not accessed until error is called")
-        .equals(observer.error(error), 1);
+        .equals(observer.error(error) || calls, 1);
 
         let called = 0;
         observable.subscribe({
@@ -142,32 +157,15 @@ export default {
 
         called = 0;
         observable.subscribe({ get error() { throw new Error() } });
-        try { observer.error() }
-        catch (x) {}
+        observer.error()
         test._("Cleanup function is called when method lookup throws")
         .equals(called, 1);
 
         called = 0;
         observable.subscribe({ error() { throw new Error() } });
-        try { observer.error() }
-        catch (x) {}
+        observer.error()
         test._("Cleanup function is called when method throws")
         .equals(called, 1);
-
-        let error = new Error(), caught = null;
-
-        new Observable(x => {
-            observer = x;
-            return _=> { throw new Error() };
-        }).subscribe({ error() { throw error } });
-
-        try { observer.error() }
-        catch (x) { caught = x }
-
-        test._("If both error and the cleanup function throw, then the error " +
-            "from the error method is thrown")
-        .assert(caught === error);
-
     },
 
 };

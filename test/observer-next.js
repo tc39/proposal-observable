@@ -20,13 +20,15 @@ export default {
 
         new Observable(observer => {
 
-            observer.next(token);
+            observer.next(token, 1, 2);
 
         }).subscribe({
 
             next(value, ...args) {
                 test._("Input value is forwarded to the observer")
-                .equals(value, token);
+                .equals(value, token)
+                ._("Additional arguments are not forwarded")
+                .equals(args.length, 0);
             }
 
         });
@@ -38,8 +40,8 @@ export default {
 
         new Observable(observer => {
 
-            test._("Returns the value returned from the observer")
-            .equals(observer.next(), token);
+          test._("Suppresses the value returned from the observer")
+          .equals(observer.next(), undefined);
 
             observer.complete();
 
@@ -48,6 +50,20 @@ export default {
 
         }).subscribe({
             next() { return token }
+        });
+    },
+
+    "Thrown error" (test, { Observable }) {
+
+        let token = {};
+
+        new Observable(observer => {
+
+            test._("Catches errors thrown from the observer")
+            .equals(observer.next(), undefined);
+
+        }).subscribe({
+            next() { throw new Error(); }
         });
     },
 
@@ -69,14 +85,15 @@ export default {
         .equals(observer.next(), undefined);
 
         observable.subscribe({ next: {} });
-        test._("If property is not a function, then an error is thrown")
-        .throws(_=> observer.next(), TypeError);
+        test._("If property is not a function, then next returns undefined")
+        .equals(observer.next(), undefined);
 
         let actual = {};
+        let calls = 0;
         observable.subscribe(actual);
-        actual.next = (_=> 1);
+        actual.next = (_=> calls++);
         test._("Method is not accessed until complete is called")
-        .equals(observer.next(), 1);
+        .equals(observer.next() || calls, 1);
 
         let called = 0;
         observable.subscribe({
@@ -105,23 +122,17 @@ export default {
 
     "Cleanup functions" (test, { Observable }) {
 
-        let called, observer;
+        let observer;
 
         let observable = new Observable(x => {
             observer = x;
-            return _=> { called++ };
+            return _=> { };
         });
 
-        called = 0;
         let subscription = observable.subscribe({ next() { throw new Error() } });
-        try { observer.next() }
-        catch (x) {}
-        test._("Cleanup function is not called when next throws an error")
-        .equals(called, 0);
-
+        observer.next()
         test._("Subscription is not closed when next throws an error")
         .equals(subscription.closed, false);
-
     },
 
 };

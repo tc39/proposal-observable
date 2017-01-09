@@ -10,7 +10,7 @@ export default {
         testMethodProperty(test, Object.getPrototypeOf(observer), "complete", {
             configurable: true,
             writable: true,
-            length: 1
+            length: 0
         });
     },
 
@@ -24,10 +24,8 @@ export default {
 
         }).subscribe({
 
-            complete(value, ...args) {
-                test._("Input value is forwarded to the observer")
-                .equals(value, token)
-                ._("Additional arguments are not forwarded")
+            complete(...args) {
+                test._("Arguments are not forwarded")
                 .equals(args.length, 0);
             }
 
@@ -40,14 +38,28 @@ export default {
 
         new Observable(observer => {
 
-            test._("Returns the value returned from the observer")
-            .equals(observer.complete(), token);
+            test._("Suppresses the value returned from the observer")
+            .equals(observer.complete(), undefined);
 
             test._("Returns undefined when closed")
             .equals(observer.complete(), undefined);
 
         }).subscribe({
             complete() { return token }
+        });
+    },
+
+    "Thrown error" (test, { Observable }) {
+
+        let token = {};
+
+        new Observable(observer => {
+
+            test._("Catches errors thrown from the observer")
+            .equals(observer.complete(), undefined);
+
+        }).subscribe({
+            complete() { throw new Error(); }
         });
     },
 
@@ -69,14 +81,15 @@ export default {
         .equals(observer.complete(), undefined);
 
         observable.subscribe({ complete: {} });
-        test._("If property is not a function, then an error is thrown")
-        .throws(_=> observer.complete(), TypeError);
+        test._("If property is not a function, then complete returns undefined")
+        .equals(observer.complete(), undefined);
 
         let actual = {};
+        let calls = 0;
         observable.subscribe(actual);
-        actual.complete = (_=> 1);
+        actual.complete = (_=> calls++);
         test._("Method is not accessed until complete is called")
-        .equals(observer.complete(), 1);
+        .equals(observer.complete() || calls, 1);
 
         let called = 0;
         observable.subscribe({
@@ -140,32 +153,15 @@ export default {
 
         called = 0;
         observable.subscribe({ get complete() { throw new Error() } });
-        try { observer.complete() }
-        catch (x) {}
+        observer.complete();
         test._("Cleanup function is called when method lookup throws")
         .equals(called, 1);
 
         called = 0;
         observable.subscribe({ complete() { throw new Error() } });
-        try { observer.complete() }
-        catch (x) {}
+        observer.complete();
         test._("Cleanup function is called when method throws")
         .equals(called, 1);
-
-        let error = new Error(), caught = null;
-
-        new Observable(x => {
-            observer = x;
-            return _=> { throw new Error() };
-        }).subscribe({ complete() { throw error } });
-
-        try { observer.complete() }
-        catch (x) { caught = x }
-
-        test._("If both complete and the cleanup function throw, then the error " +
-            "from the complete method is thrown")
-        .assert(caught === error);
-
     },
 
 };
