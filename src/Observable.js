@@ -251,14 +251,15 @@ export class Observable {
     }
 
     subscribe(observer, ...args) {
-
         if (typeof observer === "function") {
-
             observer = {
                 next: observer,
                 error: args[0],
                 complete: args[1]
             };
+        }
+        else if (typeof observer !== "object") {
+            observer = {};
         }
 
         return new Subscription(observer, this._subscriber);

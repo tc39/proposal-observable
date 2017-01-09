@@ -26,7 +26,8 @@
       1. If _cleanup_ is *undefined*, return *undefined*.
       1. Assert: IsCallable(_cleanup_) is *true*.
       1. Set _subscription_'s [[Cleanup]] internal slot to *undefined*.
-      1. Perform ? Call(_cleanup_, *undefined*, «‍ »).
+      1. Let _result_ be Call(_cleanup_, *undefined*, «‍ »).
+      1. If _result_ is an abrupt completion, perform HostReportErrors(« _result_.[[Value]] »).
       1. Return *undefined*.
     </emu-alg>
   </emu-clause>

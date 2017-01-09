@@ -57,15 +57,16 @@
       1. Let _iterable_ be the value of the [[Iterable]] internal slot of _F_.
       1. Let _iteratorMethod_ be the value of the [[IteratorMethod]] internal slot of _F_.
       1. Let _iterator_ be ? GetIterator(_items_, _iteratorMethod_).
+      1. Let _subscription_ be the value of _observer_'s [[Subscription]] internal slot.
       1. Repeat
         1. Let _next_ be ? IteratorStep(_iterator_).
         1. If _next_ is *false*, then
-          1. Perform ? Invoke(_observer_, `"complete"`, «‍ »).
+          1. Perform ! Invoke(_observer_, `"complete"`, «‍ »).
           1. Return *undefined*.
         1. Let _nextValue_ be ? IteratorValue(_next_).
-        1. Let _result_ be Invoke(_observer_, `"next"`, « ‍_nextValue_ »).
-        1. If _result_ in an abrupt completion, then
-          1. Return ? IteratorClose(_iterator_, _result_).
+        1. Perform ! Invoke(_observer_, `"next"`, « ‍_nextValue_ »).
+        1. If SubscriptionClosed(_subscription_) is *true*, then
+          1. Return ? IteratorClose(_iterator_, *undefined*).
     </emu-alg>
 
     <p>The `length` property of an Observable.from iteration function is `1`.</p>
@@ -93,9 +94,12 @@
 
     <emu-alg>
       1. Let _items_ be the value of the [[Items]] internal slot of _F_.
+      1. Let _subscription_ be the value of _observer_'s [[Subscription]] internal slot.      
       1. For each element _value_ of _items_
-        1. Perform ? Invoke(_observer_, `"next"`, « ‍_value_ »).
-      1. Perform ? Invoke(_observer_, `"complete"`, «‍ »).
+        1. Perform ! Invoke(_observer_, `"next"`, « ‍_value_ »).
+        1. If SubscriptionClosed(_subscription_) is *true*, then
+          1. Return *undefined*.
+      1. Perform ! Invoke(_observer_, `"complete"`, «‍ »).
       1. Return *undefined*.
     </emu-alg>
 
