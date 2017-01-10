@@ -23,13 +23,16 @@
       1. Perform ! CreateDataProperty(_observer_, `"complete"`, _completeCallback_).
     1. Else if Type(_observer_) is not Object, Let _observer_ be ObjectCreate(%ObjectPrototype%).
     1. Let _subscription_ be ? CreateSubscription(_observer_).
-    1. Let _start_ be ! Get(_observer_, `"start"`).
-    1. If _start_ is not *undefined*, then
-      1. If IsCallable(_start_) is true
+    1. Let _startMethodResult_ be GetMethod(_observer_, `"start"`).
+    1. If _startMethodResult_.[[Type]] is ~normal~, then
+      1. Let _start_ be _startMethodResult_.[[Value]].
+      1. If _start_ is not *undefined*, then
         1. Let _result_ be Call(_start_, _observer_, « _subscription_ »).
-        1. If _result_ is an abrupt completion, perform HostReportErrors(« _result_.[[Value]] »)
+        1. If _result_ is an abrupt completion, perform HostReportErrors(« _result_.[[Value]] »).
         1. If SubscriptionClosed(_subscription_) is *true*, then
           1. Return _subscription_.
+    1. Else if _startMethodResult_.[[Type]] is ~throw~, then perform HostReportErrors(« _startMethodResult_.[[Value]] »).
+    1. If _result_ is an abrupt completion, perform HostReportErrors(« _result_.[[Value]] »).
     1. Let _subscriptionObserver_ be ? CreateSubscriptionObserver(_subscription_).
     1. Let _subscriber_ be the value of _O's_ [[Subscriber]] internal slot.
     1. Assert: IsCallable(_subscriber_) is *true*.
