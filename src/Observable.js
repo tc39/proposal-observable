@@ -32,15 +32,6 @@ function getMethod(obj, key) {
     return value;
 }
 
-function getObserverMethod(obj, key) {
-    let value = obj[key];
-
-    if (value == null || typeof value !== "function")
-        return undefined;
-
-    return value;
-}
-
 function cleanupSubscription(subscription) {
 
     // Assert:  observer._observer is undefined
@@ -89,7 +80,8 @@ function Subscription(observer, subscriber) {
 
     // If the observer has a start method, call it with the subscription object
     try {
-        let start = getObserverMethod(observer, "start");
+        let start = getMethod(observer, "start");
+
         if (start) {
             start.call(observer, this);
         }
@@ -158,14 +150,15 @@ SubscriptionObserver.prototype = nonEnum({
             return undefined;
 
         let observer = subscription._observer;
-        let m = getObserverMethod(observer, "next");
 
-        // If the observer doesn't support "next", then return undefined
-        if (!m)
-            return undefined;
-
-        // Send the next value to the sink
         try {
+            let m = getMethod(observer, "next");
+
+            // If the observer doesn't support "next", then return undefined
+            if (!m)
+                return undefined;
+
+            // Send the next value to the sink
             m.call(observer, value);
         }
         catch(e) {
@@ -188,7 +181,7 @@ SubscriptionObserver.prototype = nonEnum({
 
         try {
 
-            let m = getObserverMethod(observer, "error");
+            let m = getMethod(observer, "error");
 
             // If the sink does not support "complete", then return undefined
             if (m) {
@@ -219,7 +212,7 @@ SubscriptionObserver.prototype = nonEnum({
 
         try {
 
-            let m = getObserverMethod(observer, "complete");
+            let m = getMethod(observer, "complete");
 
             // If the sink does not support "complete", then return undefined
             if (m) {
