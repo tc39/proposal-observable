@@ -41,11 +41,13 @@
       1. If SubscriptionClosed(_subscription_) is *true*, return *undefined*.
       1. Let _observer_ be the value of _subscription_'s [[Observer]] internal slot.
       1. Assert: Type(_observer_) is Object.
-      1. Let _nextMethod_ be ! Get(_observer_, `"next"`).
-      1. If _nextMethod_ is not **undefined**, then
-        1. If IsCallable(_nextMethod_) is true
+      1. Let _nextMethodResult_ be GetMethod(_observer_, `"next"`).
+      1. If _nextMethodResult_.[[Type]] is ~normal~, then
+        1. Let _nextMethod_ be _nextMethodResult_.[[Value]].
+        1. If _nextMethod_ is not *undefined*, then
           1. Let _result_ be Call(_nextMethod_, _observer_, « ‍_value_ »).
-          1. If _result_ is an abrupt completion, perform HostReportErrors(« _result_.[[Value]] »)
+          1. If _result_ is an abrupt completion, perform HostReportErrors(« _result_.[[Value]] »).
+      1. Else if _nextMethodResult_.[[Type]] is ~throw~, then perform HostReportErrors(« _nextMethodResult_.[[Value]] »).
       1. Return *undefined*.
     </emu-alg>
   </emu-clause>
@@ -60,12 +62,13 @@
       1. If SubscriptionClosed(_subscription_) is *true*, return *undefined*.
       1. Let _observer_ be the value of _subscription_'s [[Observer]] internal slot.
       1. Assert: Type(_observer_) is Object.
-      1. Set _subscription_'s [[Observer]] internal slot to *undefined*.
-      1. Let _errorMethod_ be ! Get(_observer_, `"error"`).
-      1. If _errorMethod_ is not **undefined**, then
-        1. If IsCallable(_errorMethod_) is true
+      1. Let _errorMethodResult_ be GetMethod(_observer_, `"error"`).
+      1. If _errorMethodResult_.[[Type]] is ~normal~, then
+        1. Let _errorMethod_ be _errorMethodResult_.[[Value]].
+        1. If _errorMethod_ is not *undefined*, then
           1. Let _result_ be Call(_errorMethod_, _observer_, « _exception_ »).
-          1. If _result_ is an abrupt completion, perform HostReportErrors(« _result_.[[Value]] »)
+          1. If _result_ is an abrupt completion, perform HostReportErrors(« _result_.[[Value]] »).
+      1. Else if _errorMethodResult_.[[Type]] is ~throw~, then perform HostReportErrors(« _errorMethodResult_.[[Value]] »).
       1. Perform ! CleanupSubscription(_subscription_).
       1. Return *undefined*.
     </emu-alg>
@@ -81,12 +84,13 @@
       1. If SubscriptionClosed(_subscription_) is *true*, return *undefined*.
       1. Let _observer_ be the value of _subscription_'s [[Observer]] internal slot.
       1. Assert: Type(_observer_) is Object.
-      1. Set _subscription_'s [[Observer]] internal slot to *undefined*.
-      1. Let _completeMethod_ be ! Get(_observer_, `"complete"`).
-      1. If _completeMethod_ is not **undefined**, then
-        1. If IsCallable(_completeMethod_) is true
+      1. Let _completeMethodResult_ be GetMethod(_observer_, `"complete"`).
+      1. If _completeMethodResult_.[[Type]] is ~normal~, then
+        1. Let _completeMethod_ be _completeMethodResult_.[[Value]].
+        1. If _completeMethod_ is not *undefined*, then
           1. Let _result_ be Call(_completeMethod_, _observer_).
-          1. If _result_ is an abrupt completion, perform HostReportErrors(« _result_.[[Value]] »)
+          1. If _result_ is an abrupt completion, perform HostReportErrors(« _result_.[[Value]] »).
+      1. Else if _completeMethodResult_.[[Type]] is ~throw~, then perform HostReportErrors(« _completeMethodResult_.[[Value]] »).
       1. Perform ! CleanupSubscription(_subscription_).
       1. Return *undefined*.
     </emu-alg>
