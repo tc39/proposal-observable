@@ -12,7 +12,7 @@ promise.then(
 
 This contrasts with both EventTarget (ET) and EventEmitter (ET), neither of which has a well-defined way of notifying that the stream has ended due to completion or error. It's reasonable to question the value of these notifications given that they are not present in either EE or ET, arguably the two most common push stream APIs used in JavaScript. 
 
-This document attempts to demonstrate the value of completion and error notifications by demonstrating that they enable useful composition operations. These composition operations in turn allow for a wider range of async programming patterns to be expressed within asynchronous functions. This improves developer ergonomics because using async functions offer developers a host of benefits including...
+This document attempts to justify the value of completion and error notifications by demonstrating that they enable useful composition operations. These composition operations in turn allow for a wider range of async programming patterns to be expressed within asynchronous functions. This improves developer ergonomics because using async functions offer developers a host of benefits including...
 
 * Avoiding memory leaks caused by failure to release callbacks
 * Automatically propagating errors
