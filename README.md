@@ -21,7 +21,7 @@ function listen(element, eventName) {
         // Attach the event handler
         element.addEventListener(eventName, handler, true);
 
-        // Return a function which will cancel the event stream
+        // Return a cleanup function which will cancel the event stream
         return () => {
             // Detach the event handler from the element
             element.removeEventListener(eventName, handler, true);
