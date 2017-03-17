@@ -380,7 +380,7 @@ This app improves on the previous app in the following ways:
 * it can concurrently respond to sub changes, navigation events, and image loads.
 * memory leaks associated with retained handlers have been eliminated by relying on `EventTarget`s ability to send multiple events to a single subscription.
 
-Regrettably this solution is also complex, because it relies on mutable state for concurrency coordination. Note that the developer must take explicit steps to avoid responding to notifications which are no longer relevant.  Consider the guards inserted at various places in the code above to prevent the execution of operations which are no longer needed.
+However this solution is also complex, because it relies on mutable state to implement the "Switch Latest" concurrency coordination. To ensure that outdated operations are not executed, shared mutable state is used to track the operation with highest priority. Regrettably the lack of support for Promise cancellation forces the developer to take explicit steps to avoid responding to notifications which are no longer relevant.  Consider the guards inserted at various places in the code above to prevent the execution of operations which are no longer needed.
 
 ```
 if (posts == null) {
@@ -408,11 +408,9 @@ subSelect.removeEventListener("change", subSelectHandler);
 
 Yet more shared mutable state is necessary because EventTarget and Promise do not compose. Note that in order to make the values resolved by `Promises` available to `EventTarget` handlers, it is necessary to write them to the shared mutable `posts` variable.
 
-Note that the non-compositionality of `EventTarget` and `Promise` force nearly most of the identifiers in this solution to be declared with `let`.
-
 #### Solution 3: EventTargetObservable and Promises
 
-The previous solution relied on mutable state to implement the "Switch Latest" pattern. Using Observable it is possible to avoid using shared mutable state for concurrency coordination by using the `switchLatest` and `switchMap` functions offered by userland libraries.
+The previous solution relied on mutable state to implement the "Switch Latest" concurrency coordination pattern. Using Observable it is possible to avoid using shared mutable state for concurrency coordination by using the `switchLatest` and `switchMap` functions offered by userland libraries.
 
 The `switchLatest` combinator allows the "Switch Latest" pattern to be implemented without introducing mutable state into user code. The `switchLatest` combinator accepts a multi-dimensional Observable, and returns an  Observable flattened by one dimension. As soon the outer Observable notifies an inner Observable, `switchLatest` unsubscribes from the inner Observable to which it was subscribed and subscribes to the **latest** Observable.
 
