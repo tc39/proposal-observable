@@ -490,15 +490,14 @@ const postsWithImages =
     switchMap(sub => // ignore outstanding sub requests, nav events, and image loads and switch to new sub
       newsAggregator.getSubPosts(sub, 300).
         //,,,[ {title:"My Cat", image:"http://"}, {title:"Meme",image:"http://"}, ...],,,,,[...],,,,
-        flatMap(posts => getNavigatedItems(posts)).
+        switchMap(posts => getNavigatedItems(posts)).
         //,,,{title:"My Cat",image:"http://"},,,,,,,,{title:"Meme",image:"http://"},,,,,,,,,,,,,       
         switchMap(post => { // ignore outstanding image loads, switch to new post
           const image = new Image();
           image.src = post.image;
           return _.(image.on('load', { receiveError: true, once: true })).
-            catch(
-              () => post,
-              error  => ({...post, image: "./errorloadingpost.png"}));
+            map(() => post).
+            catch(error => Observable.of({...post, image: "./errorloadingpost.png"}));
         }));
         //,,,,,,,,,,,,{title: "My Cat",image: "http://...""},,,,,,,{title:"Meme",image:"http://"},,,,,,,,,
 
