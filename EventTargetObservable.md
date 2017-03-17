@@ -283,7 +283,6 @@ const titleLabel = document.querySelector("#titleLabel");
 const previousButton = document.querySelector("#previousButton");
 const nextButton = document.querySelector("#nextButton");
 
-let sub;
 let index;
 
 // shared mutable state used to coordinate concurrency
@@ -295,7 +294,7 @@ function showProgress() {
 }
 
 function switchImage(direction) {
-  // guard against navigating while a new sub is being downloaded
+  // guard against navigating while a new sub is being loaded
   if (posts == null) {
     return;
   }
@@ -305,24 +304,22 @@ function switchImage(direction) {
     index = circularIndex(index + direction, posts.length)
   }
 
-  let summary = posts[index];
+  const summary = posts[index];
 
-  // use a global currentOperation flag to detect when another
-  // operation has been dispatched after this one.
+  // capture current operation id in closure so it can be used to
+  // confirm operation is not outdated when Promise resolves
   let thisOperation = ++currentOperation;
   return preloadImage(summary.image).
     then(
       () => {
-        // if the current operation is not longer this one,
-        // short-circuit.
+        // short-circuit this is no longer the current operation
         if (thisOperation === currentOperation) {
           titleLabel.innerText = summary.title
           displayedImage.src = detail.image || "./noimagefound.gif"
         }
       },
       e => {
-        // if the current operation is not longer this one,
-        // short-circuit.        
+        // short-circuit this is no longer the current operation
         if (thisOperation === currentOperation) {
           titleLabel.innerText = summary.title
           displayedImage.src = "./errorloadingpost.png";
@@ -330,18 +327,17 @@ function switchImage(direction) {
       });
 }
 
-const nextHandler = () => switchImage(1);
-const previousHandler = () => switchImage(-1);
-nextButton.addEventListener("click", nextHandler);
-previousButton.addEventListener("click", previousHandler);
-
-const subSelectHandler = () => {
+function subSelectHandler() {
   showProgress();
-  sub = subSelect.value;
+
+  let sub = subSelect.value;
+  // indicate a new set of posts is being loaded to guard
+  // against responding to navigation events in the interim
   posts = null;
 
+  // capture current operation id in closure so it can be used to
+  // confirm operation is not outdated when Promise resolves
   let thisOperation = ++currentOperation;
-
   newsAggregator.
       getSubPosts(sub).
       then(
@@ -354,7 +350,7 @@ const subSelectHandler = () => {
         },
         e => {
           // unsubscribe from events to avoid putting unnecessary
-          // load on news aggregator.
+          // load on news aggregator when the server is down.
           nextButton.removeEventListener("click", nextHandler);
           previousButton.removeEventListener("click", previousHandler);
           subSelect.removeEventListener("change", subSelectHandler);
@@ -362,12 +358,29 @@ const subSelectHandler = () => {
         });
 });
 
+function nextHandler() {
+  switchImage(1)
+};
+
+function previousHandler() {
+  switchImage(-1);
+};
+
 subSelect.addEventListener("change", subSelectHandler);
+nextButton.addEventListener("click", nextHandler);
+previousButton.addEventListener("click", previousHandler);
+
+
+// load current sub
+subSelectHandler();
 ```
 
-The solution above is is always ready to respond to sub changes, navigation events, and image loads. Furthermore this solution does not contain memory leaks. However this solution is also complex, because it relies on mutable state for concurrency coordination. In this case the `guid` and `posts`
+This app improves on the previous app in the following ways:
 
-The inability to unusubscribe from Promises Note that the developer must take explicit steps to avoid responding to from taking place. Consider the guards inserted at various places in the code above to prevent the execution of operations which are no longer needed.
+* it can concurrently respond to sub changes, navigation events, and image loads.
+* memory leaks associated with retained handlers have been eliminated by relying on `EventTarget`s ability to send multiple events to a single subscription.
+
+Regrettably this solution is also complex, because it relies on mutable state for concurrency coordination. Note that the developer must take explicit steps to avoid responding to notifications which are no longer relevant.  Consider the guards inserted at various places in the code above to prevent the execution of operations which are no longer needed.
 
 ```
 if (posts == null) {
@@ -382,11 +395,20 @@ if (thisOperation !== currentOperation) {
 
 // ...snip...
 
+if (thisOperation !== currentOperation) {
+  // ...snip...
+}
+
+// ...snip...
+
 nextButton.removeEventListener("click", nextHandler);
 previousButton.removeEventListener("click", previousHandler);
 subSelect.removeEventListener("change", subSelectHandler);
-
 ```
+
+Yet more shared mutable state is necessary because EventTarget and Promise do not compose. Note that in order to make the values resolved by `Promises` available to `EventTarget` handlers, it is necessary to write them to the shared mutable `posts` variable.
+
+Note that the non-compositionality of `EventTarget` and `Promise` force nearly most of the identifiers in this solution to be declared with `let`.
 
 #### Solution 3: EventTargetObservable and Promises
 
