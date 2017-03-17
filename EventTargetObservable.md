@@ -48,7 +48,7 @@ The semantics of `EventTarget` and `Observable` cleanly overlap by design. Both 
 * the ability to synchronously dispatch notifications
 * errors thrown from notification handlers are reported to the host, but are not propagated
 
-EventTargets also support additional semantics beyond those of Observable, such as the those relating to the propagation of events through the DOM. Furthermore EventTargets exclusively notify Event objects, which support several mutable operations.
+EventTargets also support additional semantics beyond those of Observable. Most of those semantics relate to the way in which events are propagated through the DOM. Furthermore EventTargets exclusively notify Event objects, which support several mutable operations.
 
 The aim of this proposal is to provide an API that allow inputs relating to `EventTarget` semantics to be specified at the point of adaptation, thereby allowing the semantics of EventTarget to be narrowed to those of Observable without impacting expressiveness.
 
@@ -56,7 +56,7 @@ The aim of this proposal is to provide an API that allow inputs relating to `Eve
 
 ### Image Preloading
 
-In the example below, an Observable is created which dispatches a load event completes when an image successfully preloads, and dispatches an error notification if the image load is unsuccessful.
+In the example below an `Observable` is created which dispatches a "load" event completes when an image successfully preloads, and dispatches an "error" notification if the image load is unsuccessful.
 
 ```js
 const displayImage = document.querySelector("#displayImage");
@@ -77,7 +77,7 @@ load.subscribe({
 
 ### Custom Gestures with Event Composition
 
-In this example event composition is used to allow an HTML button to be absolutely positioned in an online WYSWYG editor using drag n' drop. The handler member of the event options is set to a function which prevents the default action of the browser prior to dispatching the event.
+In this example event composition is used to allow an HTML button to be absolutely positioned in an online WYSWYG editor using drag and drop. The `handler` member of the `OnOptions` object is set to a function which prevents the default action of the browser from occurring. This ensures that the button is not depressed when it is being dragged around the screen.
 
 ```js
 import "_" from "lodash-for-observable";
@@ -109,7 +109,7 @@ mouseDrags.subscribe({
 ## Example Implementation
 
 This is an example implementation of EventTargetObservable. The `on` method delegates to
-`addEventListener`, and adds a handler for an "error" event if the receiveError field on the options object is set to true.
+`addEventListener`, and adds a handler for an `"error"` event if the `receiveError` member on the `OnOptions` object has a value of `true`.
 
 ```js
 class EventTargetObservable extends EventTarget {
@@ -166,15 +166,15 @@ class EventTargetObservable extends EventTarget {
 
 Event-driven applications like user interfaces need to remain responsive while performing long-running operations. The `Promise.prototype.then` and `Promise.all` combinators allow for sequential and concurrent coordination of async operations respectively. Unfortunately these concurrency coordination primitives are insufficient for most user interfaces. Ignoring or queueing user events while performing an async operation negatively impacts application responsiveness. Furthermore dispatching a new async operation concurrently in response to each incoming event can introduce race conditions as these async operations may complete out of order.
 
-**"Switch latest"** is a concurrency coordination pattern which cancels outstanding async operations when a new event arrives. This concurrency coordination pattern offers event-driven applications a host of benefits:
+**"Switch latest"** is a concurrency coordination pattern which cancels outstanding async operations when a new event is received. This concurrency coordination pattern offers event-driven applications a host of benefits:
 
 1. maximizes responsiveness
 2. guards against race conditions by eliminating out-of-order events
 3. conserves resources by short-circuiting operations which are no longer necessary
 
-**"Switch Latest"** is a common concurrency coordination pattern in UIs. To implement this pattern in a web app it is usually necessary to compose both of the web's async primitives: EventTarget and Promises. Unfortunately these two primitives are difficult to compose without the use of shared mutable state. This can increase the complexity of apps and introduce subtle bugs which are difficult to identify and reproduce.
+To implement the "Switch Latest" pattern in a web app it is usually necessary to compose both of the web's async primitives: EventTarget and Promises. Unfortunately these two primitives are difficult to compose without the use of shared mutable state. This can increase the complexity of apps and introduce subtle bugs which are difficult to identify and reproduce.
 
-`Observable` is primitive enough to express the `EventTarget` listening APIs and Promises and allow them to be composed without the use of shared mutable state. Observables are also well-suited for expressing the **"Switch latest"** concurrency coordination pattern. Extending EventTargets with Observable will give web developers a primitive capable of ergonomically expressing a concurrency coordination pattern which is fundamental to user interfaces.
+`Observable` is primitive enough to express the `EventTarget` listening APIs and Promises and allow them to be composed without the use of shared mutable state. Observables are also well-suited for expressing the "Switch latest" concurrency coordination pattern. Extending EventTargets with Observable will give web developers access to a powerful primitive capable of ergonomically expressing a concurrency coordination pattern which is fundamental to responsive user interfaces.
 
 ### Use Case: Browsing the Images in a News aggregator
 
@@ -182,13 +182,13 @@ To demonstrate how difficult it is to implement the **Switch Latest** concurrenc
 
 ![Aggregator](http://tc39.github.io/proposal-observable/aggregator.png)
 
-A user can select from several image-heavy subs using the select box. Each time a new sub is selected the app downloads the first 300 post summaries from that sub. The user can navigate through the images for a sub using a next and previous button. When the user navigates the image for the post is preloaded and displayed if the image load is successful. If the image load is not successful, or the post does have an associated image, a placeholder image is displayed. Whenever data is being loaded form the network, a translucent animated image is rendered over top of the screen.
+A user can select from several image-heavy subs using the select box. Each time a new sub is selected the app downloads the first 300 post summaries from that sub. Once the posts have been loaded, the user can navigate through the image associated with each post using a next and previous button. When the user navigates to a new post the image is displayed as soon as it has been successfully preloaded. If the image load is not successful, or the post does have an associated image, a placeholder image is displayed. Whenever data is being loaded from the network, a transparent animated loading image is rendered over top of the image.
 
 This app may appear simple, but naive implementations could suffer from any of the following race conditions:
 
 * In the event requests for a subs posts complete out of order, images from old subs may be displayed after images from subs selected by the user more recently.
 * In the event image preloads complete out of order, old images may be displayed after images selected by the user more recently.
-* While a new sub is being loaded, the UI may continue responding to the navigation events for the current sub. Consequently images from the old sub may be displayed briefly before abruptly being replaced by those in the new sub, leading to a poor user experience.
+* While a new sub is being loaded, the UI may continue responding to the navigation events for the current sub. Consequently images from the old sub may be displayed briefly before abruptly being replaced by those in the newly-loaded sub.
 
 Note that **all of these bugs can be avoided through the use of the "Switch Latest" concurrency coordination pattern**, because each bug is caused by continuing to respond to notifications which have been rendered irrelevant by a more recent notification. The forthcoming sections will explore three possible implementations of this app, each of which will attempt to implement the "Switch Latest" pattern using different primitives:
 
@@ -198,7 +198,7 @@ Note that **all of these bugs can be avoided through the use of the "Switch Late
 
 #### Solution 1: Async Functions and Promises
 
-It's easy to understand why a misguided developer might attempt to use async functions and Promises to build this app. Async functions and `Promise.all` make it much more ergonomic to coordinate concurrency than registering listeners on EventTargets. Unfortunately a Promise-based implementation is likely to be unresponsive, leaky, or both.
+It's easy to understand why a developer might prefer to use async functions and Promises to build this app. Async functions and `Promise.all` make it much more ergonomic to manage concurrency than registering listeners on EventTargets. Unfortunately a Promise-based implementation is likely to be unresponsive, leaky, or both.
 
 Let's take a look at a naive implementation using async functions:
 
@@ -272,11 +272,11 @@ try {
 }
 ```
 
-In the modified example above `Promise.race` concurrently listens for both the navigation and sub change events and notifies as soon as any of the Promises resolve. Unfortunately the lack of support for Promise cancellation means that handlers attached to either of the Promises which did not resolve will remain attached and leak memory. This will leak to memory leaks over time. Note that the inability to cancel Promises makes it impractical to use them for preemptive concurrency.
+In the modified example above `Promise.race` concurrently listens for both the navigation and sub change events and notifies as soon as any of the Promises resolve. Unfortunately the lack of support for Promise cancellation means that handlers attached to either of the Promises which did not resolve will remain attached and leak memory.
 
 #### Solution 2: EventTarget, Promises, and State
 
-The previous solution which used async functions and Promises causing events to be sequentially processed. This in turn degraded responsiveness. This solution subscribes to multiple EventTargets and Promises concurrently, thereby improving responsiveness. Unfortunately the increased concurrency introduces the risk of race conditions which must be guarded against with shared mutable state.
+The previous solution processed different event streams sequentially, leading to poor responsiveness. This solution subscribes to multiple EventTargets and Promises concurrently, thereby improving responsiveness. Unfortunately this improved concurrency introduces the risk of race conditions which must be guarded against with shared mutable state.
 
 ```js
 const subSelect = document.querySelector('#subSelect');
@@ -328,10 +328,12 @@ function switchImage(direction) {
   return imageLoad;
 }
 
-nextButton.addEventListener("click", () => switchImage(1));
-previousButton.addEventListener("click", () => switchImage(-1));
+const nextHandler = () => switchImage(1);
+const previousHandler = () => switchImage(-1);
+nextButton.addEventListener("click", nextHandler);
+previousButton.addEventListener("click", previousHandler);
 
-subSelect.addEventListener("change", () => {
+const subSelectHandler = () => {
   showProgress();
   sub = subSelect.value;
   posts = null;
@@ -349,20 +351,37 @@ subSelect.addEventListener("change", () => {
           }
         },
         e => {
-
+          // unsubscribe from events to avoid putting unnecessary
+          // load on news aggregator.
+          nextButton.removeEventListener("click", nextHandler);
+          previousButton.removeEventListener("click", previousHandler);
+          subSelect.removeEventListener("change", subSelectHandler);
+          alert("News Aggregator is not responding. Please try again later.");
         });
 });
+
+subSelect.addEventListener("change", subSelectHandler);
 ```
 
-The solution above is considerably more difficult to follow than the solution which uses async function. However at any time the app is ready to respond to sub changes, navigation events, and image loads. Furthermore this solution does not contain the memory leaks.
+The solution above is considerably more difficult to follow than the solution which uses the async function. However this solution is always ready to respond to sub changes, navigation events, and image loads. Furthermore this solution does not contain memory leaks.
 
-Relying on mutable state for concurrency coordination is challenging, because the developer must take positive steps to prevent irrelevant operations from taking place. Consider the guard code inserted at various places in the code above to prevent executing operations which are no longer needed.
+Relying on mutable state for concurrency coordination is challenging, because the developer must take positive steps to prevent irrelevant operations from taking place. Consider the guards inserted at various places in the code above to prevent the execution of operations which are no longer needed.
+
+```
+if (posts == null) {
+  return;
+}
+// ...
+if (thisOperation !== currentOperation) {
+  // ...snip
+}
+```
 
 #### Solution 3: EventTargetObservable and Promises
 
 The previous solution relied on mutable state to implement the "Switch Latest" pattern. Using Observable it is possible to avoid using shared mutable state for concurrency coordination by using the `switchLatest` and `switchMap` functions offered by userland libraries.
 
-Most popular Observable combinator libraries offer a version of the `switchLatest` combinator. This combinator allows the "Switch Latest" pattern to be implemented without introducing mutable state into user code. The `switchLatest` combinator takes a multi-dimensional Observable, and returns a flattened Observable. As soon the outer Observable notifies an inner Observable, `switchLatest` unsubscribes from the inner Observable to which it is subscribed and subscribes to the **latest** Observable.
+The `switchLatest` combinator allows the "Switch Latest" pattern to be implemented without introducing mutable state into user code. The `switchLatest` combinator accepts a multi-dimensional Observable, and returns an  Observable flattened by one dimension. As soon the outer Observable notifies an inner Observable, `switchLatest` unsubscribes from the inner Observable to which it was subscribed and subscribes to the **latest** Observable.
 
 The behavior of the `switchLatest` combinator is best demonstrated visually. Consider the following encoding of an Observable of numbers:
 
@@ -382,7 +401,7 @@ If the `switchLatest` combinator was applied to the Observable above, the result
 
 `<|,,,,,,,,,,,,,,,,8,,,,,,,,,,,9,,,,,,,|>`
 
-Note that none of the data in the first inner Observable makes it into the flattened stream, because the inner Observable does not notify prior to the notification of a new inner Observable. Consequently the `switchLatest` combinator unsubscribes from the previous inner Observable before that Observable has the opportunity to notify. The second inner Observable only has the opportunity to notify `8` prior to the arrival of a new inner Observable, which notifies `9` and completes. Shortly thereafter the outer Observable completes, thus completing the flattened Observable.
+Note that none of the data in the first inner `Observable` makes it into the flattened stream, because the first inner `Observable` does not notify prior to the notification of a new inner `Observable`. Consequently the `switchLatest` combinator unsubscribes from the previous inner `Observable` before that `Observable` has the opportunity to notify. The second inner `Observable` only has the opportunity to notify `8` prior to the arrival of a new inner `Observable`, which notifies `9` and completes. Shortly thereafter the outer `Observable` completes, thereby completing the flattened Observable.
 
 Here's an example of `switchLatest` being used to build an auto-complete box:
 
@@ -409,9 +428,9 @@ keyups.
   });
 ```
 
-Note that using `switchLatest` guarantees that search results for a particular search not come back out-of-order.
+Note that using `switchLatest` guarantees that search results for a particular search not come back out-of-order by switching to the the result of the latest Promise each time a key is pressed.
 
-In the example above that the `switchLatest` operation is applied to the result of a `map` operation. The `switchMap` method is a shorthand for this common pattern. Here is the example above rewritten to use `switchMap`.
+In the example above the `switchLatest` operation is applied to the result of a `map` operation. The `switchMap` method is a shorthand for this common pattern. Here is the example above rewritten to use `switchMap`.
 
 ```js
 import _ from "lodash-for-observable";
@@ -435,7 +454,7 @@ keyups.
   });
 ```
 
-Here's an algorithm for the Image Viewer app which uses `switchMap` to avoid race conditions rather than shared mutable state.
+Here's an algorithm for the Image Viewer app which uses `switchMap` to avoid race conditions without relying on shared mutable state.
 
 ```js
 import newsAggregator from "news-aggregator";
