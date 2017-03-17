@@ -1,6 +1,6 @@
 # Extending EventTarget with Observable
 
-This proposal would add a new interface to the DOM: `EventTargetObservable`. Any implementer of `EventTarget` could choose to implement this interface as well. `EventTargetObservable` defines an `on` method which can be used to adapt an `EventTarget` to an `Observable`.
+This proposal would add a new interface to the DOM: `EventTargetObservable`. The `EventTargetObservable` object represents a target to which an event is dispatched when something has occurred. Calling the `EventTargetObservable`'s `on` method produces an `Observable`. An event received by the `EventTargetObservable` is dispatched to the observers of an `Observable` created by `on` provided the type of the event matches the type argument passed to the `on` method when it was invoked.
 
 ```
 interface Event { /* https://dom.spec.whatwg.org/#event */ }
@@ -29,7 +29,17 @@ interface EventTargetObservable extends EventTarget {
 }
 ```
 
-The `EventTargetObservable` object represents a target to which an event is dispatched when something has occurred. Calling the `EventTargetObservable`'s `on` method produces an `Observable` which conditionally forwards dispatched events to the `Observable`'s `Observer`s. An event received by the `EventTargetObservable` is dispatched to the observers of an `Observable` created by `on` provided the type of the event matches the type argument passed to the `on` method when it was invoked.
+Any implementer of `EventTarget` can additionally implement this interface to make it possible to adapt the `EventTarget` to an `Observable.`
+
+## Design Considerations
+
+The semantics of `EventTarget` and `Observable`'s subscription APIs cleanly overlap. Both share the following semantics...
+
+* the ability to synchronously subscribe and unsubscribe from notifications
+* the ability to synchronously dispatch notifications
+* errors thrown from notification handlers are reported to the host, but are not propagated
+
+`EventTarget`s support additional semantics which pertain to the way events are propagated the DOM. The aim of the proposed design is to provide an API that allow `EventTarget`-specific semantics to be described at the point of adaptation, thereby allowing the semantics of EventTarget to be narrowed to those of Observable without impacting expressiveness.
 
 The `on` method accepts an `OnOptions` dictionary object. The `OnOptions` dictionary extends the DOM's `AddEventListenerOptions` dictionary object and adds two additional fields:
 
@@ -39,18 +49,6 @@ The `on` method accepts an `OnOptions` dictionary object. The `OnOptions` dictio
 The `receiveError` member indicates whether or not events with type error are dispatched to Observers error methods.
 
 The `handler` callback function is invoked on the event object prior to the event being dispatched to the Observable's Observers. The handler is intended to be used to allow developers to execute stateful operations on the Event object within the current tick.
-
-## Design Considerations
-
-The semantics of `EventTarget` and `Observable` cleanly overlap by design. Both `EventTarget` and `Observable` share the following semantics...
-
-* the ability to synchronously subscribe and unsubscribe from notifications
-* the ability to synchronously dispatch notifications
-* errors thrown from notification handlers are reported to the host, but are not propagated
-
-EventTargets also support additional semantics beyond those of Observable. Most of those semantics relate to the way in which events are propagated through the DOM. Furthermore EventTargets exclusively notify Event objects, which support several mutable operations.
-
-The aim of this proposal is to provide an API that allow inputs relating to `EventTarget` semantics to be specified at the point of adaptation, thereby allowing the semantics of EventTarget to be narrowed to those of Observable without impacting expressiveness.
 
 ## Example Usage
 
@@ -286,8 +284,10 @@ const previousButton = document.querySelector("#previousButton");
 const nextButton = document.querySelector("#nextButton");
 
 let sub;
-let posts;
 let index;
+
+// shared mutable state used to coordinate concurrency
+let posts;
 let currentOperation = 0;
 
 function showProgress() {
@@ -307,25 +307,27 @@ function switchImage(direction) {
 
   let summary = posts[index];
 
+  // use a global currentOperation flag to detect when another
+  // operation has been dispatched after this one.
   let thisOperation = ++currentOperation;
-  let imageLoad = preloadImage(summary.image).
+  return preloadImage(summary.image).
     then(
       () => {
-        if (thisOperation !== currentOperation) {
+        // if the current operation is not longer this one,
+        // short-circuit.
+        if (thisOperation === currentOperation) {
           titleLabel.innerText = summary.title
           displayedImage.src = detail.image || "./noimagefound.gif"
         }
       },
       e => {
-        if (thisOperation !== currentOperation) {
+        // if the current operation is not longer this one,
+        // short-circuit.        
+        if (thisOperation === currentOperation) {
           titleLabel.innerText = summary.title
           displayedImage.src = "./errorloadingpost.png";
         }
       });
-
-  outstandingImageLoad = imageLoad;
-
-  return imageLoad;
 }
 
 const nextHandler = () => switchImage(1);
@@ -344,7 +346,7 @@ const subSelectHandler = () => {
       getSubPosts(sub).
       then(
         postsResponse => {
-          if (thisOperation !== currentOperation) {
+          if (thisOperation === currentOperation) {
             index = 0;
             posts = postsResponse;
             return switchImage(0);
@@ -363,18 +365,27 @@ const subSelectHandler = () => {
 subSelect.addEventListener("change", subSelectHandler);
 ```
 
-The solution above is considerably more difficult to follow than the solution which uses the async function. However this solution is always ready to respond to sub changes, navigation events, and image loads. Furthermore this solution does not contain memory leaks.
+The solution above is is always ready to respond to sub changes, navigation events, and image loads. Furthermore this solution does not contain memory leaks. However this solution is also complex, because it relies on mutable state for concurrency coordination. In this case the `guid` and `posts`
 
-Relying on mutable state for concurrency coordination is challenging, because the developer must take positive steps to prevent irrelevant operations from taking place. Consider the guards inserted at various places in the code above to prevent the execution of operations which are no longer needed.
+The inability to unusubscribe from Promises Note that the developer must take explicit steps to avoid responding to from taking place. Consider the guards inserted at various places in the code above to prevent the execution of operations which are no longer needed.
 
 ```
 if (posts == null) {
   return;
 }
-// ...
+
+// ...snip...
+
 if (thisOperation !== currentOperation) {
-  // ...snip
+  // ...snip...
 }
+
+// ...snip...
+
+nextButton.removeEventListener("click", nextHandler);
+previousButton.removeEventListener("click", previousHandler);
+subSelect.removeEventListener("change", subSelectHandler);
+
 ```
 
 #### Solution 3: EventTargetObservable and Promises
@@ -397,7 +408,7 @@ In the encoding above each ```<|``` is the point at which the Observable is subs
 ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,|>
 ```
 
-If the `switchLatest` combinator was applied to the Observable above, the resulting Observable would look like this:
+When the `switchLatest` combinator is applied to flatten the two-dimensional Observable above the following result is produced.
 
 `<|,,,,,,,,,,,,,,,,8,,,,,,,,,,,9,,,,,,,|>`
 
