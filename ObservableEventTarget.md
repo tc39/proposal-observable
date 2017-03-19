@@ -5,13 +5,11 @@ Currently the web has two primitives with which developers can build concurrent 
 1. EventTarget
 2. Promise
 
-Unfortunately these primitives are difficult to compose without shared mutable state, a common source of bugs in concurrent applications like user interfaces.
-
-This proposal attempts to make building concurrent web apps easier by adding a new interface to the DOM: `ObservableEventTarget`. An `ObservableEventTarget` is an interface which extends `EventTarget`, an object to which an event is dispatched when something has occurred. 
+Unfortunately these primitives are difficult to compose without shared mutable state, a common source of bugs in concurrent applications like user interfaces. This proposal aims to make managing concurrency more ergonomic by adding a new interface to the DOM: `ObservableEventTarget`. An `ObservableEventTarget` is an interface which extends `EventTarget`, an object to which an event is dispatched when something has occurred. 
 
 An `ObservableEventTarget` can be adapted to an `Observable` that dispatches the events received by that `ObservableEventTarget` to the `Observable`'s observers. 
 
-`Observable`s share a common subset of `EventTarget` and `Promise` semantics. Consequently `Observable`s can allow concurrent programs which use both EventTargets and Promises to be built compositionally.
+`Observable`s share a common subset of `EventTarget` and `Promise` semantics. Consequently they can allow concurrent programs which use both EventTargets and Promises to be built compositionally.
 
 ## ObservableEventTarget API
 
@@ -61,7 +59,7 @@ The semantics of `EventTarget`'s and `Observable`'s subscription APIs overlap cl
 
 ### The  `OnOptions` `receiveError` member 
 
-The `receiveError` member indicates whether or not events with type `"error"` are dispatched to each Observer's  `error` methods.
+The `receiveError` member specifies whether or not events with type `"error"` should be dispatched to each Observer's  `error` methods.
 
 In the example below the  `on` method is used to create an `Observable` which dispatches an Image's "load" event to its observers. Setting the `"once"` member of the `OnOptions` dictionary to `true` results in a `complete`  notification being dispatched to the observers immediately afterwards. Once an Observer has been dispatched a `complete` notification, it is unsubscribed from the Observable and consequently the `ObservableEventTarget`.
 
@@ -86,14 +84,14 @@ load.subscribe({
 })
 ```
 
-Note that the `receiveError` member of the `OnOptions` object is set to true. Therefore if the Image receives an `"error"` Event, the Event is passed to the `error`  method of each of the Observable's Observers. This too results in unsubscription from all of the Image's underlying events.
+Note that the `receiveError` member of the `OnOptions` object is set to true. Therefore if the Image receives an `"error"` Event, the Event is passed to the `error`  method of each of the `Observable`'s `Observer`s. This too results in unsubscription from all of the Image's underlying events.
 
 
 ### The  `OnOptions` `handler` member 
 
 The `handler` callback function is invoked on the event object prior to the event being dispatched to the Observable's Observers. The handler gives developers the ability execute stateful operations on the Event object (ex. `preventDefault`, `stopPropagation`),  within the same tick on the event loop as the event is received. 
 
-In the example below event composition is used build a drag method for a button to allow it button to be absolutely positioned in an online WYSWYG editor. Note that the `handler` member of the `OnOptions` object is set to a function which prevents the default action of the browser from occurring. This ensures that the button does not appear to be pressed when it is being dragged around the design surface.
+In the example below, event composition is used build a drag method for a button to allow it to be absolutely positioned in an online WYSWYG editor. Note that the `handler` member of the `OnOptions` object is set to a function which prevents the host browser from initiating its default action. This ensures that the button does not appear pressed when it is being dragged around the design surface.
 
 ```js
 import "_" from "lodash-for-observable";
@@ -117,10 +115,6 @@ mouseDrags.subscribe({
   }
 })
 ```
-
-The handler enables stateful operations on the Event to be executed prior to the event being dispatched to the Observer. Consequently scheduling operations can be applied to the Observable without the developer losing the opportunity to stop event propagation.
-
-(Example of scheduling operation being used after handler invocation)
 
 ## Example Implementation
 
@@ -166,6 +160,9 @@ class ObservableEventTarget extends EventTarget {
         this.addEventListener("error", errorHandler)
       }
 
+      // unsubscription logic executed when either the complete or
+      // error method is invoked on Observer, or the consumer
+      // unsubscribes.
       return () => {
         this.removeEventListener(type);
 
