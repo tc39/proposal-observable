@@ -55,8 +55,8 @@ Here’s an example of a CancelToken-based Observable being created and consumed
 ```js
 let bodyMouseMoves = new Observable((observer, token) => {
   handler = event => observer.next(event);
-  token.promise.then(() => document.body.removeEventListener(“mousemove”, handler));
-  document.body.addEventListener(“mousemove”, handler);
+  token.promise.then(() => document.body.removeEventListener("mousemove", handler));
+  document.body.addEventListener("mousemove", handler);
 });
 
 let { token, cancel } = CancelToken.source();
@@ -64,10 +64,10 @@ bodyMouseMoves.subscribe(
   {
     next(event) {
       if (event.clientX <= 50) {
-        console.log(“mouse hasn’t moved passed 50px”);
+        console.log("mouse hasn’t moved passed 50px");
       }
       else {
-        token.cancel(new Cancel(“Only want to listen to mouse until it moves passed 50px”));
+        token.cancel(new Cancel("Only want to listen to mouse until it moves passed 50px"));
       }
     }
   },
@@ -278,7 +278,7 @@ Unfortunately the implementation above will leak memory when some common Observa
 The implementation of `subscribe` in the previous section does not allow certain common composition operations to be written without introducing a memory leak. As an example, consider the `flatten` function which is commonly applied to Observables:
 
 ```js
-import _ from “lodashforObservables”;
+import _ from "lodashforObservables";
 
 let mouseDowns = document.body.on(‘mousedown’);
 let mouseUps = document.body.on(‘mouseup’);
@@ -296,7 +296,7 @@ The `flatten` function accepts an input Observable of Observables, and returns a
 
 
 ```js
-import _ from “lodashforObservables”;
+import _ from "lodashforObservables";
 
 flatten(Observable.of(
    Observable.of(1,2,3),
@@ -319,7 +319,7 @@ With the code above is run, the following console output is expected:
 The `flatten` function allows an long-running asynchronous operation to be composed together from multiple smaller asynchronous operations. Consider the following code which looks for a stock that matches a particular criteria:
 
 ```js
-import _ from “lodashforObservables”;
+import _ from "lodashforObservables";
 async function buyFirstMatchStock(stocks) {
   var stockInfo = await _(stocks).
       map(symbol =>
@@ -717,10 +717,10 @@ subject.subscribe({
   next(msg) { console.log(msg); }
 }, token);
 
-cancel(new Cancel(“Closing subscription”));
+cancel(new Cancel("Closing subscription"));
 
 for(let observer of capturedObservers) {
-  observer.next(“message”);
+  observer.next("message");
 }
 ```
 
