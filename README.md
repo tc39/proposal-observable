@@ -107,9 +107,9 @@ interface Observable {
     subscribe(observer : Observer) : Subscription;
 
     // Subscribes to the sequence with callbacks
-    subscribe(onNext : Function,
-              onError? : Function,
-              onComplete? : Function) : Subscription;
+    subscribe({next : Function,
+               error? : Function,
+               complete? : Function}) : Subscription;
 
     // Returns itself
     [Symbol.observable]() : Observable;
