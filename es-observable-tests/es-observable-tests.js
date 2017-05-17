@@ -1823,7 +1823,7 @@ exports["default"] = {
         testMethodProperty(test, Object.getPrototypeOf(observer), "complete", {
             configurable: true,
             writable: true,
-            length: 1
+            length: 0
         });
     },
 
