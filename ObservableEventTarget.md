@@ -82,7 +82,7 @@ load.subscribe({
 })
 ```
 
-Note that the `receiveError` member of the `OnOptions` object is set to true. Therefore if the Image receives an `"error"` Event, the Event is passed to the `error`  method of each of the `Observable`'s `Observer`s. This too results in unsubscription from all of the Image's underlying events.
+Note that the `receiveError` member of the `OnOptions` object is set to true. Therefore if the Image receives an `"error"` Event, the Event is passed to the `error`  method of each of the `Observable`'s `Observer`s. This, too, results in unsubscription from all of the Image's underlying events.
 
 
 ### The  `OnOptions` `handler` member
@@ -100,9 +100,9 @@ const surface = document.querySelector("#surface");
 // invoke preventDefault() in handler to suppresses the browser default action
 // which is to depress the button.
 const opts = { handler(e) { e.preventDefault(); } };
-const mouseUps   = _(button.on( "mouseup",   opts));
+const mouseDowns = _(button.on( "mousedown", opts));
 const mouseMoves = _(surface.on("mousemove", opts));
-const mouseDowns = _(surface.on("mousedown", opts));
+const mouseUps   = _(surface.on("mouseup",   opts));
 
 const mouseDrags = mouseDowns.flatMap(() => mouseMoves.takeUntil(mouseUps));
 
