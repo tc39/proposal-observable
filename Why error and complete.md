@@ -36,33 +36,35 @@ Here’s an example that draws a signature on a canvas until a cancel button is 
 function drawSignature(canvas, cancelButton, okButton) {
   const context = signatureCanvas.getContext('2d');
   const toPoint = e => ({ x: e.offsetX, y: e.offsetY });
-  let onmousedown, onmousemove, onmouseup;
+  let onMouseDown, onMouseMove, onMouseUp, onCancelClick;
   
-  onmouseup = () => {
-    canvas.removeEventListener('mousemove', onmousemove);
-    canvas.removeEventListener('mouseup', onmouseup);
+  onMouseUp = () => {
+    canvas.removeEventListener('mousemove', onMouseMove);
+    canvas.removeEventListener('mouseup', onMouseUp);
   };
   
-  onmousedown = e => {
+  onMouseDown = e => {
     let lastPoint = toPoint(e);
     
-    onmousemove = e => {
+    onMouseMove = e => {
       let point = toPoint(e);
       strokeLine(context, lastPoint.x, lastPoint.y, point.x, point.y);
       lastPoint = point;
       okButton.disabled = false;
     };
 
-    canvas.addEventListener('mousemove', onmousemove);
-    canvas.addEventListener('mouseup', onmouseup);
+    canvas.addEventListener('mousemove', onMouseMove);
+    canvas.addEventListener('mouseup', onMouseUp);
   };
-
-  canvas.addEventListener('mousedown', onmousedown);
-  cancelButton.onclick = function onCancelClick(e) {
+  
+  onCancelClick = e => {
     onmouseup();
-    canvas.removeEventListener('mousedown', onmousedown);
+    canvas.removeEventListener('mousedown', onMouseDown);
     cancelButton.removeEventListener('click', onCancelClick);
   };
+
+  canvas.addEventListener('mousedown', onMouseDown);
+  cancelButton.addEventListener('click', onCancelClick);
 }
 ```
 
