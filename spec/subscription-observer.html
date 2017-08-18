@@ -61,6 +61,7 @@
       1. Let _subscription_ be the value of _O_'s [[Subscription]] internal slot.
       1. If SubscriptionClosed(_subscription_) is *true*, return *undefined*.
       1. Let _observer_ be the value of _subscription_'s [[Observer]] internal slot.
+      1. Set _subscription_'s [[Observer]] internal slot to *undefined*.
       1. Assert: Type(_observer_) is Object.
       1. Let _errorMethodResult_ be GetMethod(_observer_, `"error"`).
       1. If _errorMethodResult_.[[Type]] is ~normal~, then
@@ -83,6 +84,7 @@
       1. Let _subscription_ be the value of _O_'s [[Subscription]] internal slot.
       1. If SubscriptionClosed(_subscription_) is *true*, return *undefined*.
       1. Let _observer_ be the value of _subscription_'s [[Observer]] internal slot.
+      1. Set _subscription_'s [[Observer]] internal slot to *undefined*.
       1. Assert: Type(_observer_) is Object.
       1. Let _completeMethodResult_ be GetMethod(_observer_, `"complete"`).
       1. If _completeMethodResult_.[[Type]] is ~normal~, then
