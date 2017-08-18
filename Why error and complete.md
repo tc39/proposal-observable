@@ -72,7 +72,7 @@ In addition to the nonlinear nature of the code above, note how easy it is to ac
 
 It’s interesting to note **while most ETs and EEs are infinite, it is possible to build a single *finite* event streams from two or more infinite event streams.** By adding an explicit completion event to Observable we are able to create a very useful composition operation: `takeUntil`. 
 
-The `takeUntil` method operation accepts a “source” Observable, and a "stop" Observable, and concurrently listens to both. The result is a composed Observable that forwards all of the events received from the "source" stream until a notification is received from the "stop" stream. Once a notification is received from the "stop" stream, the composed Observable notifications completion to its Observer, and unsubscribes from both the “source” and “stop” streams.
+The `takeUntil` method operation accepts a “source” Observable, and a "stop" Observable, and concurrently listens to both. The result is a composed Observable that forwards all of the events received from the "source" stream until a notification is received from the "stop" stream. Once a notification is received from the "stop" stream, the composed Observable notifies completion to its Observer, and unsubscribes from both the “source” and “stop” streams.
 
 Here’s the signature code collection above rewritten using Observable and takeUntil:
 
