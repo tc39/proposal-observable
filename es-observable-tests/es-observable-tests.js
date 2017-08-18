@@ -325,7 +325,7 @@ exports.asyncIter = asyncIterator;
 })();
 
 var __M; (function(a) { var list = Array(a.length / 2); __M = function(i, es) { var m = list[i], f, e; if (typeof m === 'function') { f = m; m = { exports: i ? {} : exports }; f(list[i] = m, m.exports); e = m.exports; m.es = Object(e) !== e || e.constructor === Object ? e : Object.create(e, { 'default': { value: e } }); } return es ? m.es : m.exports; }; for (var i = 0; i < a.length; i += 2) { var j = Math.abs(a[i]); list[j] = a[i + 1]; if (a[i] >= 0) __M(j); } })([
-15, function(module, exports) {
+17, function(module, exports) {
 
 'use strict'; var OP_toString = Object.prototype.toString,
     OP_hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -495,7 +495,7 @@ exports.Test = Test;
 
 
 },
-16, function(module, exports) {
+15, function(module, exports) {
 
 'use strict'; var ELEMENT_ID = "moon-unit";
 
@@ -608,7 +608,7 @@ exports.HtmlLogger = HtmlLogger;
 
 
 },
-17, function(module, exports) {
+16, function(module, exports) {
 
 'use strict'; var Style = {
 
@@ -713,8 +713,8 @@ exports.NodeLogger = NodeLogger;
 },
 14, function(module, exports) {
 
-'use strict'; var HtmlLogger = __M(16, 1).HtmlLogger;
-var NodeLogger = __M(17, 1).NodeLogger;
+'use strict'; var HtmlLogger = __M(15, 1).HtmlLogger;
+var NodeLogger = __M(16, 1).NodeLogger;
 
 var Logger = (typeof global === "object" && global.process) ?
     NodeLogger :
@@ -726,7 +726,7 @@ exports.Logger = Logger;
 },
 13, function(module, exports) {
 
-'use strict'; var Test = __M(15, 1).Test;
+'use strict'; var Test = __M(17, 1).Test;
 var Logger = __M(14, 1).Logger;
 
 var TestRunner = _esdown.class(function(__) { var TestRunner;
@@ -987,11 +987,11 @@ exports["default"] = {
         );
 
         new Observable(function(s) {
-            s.complete(3);
+            s.complete();
         }).subscribe(
             function(x) { return list.push("next:" + x); },
             function(e) { return list.push(e); },
-            function(x) { return list.push("complete:" + x); }
+            function(x) { return list.push("complete"); }
         );
 
         test
@@ -1000,18 +1000,19 @@ exports["default"] = {
         ._("Second argument is error callback")
         .equals(list[1], error)
         ._("Third argument is complete callback")
-        .equals(list[2], "complete:3");
+        .equals(list[2], "complete");
 
         list = [];
 
-        new Observable(function(s) {
-            s.next(1);
-            s.complete();
-        }).subscribe(function(x) { return list.push("next:" + x); });
-
-        test._("Second and third arguments are optional")
-        .throws(function() { return new Observable(function(s) { s.error(error) }).subscribe(function() { return null; }); })
-        .equals(list, ["next:1"]);
+        test.
+          _("Second and third arguments are optional")
+          .not().throws(
+            function() { return new Observable(
+              function(s) {
+                s.next(1);
+                s.complete();
+              }).subscribe(function(x) { return list.push("next:" + x); }); })
+          .equals(list, ["next:1"]);
     },
 
     "Subscriber arguments": function(test, __$0) { var __$1; var Observable = (__$1 = _esdown.objd(__$0), __$1.Observable); 
@@ -1375,7 +1376,7 @@ exports["default"] = {
         var called = 0;
 
         Observable.from(_esdown.computed({
-            }, getSymbol("observable"), { get _() {
+            }, getSymbol("observable"), { _: function() {
                 called++;
                 return function(_) { return ({}); };
             }
@@ -1823,7 +1824,7 @@ exports["default"] = {
         testMethodProperty(test, Object.getPrototypeOf(observer), "complete", {
             configurable: true,
             writable: true,
-            length: 1
+            length: 0
         });
     },
 
