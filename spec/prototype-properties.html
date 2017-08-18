@@ -40,7 +40,7 @@
     1. If _subscriberResult_ is an abrupt completion, then
       1. Perform ! Invoke(_subscriptionObserver_, `"error"`, « ‍_subscriberResult_.[[value]] »).
     1. Else,
-      1. Set the [[Cleanup]] internal slot of _observer_ to _subscriberResult_.[[value]].
+      1. Set the [[Cleanup]] internal slot of _subscription_ to _subscriberResult_.[[value]].
     1. If SubscriptionClosed(_subscription_) is *true*, then
       1. Perform ! CleanupSubscription(_subscription_).
     1. Return _subscription_.
