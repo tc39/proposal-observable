@@ -1,7 +1,12 @@
 {
   "name": "es-observable",
   "private": true,
+  "scripts": {
+    "test": "babel-node --plugins transform-es2015-modules-commonjs run-tests.js"
+  },
   "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.0",
     "moon-unit": "^0.2.1"
   }
 }
