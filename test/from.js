@@ -45,7 +45,7 @@ export default {
         let called = 0;
 
         Observable.from({
-            [getSymbol("observable")]: function() {
+            get [getSymbol("observable")]() {
                 called++;
                 return _=> ({});
             }
@@ -81,7 +81,7 @@ export default {
         .throws(_=> Observable.from({ [getSymbol("observable")]() { return null } }), TypeError)
         .throws(_=> Observable.from({ [getSymbol("observable")]() {} }), TypeError)
         .not().throws(_=> Observable.from({ [getSymbol("observable")]() { return {} } }))
-        .not().throws(_=> Observable.from({ [getSymbol("observable")]() { return _=> {} } }))
+        .not().throws(_=> Observable.from({ get [getSymbol("observable")]() { return _=> ({}) } }))
         ;
 
         let target = function() {},
