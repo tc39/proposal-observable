@@ -27,7 +27,7 @@ export default {
 
         let usesThis = false;
 
-        Observable.from.call(_=> usesThis = true, []);
+        Observable.from.call(function(_) { usesThis = true; }, []);
         test._("Observable.from will use the 'this' value if it is callable")
         .equals(usesThis, true);
     },
