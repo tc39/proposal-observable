@@ -1,6 +1,15 @@
 import { testMethodProperty } from "./helpers.js";
 
 export default {
+    
+    "Observable should be called as a constructor with new operator" (test, { Observable }) {
+
+        test
+        ._("It cannot be called as a function")
+        .throws(_ => Observable(function() {}), TypeError)
+        .throws(_ => Observable.call({}, function() {}), TypeError)
+        ;
+    },
 
     "Argument types" (test, { Observable }) {
 
