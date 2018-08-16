@@ -54,8 +54,7 @@
       1. Let _subscriberResult_ be ? Call(_subscriber_, *undefined*, _observer_).
       1. If _subscriberResult_ is *null* or *undefined*, return *undefined*.
       1. If IsCallable(_subscriberResult_) is *true*, return _subscriberResult_.
-      1. Let _result_ be ? GetMethod(_subscriberResult_, `"unsubscribe"`).
-      1. If _result_ is *undefined*, throw a *TypeError* exception.
+      1. If Type(_subscriberResult_) is not Object, throw a *TypeError* exception.
       1. Let _cleanupFunction_ be a new built-in function object as defined in Subscription Cleanup Functions.
       1. Set _cleanupFunction_.[[Subscription]] to _subscriberResult_.
       1. Return _cleanupFunction_.
