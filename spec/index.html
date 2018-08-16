@@ -9,6 +9,26 @@ copyright: false
 contributors: Kevin Smith
 </pre>
 
+<emu-clause id="warn-if-abrupt" aoid="WarnIfAbrupt">
+  <h1>WarnIfAbrupt ( _completion_, _result_ )</h1>
+
+  <p>WarnIfAbrupt is similar to ReturnIfAbrupt, but instead of propagating an error, it returns a value. For example, algorithm steps that say or are otherwise equivalent to:</p>
+
+  <emu-alg>
+    1. WarnIfAbrupt(_argument_, _value_).
+  </emu-alg>
+
+  <p>mean the same thing as:</p>
+
+  <emu-alg>
+    1. If _argument_ is abrupt, then
+      1. Perform HostReportErrors(« _argument_.[[Value]] »).
+      1. Return _value_.
+    1. Else,
+      1. Let _argument_ be _argument_.[[Value]].
+  </emu-alg>
+</emu-clause>
+
 <emu-clause id="observable-constructor">
   <h1>The Observable Constructor</h1>
 
@@ -28,8 +48,8 @@ contributors: Kevin Smith
     <emu-alg>
       1. If NewTarget is *undefined*, throw a *TypeError* exception.
       1. If IsCallable(_subscriber_) is *false*, throw a *TypeError* exception.
-      1. Let _observable_ be ? OrdinaryCreateFromConstructor(NewTarget, %ObservablePrototype%, «‍ [[Subscriber]] »).
-      1. Set _observable's_ [[Subscriber]] internal slot to _subscriber_.
+      1. Let _observable_ be ? OrdinaryCreateFromConstructor(NewTarget, %ObservablePrototype%, « [[Subscriber]] »).
+      1. Set _observable.[[Subscriber]] to _subscriber_.
       1. Return _observable_.
     </emu-alg>
   </emu-clause>
