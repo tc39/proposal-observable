@@ -99,20 +99,20 @@ require("es-observable-tests").runTests(MyObservable);
 
 An Observable represents a sequence of values which may be observed.
 
-```js
-interface Observable {
-
+```ts
+class Observable {
+    // Creates an observable from a callback
     constructor(subscriber : SubscriberFunction);
 
     // Subscribes to the sequence with an observer
     subscribe(observer : Observer) : Subscription;
 
     // Subscribes to the sequence with callbacks
-    subscribe(onNext : Function,
-              onError? : Function,
-              onComplete? : Function) : Subscription;
+    subscribe(onNext : (value) => void,
+              onError? : (errorValue) => void,
+              onComplete? : () => void) : Subscription;
 
-    // Returns itself
+    // Returns itself, but subclasses can override
     [Symbol.observable]() : Observable;
 
     // Converts items to an Observable
@@ -120,19 +120,18 @@ interface Observable {
 
     // Converts an observable or iterable to an Observable
     static from(observable) : Observable;
-
 }
 
 interface Subscription {
-
     // Cancels the subscription
     unsubscribe() : void;
 
     // A boolean value indicating whether the subscription is closed
-    get closed() : Boolean;
+    get closed() : boolean;
 }
 
-function SubscriberFunction(observer: SubscriptionObserver) : (void => void)|Subscription;
+type SubscriberFunction =
+    (observer : SubscriptionObserver) => (() => void) | Subscription;
 ```
 
 #### Observable.of ####
@@ -159,8 +158,8 @@ Observable.of("red", "green", "blue").subscribe({
 `Observable.from` converts its argument to an Observable.
 
 - If the argument has a `Symbol.observable` method, then it returns the result of
-  invoking that method.  If the resulting object is not an instance of Observable,
-  then it is wrapped in an Observable which will delegate subscription.
+  invoking that method.  If the resulting object is not a direct instance of Observable,
+  then it is wrapped into an Observable which will delegate subscription.
 - Otherwise, the argument is assumed to be an iterable and the iteration values are
   delivered synchronously when `subscribe` is called.
 
@@ -216,20 +215,19 @@ argument to **subscribe**.
 
 All methods are optional.
 
-```js
+```ts
 interface Observer {
-
     // Receives the subscription object when `subscribe` is called
-    start(subscription : Subscription);
+    start(subscription : Subscription) : void;
 
     // Receives the next value in the sequence
-    next(value);
+    next(value) : void;
 
     // Receives the sequence error
-    error(errorValue);
+    error(errorValue) : void;
 
     // Receives a completion notification
-    complete();
+    complete() : void;
 }
 ```
 
@@ -238,19 +236,18 @@ interface Observer {
 A SubscriptionObserver is a normalized Observer which wraps the observer object supplied to
 **subscribe**.
 
-```js
+```ts
 interface SubscriptionObserver {
-
     // Sends the next value in the sequence
-    next(value);
+    next(value) : void;
 
     // Sends the sequence error
-    error(errorValue);
+    error(errorValue) : void;
 
     // Sends the completion notification
-    complete();
+    complete() : void;
 
     // A boolean value indicating whether the subscription is closed
-    get closed() : Boolean;
+    get closed() : boolean;
 }
 ```
