@@ -9,8 +9,36 @@
     <emu-alg>
       1. Assert: Type(_subscription_) is Object.
       1. Let _subscriptionObserver_ be ObjectCreate(%SubscriptionObserverPrototype%, «‍ [[Subscription]] »).
-      1. Set _subscriptionObserver_'s [[Subscription]] internal slot to _subscription_.
+      1. Set _subscriptionObserver_.[[Subscription]] to _subscription_.
       1. Return _subscriptionObserver_.
+    </emu-alg>
+  </emu-clause>
+
+  <emu-clause id="emit-subscription-error" aoid="EmitSubscriptionError">
+    <h1>EmitSubscriptionHook ( _O_, _methodName_ [ , _value_ ] )</h1>
+
+    <p>The abstract operation EmitSubscriptionHook with arguments _O_, _methodName_, and optional _value_ is used to invoke method on a given subscriber's observer.  It performs the following steps:</p>
+
+    <emu-alg>
+      1. Assert: Type(_O_) is Object.
+      1. Assert: _O_ is a Subscription Observer instance.
+      1. Assert: Type(_methodName_) is either `"next"`, `"error"`, or `"complete"`.
+      1. Assert: _args_ is a List.
+      1. Let _subscription_ be _O_.[[Subscription]].
+      1. If SubscriptionClosed(_subscription_) is *true*, return *undefined*.
+      1. Let _observer_ be _subscription_.[[Observer]].
+      1. If _methodName_ is not `"next"`, then
+        1. Set _subscription_.[[Observer]] to *undefined*.
+      1. Assert: Type(_observer_) is Object.
+      1. Let _method_ be GetMethod(_observer_, _methodName_).
+      1. WarnIfAbrupt(_method_, *undefined*).
+      1. If _method_ is not *undefined*, then
+        1. If _value_ is present, let _args_ be « value »; otherwise, let _args_ be the empty list.
+        1. Let _result_ be Call(_method_, _observer_, _args).
+        1. WarnIfAbrupt(_result_, *undefined*).
+      1. If _methodName_ is not `"next"`, then
+        1. Perform ! CleanupSubscription(_subscription_).
+      1. Return *undefined*.
     </emu-alg>
   </emu-clause>
 </emu-clause>
@@ -26,7 +54,7 @@
       1. Let _O_ be the *this* value.
       1. If Type(_O_) is not Object, throw a *TypeError* exception.
       1. If _O_ does not have all of the internal slots of a Subscription Observer instance, throw a *TypeError* exception.
-      1. Let _subscription_ be the value of _O_'s [[Subscription]] internal.
+      1. Let _subscription_ be _O_.[[Subscription]].
       1. Return ! SubscriptionClosed(_subscription_).
     </emu-alg>
   </emu-clause>
@@ -37,17 +65,7 @@
       1. Let _O_ be the *this* value.
       1. If Type(_O_) is not Object, throw a *TypeError* exception.
       1. If _O_ does not have all of the internal slots of a Subscription Observer instance, throw a *TypeError* exception.
-      1. Let _subscription_ be the value of _O_'s [[Subscription]] internal slot.
-      1. If SubscriptionClosed(_subscription_) is *true*, return *undefined*.
-      1. Let _observer_ be the value of _subscription_'s [[Observer]] internal slot.
-      1. Assert: Type(_observer_) is Object.
-      1. Let _nextMethodResult_ be GetMethod(_observer_, `"next"`).
-      1. If _nextMethodResult_.[[Type]] is ~normal~, then
-        1. Let _nextMethod_ be _nextMethodResult_.[[Value]].
-        1. If _nextMethod_ is not *undefined*, then
-          1. Let _result_ be Call(_nextMethod_, _observer_, « ‍_value_ »).
-          1. If _result_ is an abrupt completion, perform HostReportErrors(« _result_.[[Value]] »).
-      1. Else if _nextMethodResult_.[[Type]] is ~throw~, then perform HostReportErrors(« _nextMethodResult_.[[Value]] »).
+      1. Perform ! EmitSubscriptionHook(_O_, `"next"`, _value_).
       1. Return *undefined*.
     </emu-alg>
   </emu-clause>
@@ -58,19 +76,7 @@
       1. Let _O_ be the *this* value.
       1. If Type(_O_) is not Object, throw a *TypeError* exception.
       1. If _O_ does not have all of the internal slots of a Subscription Observer instance, throw a *TypeError* exception.
-      1. Let _subscription_ be the value of _O_'s [[Subscription]] internal slot.
-      1. If SubscriptionClosed(_subscription_) is *true*, return *undefined*.
-      1. Let _observer_ be the value of _subscription_'s [[Observer]] internal slot.
-      1. Set _subscription_'s [[Observer]] internal slot to *undefined*.
-      1. Assert: Type(_observer_) is Object.
-      1. Let _errorMethodResult_ be GetMethod(_observer_, `"error"`).
-      1. If _errorMethodResult_.[[Type]] is ~normal~, then
-        1. Let _errorMethod_ be _errorMethodResult_.[[Value]].
-        1. If _errorMethod_ is not *undefined*, then
-          1. Let _result_ be Call(_errorMethod_, _observer_, « _exception_ »).
-          1. If _result_ is an abrupt completion, perform HostReportErrors(« _result_.[[Value]] »).
-      1. Else if _errorMethodResult_.[[Type]] is ~throw~, then perform HostReportErrors(« _errorMethodResult_.[[Value]] »).
-      1. Perform ! CleanupSubscription(_subscription_).
+      1. Perform ! EmitSubscriptionHook(_O_, `"error"`, _value_).
       1. Return *undefined*.
     </emu-alg>
   </emu-clause>
@@ -81,21 +87,17 @@
       1. Let _O_ be the *this* value.
       1. If Type(_O_) is not Object, throw a *TypeError* exception.
       1. If _O_ does not have all of the internal slots of a Subscription Observer instance, throw a *TypeError* exception.
-      1. Let _subscription_ be the value of _O_'s [[Subscription]] internal slot.
-      1. If SubscriptionClosed(_subscription_) is *true*, return *undefined*.
-      1. Let _observer_ be the value of _subscription_'s [[Observer]] internal slot.
-      1. Set _subscription_'s [[Observer]] internal slot to *undefined*.
-      1. Assert: Type(_observer_) is Object.
-      1. Let _completeMethodResult_ be GetMethod(_observer_, `"complete"`).
-      1. If _completeMethodResult_.[[Type]] is ~normal~, then
-        1. Let _completeMethod_ be _completeMethodResult_.[[Value]].
-        1. If _completeMethod_ is not *undefined*, then
-          1. Let _result_ be Call(_completeMethod_, _observer_).
-          1. If _result_ is an abrupt completion, perform HostReportErrors(« _result_.[[Value]] »).
-      1. Else if _completeMethodResult_.[[Type]] is ~throw~, then perform HostReportErrors(« _completeMethodResult_.[[Value]] »).
-      1. Perform ! CleanupSubscription(_subscription_).
+      1. Perform ! EmitSubscriptionHook(_O_, `"complete"`).
       1. Return *undefined*.
     </emu-alg>
+  </emu-clause>
+
+  <emu-clause id="subscription-observer-prototype-@@toStringTag">
+    <h1>%SubscriptionObserverPrototype% [ @@toStringTag ] ( )</h1>
+
+    <p>The initial value of the `@@toStringTag` property of %SubscriptionObserverPrototype% is the String value `"Subscription Observer"`.</p>
+
+    <p>This property has the attributes { [[Writable]]: *false*, [[Enumerable]]: *false*, [[Configurable]]: *true* }.</p>
   </emu-clause>
 
 </emu-clause>
